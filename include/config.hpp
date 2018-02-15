@@ -27,13 +27,14 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #ifndef STATUS_CODE_CONSTEXPR14
 #if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
+//! Defined to be `constexpr` when on C++ 14 or better compilers. Usually automatic, can be overriden.
 #define STATUS_CODE_CONSTEXPR14 constexpr
 #else
 #define STATUS_CODE_CONSTEXPR14
 #endif
 #endif
 
-//! Namespace for status_code
+//! Namespace for the library
 namespace system_error2
 {
 }

@@ -28,11 +28,12 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include "config.hpp"
 
 #include <cassert>
-#include <cerrno>
-#include <stdexcept>
+#include <cerrno>     // for error constants
+#include <cstddef>    // for size_t
+#include <exception>  // for std::exception
+#include <new>
 #include <type_traits>
 
-//! Namespace for status_code
 namespace system_error2
 {
   template <class DomainType> class status_code;
@@ -48,9 +49,20 @@ namespace system_error2
         ;
       return end - str;
     }
+
+    template <class T> struct status_code_sizer
+    {
+      void *a;
+      T b;
+    };
+    template <class To, class From> struct type_erasure_is_safe
+    {
+      static constexpr bool value = std::is_trivially_copyable<From>::value  //
+                                    && (sizeof(status_code_sizer<From>) <= sizeof(status_code_sizer<To>));
+    };
   }
 
-  /*! Abstract base class for a domain for a status code.
+  /*! Abstract base class for a domain of a status code.
   */
   class status_code_domain
   {
@@ -59,7 +71,12 @@ namespace system_error2
   public:
     //! Type of the unique id for this domain.
     using unique_id_type = unsigned long long;
-    //! Thread safe reference to a message string.
+    /*! Thread safe reference to a message string.
+
+    Be aware that you cannot add payload to implementations of this class.
+    You get exactly the `void *[2]` array to keep state, this is usually
+    sufficient for a `std::shared_ptr<>` or a `std::string`.
+    */
     class string_ref
     {
     public:
@@ -103,7 +120,7 @@ namespace system_error2
       //! Copy construct the derived implementation.
       string_ref(const string_ref &o) { o._copy(this); }
       //! Move construct the derived implementation.
-      string_ref(string_ref &&o) noexcept { std::move(o)._move(this); }
+      string_ref(string_ref &&o) noexcept { static_cast<string_ref &&>(o)._move(this); }
       //! Copy assignment
       string_ref &operator=(const string_ref &o)
       {
@@ -115,7 +132,7 @@ namespace system_error2
       string_ref &operator=(string_ref &&o) noexcept
       {
         this->~string_ref();
-        std::move(o)._move(this);
+        static_cast<string_ref &&>(o)._move(this);
         return *this;
       }
       //! Destruction permitted.
@@ -145,7 +162,10 @@ namespace system_error2
     unique_id_type _id;
 
   protected:
-    //! Use https://www.random.org/cgi-bin/randbyte?nbytes=8&format=h to get a random 64 bit id
+    /*! Use [https://www.random.org/cgi-bin/randbyte?nbytes=8&format=h](https://www.random.org/cgi-bin/randbyte?nbytes=8&format=h) to get a random 64 bit id.
+
+    Do NOT make up your own value. Do NOT use zero.
+    */
     constexpr explicit status_code_domain(unique_id_type id) noexcept : _id(id) {}
     //! No public copying at type erased level
     status_code_domain(const status_code_domain &) = default;
@@ -195,6 +215,8 @@ namespace system_error2
     using value_type = ErasedType;
   };
   /*! A type erased lightweight status code reflecting empty, success, or failure.
+  Differs from `status_code<erased<>>` by being always available irrespective of
+  the domain's value type.
   */
   template <> class status_code<void>
   {
@@ -260,7 +282,7 @@ namespace system_error2
     void throw_exception() const { _domain->_throw_exception(*this); }
   };
 
-  /*! A lightweight status code reflecting empty, success, or failure.
+  /*! A lightweight, typed, status code reflecting empty, success, or failure.
   */
   template <class DomainType> class status_code : public status_code<void>
   {
@@ -294,25 +316,27 @@ namespace system_error2
     template <class T,  //
               typename std::enable_if<std::is_same<typename std::decay<decltype(make_status_code(std::declval<T>()))>::type, status_code>::value, bool>::type = true>
     constexpr explicit status_code(T &&v) noexcept(noexcept(make_status_code(std::declval<T>())))
-        : status_code(make_status_code(std::forward<T>(v)))
+        : status_code(make_status_code(static_cast<T &&>(v)))
     {
     }
     //! Explicit construction from a `value_type`.
     constexpr explicit status_code(const value_type &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
-        : _value(v)
-        , _base(domain_type::get())
+        : _base(domain_type::get())
+        , _value(v)
     {
     }
     /*! Explicit construction from an erased status code. Available only if
-    `value_type` is trivially destructible and `sizeof(value_type) <= sizeof(ErasedType)`.
+    `value_type` is trivially destructible and `sizeof(status_code) <= sizeof(status_code<erased<>>)`.
     Does not check if domains are equal.
     */
     template <class ErasedType,  //
-              typename std::enable_if<std::is_trivially_copyable<value_type>::value && sizeof(value_type) <= sizeof(ErasedType), bool>::type = true>
+              typename std::enable_if<detail::type_erasure_is_safe<ErasedType, value_type>::value, bool>::type = true>
     constexpr explicit status_code(const status_code<erased<ErasedType>> &v)
         : status_code(reinterpret_cast<const value_type &>(v._value))
     {
+#if __cplusplus >= 201400
       assert(v.domain() == domain());
+#endif
     }
 
     // Replace the type erased implementations with type aware implementations for better codegen
@@ -336,7 +360,10 @@ namespace system_error2
     constexpr const value_type &&value() const &&noexcept { return _value; }
   };
 
-  /*! Type erased status_code, but copyable/movable/destructible.
+  /*! Type erased status_code, but copyable/movable/destructible. Available
+  only if `erased<>` is available, which is when the domain's type is trivially
+  copyable, and if the size of the domain's typed error code is less than or equal to
+  this erased error code.
   */
   template <class ErasedType> class status_code<erased<ErasedType>> : public status_code<void>
   {
@@ -368,7 +395,7 @@ namespace system_error2
 
     //! Explicit copy construction from any other status code if its type is trivially copyable and it would fit into our storage
     template <class DomainType,  //
-              typename std::enable_if<std::is_trivially_copyable<typename DomainType::value_type>::value && sizeof(value_type) >= sizeof(typename DomainType::value_type), bool>::type = true>
+              typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
     constexpr explicit status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(reinterpret_cast<const value_type &>(v.value()))
     {
     }
@@ -378,11 +405,11 @@ namespace system_error2
 
 
   /*! Exception type representing a thrown status_code
-
   */
-  template <class DomainType> class status_error : public std::runtime_error
+  template <class DomainType> class status_error : public std::exception
   {
     status_code<DomainType> _code;
+    typename DomainType::string_ref _msgref;
 
   public:
     //! The type of the status domain
@@ -392,10 +419,13 @@ namespace system_error2
 
     //! Constructs an instance
     status_error(status_code<DomainType> code)
-        : std::runtime_error(code.message().c_str())
-        , _code(std::move(code))
+        : _code(static_cast<status_code<DomainType> &&>(code))
+        , _msgref(_code.message())
     {
     }
+
+    //! Return an explanatory string
+    virtual const char *what() const noexcept { return _msgref.c_str(); }
     //! Returns a reference to the code
     const status_code_type &code() const & { return _code; }
     //! Returns a reference to the code
@@ -631,7 +661,7 @@ namespace system_error2
     };
   }
 
-  /*! The domain for generic status codes, those mapped by `errc`.
+  /*! The implementation of the domain for generic status codes, those mapped by `errc`.
   */
   class _generic_code_domain : public status_code_domain
   {
@@ -666,7 +696,7 @@ namespace system_error2
     _generic_code_domain &operator=(_generic_code_domain &&) = default;
     ~_generic_code_domain() = default;
 
-    //! Singleton getter
+    //! Constexpr singleton getter. Returns the address of the constexpr generic_code_domain variable.
     static inline constexpr const _generic_code_domain *get();
 
     virtual _base::string_ref name() const noexcept override final { return string_ref("generic domain"); }
@@ -703,22 +733,10 @@ namespace system_error2
     {
       assert(code.domain() == *this);
       const auto &c = static_cast<const generic_code &>(code);
-      switch(c.value())
-      {
-      case errc::invalid_argument:
-        throw std::invalid_argument(_message(code).c_str());
-      case errc::argument_out_of_domain:
-        throw std::domain_error(_message(code).c_str());
-      case errc::argument_list_too_long:
-      case errc::filename_too_long:
-      case errc::no_buffer_space:
-        throw std::length_error(_message(code).c_str());
-      case errc::result_out_of_range:
-        throw std::range_error(_message(code).c_str());
-      }
       throw status_error<_generic_code_domain>(c);
     }
   };
+  //! A constexpr source variable for the generic code domain
   constexpr _generic_code_domain generic_code_domain;
   inline constexpr const _generic_code_domain *_generic_code_domain::get() { return &generic_code_domain; }
 
