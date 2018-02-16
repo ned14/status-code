@@ -22,20 +22,9 @@ Distributed under the Boost Software License, Version 1.0.
 http://www.boost.org/LICENSE_1_0.txt)
 */
 
-#ifndef SYSTEM_ERROR2_CONFIG_HPP
-#define SYSTEM_ERROR2_CONFIG_HPP
+#ifndef SYSTEM_ERROR2_HPP
+#define SYSTEM_ERROR2_HPP
 
-#ifndef STATUS_CODE_CONSTEXPR14
-#if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
-//! Defined to be `constexpr` when on C++ 14 or better compilers. Usually automatic, can be overriden.
-#define STATUS_CODE_CONSTEXPR14 constexpr
-#else
-#define STATUS_CODE_CONSTEXPR14
-#endif
-#endif
+#include "generic_code.hpp"
 
-//! Namespace for the library
-namespace system_error2
-{
-}
 #endif

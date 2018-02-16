@@ -1,13 +1,14 @@
-# Reference implementation for proposed SG14 `status_code` in C++ 11
+# Reference implementation for proposed SG14 `status_code` (`<system_error2>`) in C++ 11
 
 (C) 2018 Niall Douglas [http://www.nedproductions.biz/](http://www.nedproductions.biz/)
+Please send feedback to the SG14 study group mailing list at https://groups.google.com/a/isocpp.org/d/forum/sg14.
 
 Docs: [https://ned14.github.io/status-code/](https://ned14.github.io/status-code/)
 (reference API docs are at bottom of page)
 
 Solves the problems for low latency/large code base users with `<system_error>`
-as listed by [WG21 P0824](https://wg21.link/P0824). This library is EXPERIMENTAL
-and is subject to change as the committee evolves the design.
+as listed by [WG21 P0824](https://wg21.link/P0824). This proposed `<system_error2>`
+library is EXPERIMENTAL and is subject to change as the committee evolves the design.
 
 ## Features:
 
@@ -21,10 +22,12 @@ and is subject to change as the committee evolves the design.
 - Header-only library friendly.
 - Type safe yet with type erasure in public interfaces so it can scale
 across huge codebases.
+- Minimum compile time load, making it suitable for use in the global headers of
+multi-million line codebases.
 
 ## Problems with `<system_error>` listed by P0824 solved:
 
-1. Does not `#include <string>`, and thus the entire STL allocator and algorithm
+1. Does not cause `#include <string>`, and thus including the entire STL allocator and algorithm
 machinery, thus preventing use in freestanding C++ as well as substantially
 impacting compile times which can be a showstopper for very large C++ projects.
 Only includes the following headers:
@@ -60,15 +63,19 @@ to unpleasant, hard-to-debug, surprise.
     The `status_code` proposed here suffers from no such ambiguity. It can be one of
 exactly three meanings: (i) success (ii) failure (iii) empty (uninitialised). There
 is no boolean conversion operator, so users must write out exactly what they mean
-e.g. `if(ec.success()) ...`, `if(ec.failure()) ...`, `if(ec.empty()) ...`.
+e.g. `if(sc.success()) ...`, `if(sc.failure()) ...`, `if(sc.empty()) ...`.
 
 5. Relatedly, `status_code` can now represent successful (informational) codes as
 well as failure codes. Unlike `std::error_code` where zero is given special meaning,
-we impose no requirements at all on the choice of coding.
+we impose no requirements at all on the choice of coding. This permits safe usage of more
+complex C status coding such as the NT kernel's `NTSTATUS`, which is a `LONG` whereby bits
+31 and 30 determine which of four categories the status is (success, informational, warning,
+error), or the very commone case where negative numbers mean failure and positive numbers
+mean success-with-information.
 
 6. The relationship between `std::error_code` and `std::error_condition` is
 confusing to many users reading code based on `<system_error>`, specifically when is
-a comparison between codes *semantic* vs *literal*? `status_code` makes all
+a comparison between codes *semantic* or *literal*? `status_code` makes all
 comparisons *semantic*, **always**. If you want a literal comparison, you can do one
 by hand by comparing domains and values directly.
 
