@@ -1,7 +1,7 @@
 dist: trusty
 language: cpp
 compiler:
- - g++-4.9
+ - g++-5
  - clang-3.3
 sudo: false
 os:
@@ -19,13 +19,13 @@ addons:
     sources:
     - ubuntu-toolchain-r-test
     packages:
-    - g++-4.9
+    - g++-5
     - clang-3.3
     - cmake
     - cmake-data
 
 script:
- - if [ "$CXX" = "g++" ]; then export CXX=g++-4.9; fi;
+ - if [ "$CXX" = "g++" ]; then export CXX=g++-5; fi;
  - if [ "$CXX" = "clang++" ]; then export CXX=clang++-3.3; fi;
  - mkdir build
  - cd build
