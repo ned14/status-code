@@ -31,10 +31,10 @@ script:
  - cd build
  - cmake .. -DCMAKE_BUILD_TYPE=Release
  - cmake --build .
- - bin/test-status_code
+ - bin/test-status-code
  - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-fno-omit-frame-pointer -fsanitize=undefined" -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=undefined
  - cmake --build .
- - bin/test-status_code
+ - bin/test-status-code
  
 after_success:
 

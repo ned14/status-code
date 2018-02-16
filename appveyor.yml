@@ -25,7 +25,7 @@ after_build:
 
 before_test:
 test_script:
- - bin\Release\test-status_code
+ - bin\Release\test-status-code
 after_test:
 
 on_success:
