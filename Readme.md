@@ -4,7 +4,7 @@
 Please send feedback to the SG14 study group mailing list at https://groups.google.com/a/isocpp.org/d/forum/sg14.
 
 Docs: [https://ned14.github.io/status-code/](https://ned14.github.io/status-code/)
-(reference API docs are at bottom of page)
+(reference API docs are at bottom of page) Linux: [![Build Status](https://travis-ci.org/ned14/status-code.svg?branch=master)](https://travis-ci.org/ned14/status-code) Windows: [![Build status](https://ci.appveyor.com/api/projects/status/doyh9rol1gupcwd0/branch/master?svg=true)](https://ci.appveyor.com/project/ned14/status-code/branch/master)
 
 Solves the problems for low latency/large code base users with `<system_error>`
 as listed by [WG21 P0824](https://wg21.link/P0824). This proposed `<system_error2>`
