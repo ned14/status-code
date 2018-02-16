@@ -2,7 +2,7 @@ dist: trusty
 language: cpp
 compiler:
  - g++-5
- - clang-3.3
+ - clang3.3
 sudo: false
 os:
  - linux
@@ -26,7 +26,7 @@ addons:
 
 script:
  - if [ "$CXX" = "g++" ]; then export CXX=g++-5; fi;
- - if [ "$CXX" = "clang++" ]; then export CXX=clang++-3.3; fi;
+ - if [ "$CXX" = "clang++" ]; then export CXX=clang++3.3; fi;
  - mkdir build
  - cd build
  - cmake .. -DCMAKE_BUILD_TYPE=Release
