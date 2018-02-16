@@ -1,0 +1,36 @@
+dist: trusty
+language: cpp
+compiler:
+ - g++-4.9
+ - clang-3.3
+sudo: false
+os:
+ - linux
+branches:
+  only:
+    - master
+notifications:
+  email:
+    recipients:
+      - nialldouglas14@gmail.com
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-4.9
+    - clang-3.3
+    - cmake
+    - cmake-data
+
+script:
+ - mkdir build
+ - cd build
+ - cmake .. -DCMAKE_BUILD_TYPE=Release
+ - cmake --build .
+ - bin/test-status_code
+ 
+after_success:
+
+after_failure:

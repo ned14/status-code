@@ -1,0 +1,33 @@
+# version format
+version: 0.80.{build}-{branch}
+ 
+# branches to build
+branches:
+  only:
+    - master
+skip_tags: true
+ 
+image: Visual Studio 2013
+init:
+  - git config --global core.longpaths true
+
+clone_folder: c:\status-code
+platform: x64 
+configuration: Release
+
+before_build:
+build_script:
+ - mkdir build
+ - cd build
+ - cmake ..
+ - cmake --build . --config Release
+after_build:
+
+before_test:
+test_script:
+ - bin\test-status_code
+after_test:
+
+on_success:
+on_failure:
+on_finish:
