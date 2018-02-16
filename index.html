@@ -8,13 +8,14 @@ index
 </head>
 <body>
 
-<h1>Reference implementation for proposed SG14 <code>status_code</code> in C++ 11</h1>
-<p>(C) 2018 Niall Douglas <a href="http://www.nedproductions.biz/">http://www.nedproductions.biz/</a></p>
+<h1>Reference implementation for proposed SG14 <code>status_code</code> (<code>&lt;system_error2&gt;</code>) in C++ 11</h1>
+<p>(C) 2018 Niall Douglas <a href="http://www.nedproductions.biz/">http://www.nedproductions.biz/</a>
+Please send feedback to the SG14 study group mailing list at https://groups.google.com/a/isocpp.org/d/forum/sg14.</p>
 <p>Docs: <a href="https://ned14.github.io/status-code/">https://ned14.github.io/status-code/</a>
 (reference API docs are at bottom of page)</p>
 <p>Solves the problems for low latency/large code base users with <code>&lt;system_error&gt;</code>
-as listed by <a href="https://wg21.link/P0824">WG21 P0824</a>. This library is EXPERIMENTAL
-and is subject to change as the committee evolves the design.</p>
+as listed by <a href="https://wg21.link/P0824">WG21 P0824</a>. This proposed <code>&lt;system_error2&gt;</code>
+library is EXPERIMENTAL and is subject to change as the committee evolves the design.</p>
 <h2>Features:</h2>
 <ul>
 <li>Portable to any C++ 11 compiler. These are known to work:<ul>
@@ -29,11 +30,13 @@ Visual Studio's probably have insufficient C++ 11 type trait support.</li>
 <li>Header-only library friendly.</li>
 <li>Type safe yet with type erasure in public interfaces so it can scale
 across huge codebases.</li>
+<li>Minimum compile time load, making it suitable for use in the global headers of
+multi-million line codebases.</li>
 </ul>
 <h2>Problems with <code>&lt;system_error&gt;</code> listed by P0824 solved:</h2>
 <ol>
 <li>
-<p>Does not <code>#include &lt;string&gt;</code>, and thus the entire STL allocator and algorithm
+<p>Does not cause <code>#include &lt;string&gt;</code>, and thus including the entire STL allocator and algorithm
 machinery, thus preventing use in freestanding C++ as well as substantially
 impacting compile times which can be a showstopper for very large C++ projects.
 Only includes the following headers:</p>
@@ -72,17 +75,21 @@ to unpleasant, hard-to-debug, surprise.</p>
 <p>The <code>status_code</code> proposed here suffers from no such ambiguity. It can be one of
 exactly three meanings: (i) success (ii) failure (iii) empty (uninitialised). There
 is no boolean conversion operator, so users must write out exactly what they mean
-e.g. <code>if(ec.success()) ...</code>, <code>if(ec.failure()) ...</code>, <code>if(ec.empty()) ...</code>.</p>
+e.g. <code>if(sc.success()) ...</code>, <code>if(sc.failure()) ...</code>, <code>if(sc.empty()) ...</code>.</p>
 </li>
 <li>
 <p>Relatedly, <code>status_code</code> can now represent successful (informational) codes as
 well as failure codes. Unlike <code>std::error_code</code> where zero is given special meaning,
-we impose no requirements at all on the choice of coding.</p>
+we impose no requirements at all on the choice of coding. This permits safe usage of more
+complex C status coding such as the NT kernel's <code>NTSTATUS</code>, which is a <code>LONG</code> whereby bits
+31 and 30 determine which of four categories the status is (success, informational, warning,
+error), or the very commone case where negative numbers mean failure and positive numbers
+mean success-with-information.</p>
 </li>
 <li>
 <p>The relationship between <code>std::error_code</code> and <code>std::error_condition</code> is
 confusing to many users reading code based on <code>&lt;system_error&gt;</code>, specifically when is
-a comparison between codes <em>semantic</em> vs <em>literal</em>? <code>status_code</code> makes all
+a comparison between codes <em>semantic</em> or <em>literal</em>? <code>status_code</code> makes all
 comparisons <em>semantic</em>, <strong>always</strong>. If you want a literal comparison, you can do one
 by hand by comparing domains and values directly.</p>
 </li>
@@ -114,40 +121,40 @@ work exactly as normal, except that publicly it does not advertise its type.</p>
 <p>Namespace for the library</p>
 <ul>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2___generic_code_domain"><code>_generic_code_domain</code></a> &mdash; The implementation of the domain for generic status codes, those mapped by <code>errc</code>.</p>
+<p><a href="doc_generic_code.html#standardese-system_error2___generic_code_domain"><code>_generic_code_domain</code></a> &mdash; Forward declaration of the implementation of the generic code domain</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2"><code>equivalent</code></a></p>
+<p><a href="doc_generic_code.html#standardese-system_error2"><code>equivalent</code></a></p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__erased-ErasedType--"><code>erased</code></a> &mdash; A tag for an erased value type for <code>status_code&lt;T&gt;</code>.</p>
+<p><a href="doc_status_code.html#standardese-system_error2__erased-ErasedType--"><code>erased</code></a> &mdash; A tag for an erased value type for <code>status_code&lt;D&gt;</code>.</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__errc"><code>errc</code></a> &mdash; The generic error coding (POSIX)</p>
+<p><a href="doc_generic_code.html#standardese-system_error2__errc"><code>errc</code></a> &mdash; The generic error coding (POSIX)</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2"><code>generic_code</code></a></p>
+<p><a href="doc_status_code_domain.html#standardese-system_error2__generic_code"><code>generic_code</code></a> &mdash; The generic code is a status code with the generic code domain, which is that of <code>errc</code> (POSIX).</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__generic_code_domain"><code>generic_code_domain</code></a> &mdash; A constexpr source variable for the generic code domain</p>
+<p><a href="doc_generic_code.html#standardese-system_error2__generic_code_domain"><code>generic_code_domain</code></a> &mdash; A constexpr source variable for the generic code domain, which is that of <code>errc</code> (POSIX). Returned by <code>_generic_code_domain::get()</code>.</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2"><code>get</code></a></p>
+<p><a href="doc_generic_code.html#standardese-system_error2"><code>get</code></a></p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__operator---DomainType1-DomainType2--status_code-DomainType1-const--status_code-DomainType2-const--"><code>operator!=</code></a> &mdash; True if the status code’s are not semantically equal via <code>equivalent()</code>.</p>
+<p><a href="doc_generic_code.html#standardese-system_error2__operator---DomainType1-DomainType2--status_code-DomainType1-const--status_code-DomainType2-const--"><code>operator!=</code></a> &mdash; True if the status code’s are not semantically equal via <code>equivalent()</code>.</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__operator---DomainType1-DomainType2--status_code-DomainType1-const--status_code-DomainType2-const--"><code>operator==</code></a> &mdash; True if the status code’s are semantically equal via <code>equivalent()</code>.</p>
+<p><a href="doc_generic_code.html#standardese-system_error2__operator---DomainType1-DomainType2--status_code-DomainType1-const--status_code-DomainType2-const--"><code>operator==</code></a> &mdash; True if the status code’s are semantically equal via <code>equivalent()</code>.</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__status_code-"><code>status_code</code></a> &mdash; A type erased lightweight status code reflecting empty, success, or failure.</p>
+<p><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><code>status_code</code></a> &mdash; The main workhorse of the system_error2 library, can be typed (<code>status_code&lt;DomainType&gt;</code>), erased-immutable (<code>status_code&lt;void&gt;</code>) or erased-mutable (<code>status_code&lt;erased&lt;T&gt;&gt;</code>).</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__status_code_domain"><code>status_code_domain</code></a> &mdash; Abstract base class for a domain of a status code.</p>
+<p><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain"><code>status_code_domain</code></a> &mdash; Abstract base class for a coding domain of a status code.</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__status_error-DomainType-"><code>status_error</code></a> &mdash; Exception type representing a thrown status_code</p>
+<p><a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-"><code>status_error</code></a> &mdash; Exception type representing a thrown status_code</p>
 </li>
 </ul>
 </li>
