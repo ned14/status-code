@@ -29,132 +29,133 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include <cerrno>  // for error constants
 
-namespace system_error2
+SYSTEM_ERROR2_NAMESPACE_BEGIN
+
+//! The generic error coding (POSIX)
+enum class errc : int
 {
-  //! The generic error coding (POSIX)
-  enum class errc : int
-  {
-    success = 0,
+  success = 0,
+  unknown = -1,
 
-    address_family_not_supported = EAFNOSUPPORT,
-    address_in_use = EADDRINUSE,
-    address_not_available = EADDRNOTAVAIL,
-    already_connected = EISCONN,
-    argument_list_too_long = E2BIG,
-    argument_out_of_domain = EDOM,
-    bad_address = EFAULT,
-    bad_file_descriptor = EBADF,
-    broken_pipe = EPIPE,
-    connection_aborted = ECONNABORTED,
-    connection_already_in_progress = EALREADY,
-    connection_refused = ECONNREFUSED,
-    connection_reset = ECONNRESET,
-    cross_device_link = EXDEV,
-    destination_address_required = EDESTADDRREQ,
-    device_or_resource_busy = EBUSY,
-    directory_not_empty = ENOTEMPTY,
-    executable_format_error = ENOEXEC,
-    file_exists = EEXIST,
-    file_too_large = EFBIG,
-    filename_too_long = ENAMETOOLONG,
-    function_not_supported = ENOSYS,
-    host_unreachable = EHOSTUNREACH,
-    illegal_byte_sequence = EILSEQ,
-    inappropriate_io_control_operation = ENOTTY,
-    interrupted = EINTR,
-    invalid_argument = EINVAL,
-    invalid_seek = ESPIPE,
-    io_error = EIO,
-    is_a_directory = EISDIR,
-    message_size = EMSGSIZE,
-    network_down = ENETDOWN,
-    network_reset = ENETRESET,
-    network_unreachable = ENETUNREACH,
-    no_buffer_space = ENOBUFS,
-    no_child_process = ECHILD,
-    no_lock_available = ENOLCK,
-    no_message = ENOMSG,
-    no_protocol_option = ENOPROTOOPT,
-    no_space_on_device = ENOSPC,
-    no_such_device_or_address = ENXIO,
-    no_such_device = ENODEV,
-    no_such_file_or_directory = ENOENT,
-    no_such_process = ESRCH,
-    not_a_directory = ENOTDIR,
-    not_a_socket = ENOTSOCK,
-    not_connected = ENOTCONN,
-    not_enough_memory = ENOMEM,
-    operation_in_progress = EINPROGRESS,
-    operation_not_permitted = EPERM,
-    operation_not_supported = EOPNOTSUPP,
-    permission_denied = EACCES,
-    protocol_not_supported = EPROTONOSUPPORT,
-    read_only_file_system = EROFS,
-    resource_deadlock_would_occur = EDEADLK,
-    resource_unavailable_try_again = EAGAIN,
-    result_out_of_range = ERANGE,
-    timed_out = ETIMEDOUT,
-    too_many_files_open_in_system = ENFILE,
-    too_many_files_open = EMFILE,
-    too_many_links = EMLINK,
-    too_many_symbolic_link_levels = ELOOP,
-    wrong_protocol_type = EPROTOTYPE
-  };
+  address_family_not_supported = EAFNOSUPPORT,
+  address_in_use = EADDRINUSE,
+  address_not_available = EADDRNOTAVAIL,
+  already_connected = EISCONN,
+  argument_list_too_long = E2BIG,
+  argument_out_of_domain = EDOM,
+  bad_address = EFAULT,
+  bad_file_descriptor = EBADF,
+  broken_pipe = EPIPE,
+  connection_aborted = ECONNABORTED,
+  connection_already_in_progress = EALREADY,
+  connection_refused = ECONNREFUSED,
+  connection_reset = ECONNRESET,
+  cross_device_link = EXDEV,
+  destination_address_required = EDESTADDRREQ,
+  device_or_resource_busy = EBUSY,
+  directory_not_empty = ENOTEMPTY,
+  executable_format_error = ENOEXEC,
+  file_exists = EEXIST,
+  file_too_large = EFBIG,
+  filename_too_long = ENAMETOOLONG,
+  function_not_supported = ENOSYS,
+  host_unreachable = EHOSTUNREACH,
+  illegal_byte_sequence = EILSEQ,
+  inappropriate_io_control_operation = ENOTTY,
+  interrupted = EINTR,
+  invalid_argument = EINVAL,
+  invalid_seek = ESPIPE,
+  io_error = EIO,
+  is_a_directory = EISDIR,
+  message_size = EMSGSIZE,
+  network_down = ENETDOWN,
+  network_reset = ENETRESET,
+  network_unreachable = ENETUNREACH,
+  no_buffer_space = ENOBUFS,
+  no_child_process = ECHILD,
+  no_lock_available = ENOLCK,
+  no_message = ENOMSG,
+  no_protocol_option = ENOPROTOOPT,
+  no_space_on_device = ENOSPC,
+  no_such_device_or_address = ENXIO,
+  no_such_device = ENODEV,
+  no_such_file_or_directory = ENOENT,
+  no_such_process = ESRCH,
+  not_a_directory = ENOTDIR,
+  not_a_socket = ENOTSOCK,
+  not_connected = ENOTCONN,
+  not_enough_memory = ENOMEM,
+  operation_in_progress = EINPROGRESS,
+  operation_not_permitted = EPERM,
+  operation_not_supported = EOPNOTSUPP,
+  permission_denied = EACCES,
+  protocol_not_supported = EPROTONOSUPPORT,
+  read_only_file_system = EROFS,
+  resource_deadlock_would_occur = EDEADLK,
+  resource_unavailable_try_again = EAGAIN,
+  result_out_of_range = ERANGE,
+  timed_out = ETIMEDOUT,
+  too_many_files_open_in_system = ENFILE,
+  too_many_files_open = EMFILE,
+  too_many_links = EMLINK,
+  too_many_symbolic_link_levels = ELOOP,
+  wrong_protocol_type = EPROTOTYPE
+};
 
-  namespace detail
+namespace detail
+{
+  struct generic_code_messages
   {
-    struct generic_code_messages
+    const char *msgs[256];
+    SYSTEM_ERROR2_CONSTEXPR14 size_t size() const { return sizeof(msgs) / sizeof(*msgs); }
+    SYSTEM_ERROR2_CONSTEXPR14 const char *operator[](int i) const { return (i < 0 || i >= (int) size() || !msgs[i]) ? "unknown" : msgs[i]; }
+    SYSTEM_ERROR2_CONSTEXPR14 generic_code_messages()
+        : msgs{}
     {
-      const char *msgs[256];
-      STATUS_CODE_CONSTEXPR14 size_t size() const { return sizeof(msgs) / sizeof(*msgs); }
-      STATUS_CODE_CONSTEXPR14 const char *operator[](int i) const { return (i < 0 || i >= (int) size() || !msgs[i]) ? "unknown" : msgs[i]; }
-      STATUS_CODE_CONSTEXPR14 generic_code_messages()
-          : msgs{}
-      {
-        msgs[0] = "Success";
-        msgs[EPERM] = "Operation not permitted";
-        msgs[ENOENT] = "No such file or directory";
-        msgs[ESRCH] = "No such process";
-        msgs[EINTR] = "Interrupted system call";
-        msgs[EIO] = "Input/output error";
-        msgs[ENXIO] = "No such device or address";
-        msgs[E2BIG] = "Argument list too long";
-        msgs[ENOEXEC] = "Exec format error";
-        msgs[EBADF] = "Bad file descriptor";
-        msgs[ECHILD] = "No child processes";
-        msgs[EAGAIN] = "Resource temporarily unavailable";
-        msgs[ENOMEM] = "Cannot allocate memory";
-        msgs[EACCES] = "Permission denied";
-        msgs[EFAULT] = "Bad address";
-        // msgs[ENOTBLK] = "Block device required";
-        msgs[EBUSY] = "Device or resource busy";
-        msgs[EEXIST] = "File exists";
-        msgs[EXDEV] = "Invalid cross-device link";
-        msgs[ENODEV] = "No such device";
-        msgs[ENOTDIR] = "Not a directory";
-        msgs[EISDIR] = "Is a directory";
-        msgs[EINVAL] = "Invalid argument";
-        msgs[ENFILE] = "Too many open files in system";
-        msgs[EMFILE] = "Too many open files";
-        msgs[ENOTTY] = "Inappropriate ioctl for device";
-        msgs[ETXTBSY] = "Text file busy";
-        msgs[EFBIG] = "File too large";
-        msgs[ENOSPC] = "No space left on device";
-        msgs[ESPIPE] = "Illegal seek";
-        msgs[EROFS] = "Read-only file system";
-        msgs[EMLINK] = "Too many links";
-        msgs[EPIPE] = "Broken pipe";
-        msgs[EDOM] = "Numerical argument out of domain";
-        msgs[ERANGE] = "Numerical result out of range";
-        msgs[EDEADLK] = "Resource deadlock avoided";
-        msgs[ENAMETOOLONG] = "File name too long";
-        msgs[ENOLCK] = "No locks available";
-        msgs[ENOSYS] = "Function not implemented";
-        msgs[ENOTEMPTY] = "Directory not empty";
-        msgs[ELOOP] = "Too many levels of symbolic links";
-        // msgs[41] = "(null)";
-        msgs[ENOMSG] = "No message of desired type";
-        msgs[EIDRM] = "Identifier removed";
+      msgs[0] = "Success";
+      msgs[EPERM] = "Operation not permitted";
+      msgs[ENOENT] = "No such file or directory";
+      msgs[ESRCH] = "No such process";
+      msgs[EINTR] = "Interrupted system call";
+      msgs[EIO] = "Input/output error";
+      msgs[ENXIO] = "No such device or address";
+      msgs[E2BIG] = "Argument list too long";
+      msgs[ENOEXEC] = "Exec format error";
+      msgs[EBADF] = "Bad file descriptor";
+      msgs[ECHILD] = "No child processes";
+      msgs[EAGAIN] = "Resource temporarily unavailable";
+      msgs[ENOMEM] = "Cannot allocate memory";
+      msgs[EACCES] = "Permission denied";
+      msgs[EFAULT] = "Bad address";
+      // msgs[ENOTBLK] = "Block device required";
+      msgs[EBUSY] = "Device or resource busy";
+      msgs[EEXIST] = "File exists";
+      msgs[EXDEV] = "Invalid cross-device link";
+      msgs[ENODEV] = "No such device";
+      msgs[ENOTDIR] = "Not a directory";
+      msgs[EISDIR] = "Is a directory";
+      msgs[EINVAL] = "Invalid argument";
+      msgs[ENFILE] = "Too many open files in system";
+      msgs[EMFILE] = "Too many open files";
+      msgs[ENOTTY] = "Inappropriate ioctl for device";
+      msgs[ETXTBSY] = "Text file busy";
+      msgs[EFBIG] = "File too large";
+      msgs[ENOSPC] = "No space left on device";
+      msgs[ESPIPE] = "Illegal seek";
+      msgs[EROFS] = "Read-only file system";
+      msgs[EMLINK] = "Too many links";
+      msgs[EPIPE] = "Broken pipe";
+      msgs[EDOM] = "Numerical argument out of domain";
+      msgs[ERANGE] = "Numerical result out of range";
+      msgs[EDEADLK] = "Resource deadlock avoided";
+      msgs[ENAMETOOLONG] = "File name too long";
+      msgs[ENOLCK] = "No locks available";
+      msgs[ENOSYS] = "Function not implemented";
+      msgs[ENOTEMPTY] = "Directory not empty";
+      msgs[ELOOP] = "Too many levels of symbolic links";
+      // msgs[41] = "(null)";
+      msgs[ENOMSG] = "No message of desired type";
+      msgs[EIDRM] = "Identifier removed";
 // msgs[ECHRNG] = "Channel number out of range";
 // msgs[EL2NSYNC] = "Level 2 not synchronized";
 // msgs[EL3HLT] = "Level 3 halted";
@@ -248,126 +249,148 @@ namespace system_error2
         msgs[133] = "Memory page has hardware error";
         msgs[134] = "(null)";
 #endif
-      }
-    };
-  }
-
-  /*! The implementation of the domain for generic status codes, those mapped by `errc` (POSIX).
-  */
-  class _generic_code_domain : public status_code_domain
-  {
-    template <class> friend class status_code;
-    using _base = status_code_domain;
-
-  public:
-    //! The value type of the generic code, which is an `errc` as per POSIX.
-    using value_type = errc;
-    //! Thread safe reference to a message string, reimplemented to implement finality for better codegen
-    class string_ref : public status_code_domain::string_ref
-    {
-    protected:
-      virtual void _copy(_base::string_ref *dest) const & override final { new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]); }
-      virtual void _move(_base::string_ref *dest) && noexcept override final { new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]); }
-    public:
-      using status_code_domain::string_ref::string_ref;
-      // Allow explicit cast up
-      explicit string_ref(_base::string_ref v) { static_cast<string_ref &&>(v)._move(this); }
-      ~string_ref() override final = default;
-    };
-
-  public:
-    //! Default constructor
-    constexpr _generic_code_domain()
-        : status_code_domain(0x746d6354f4f733e9)
-    {
-    }
-    _generic_code_domain(const _generic_code_domain &) = default;
-    _generic_code_domain(_generic_code_domain &&) = default;
-    _generic_code_domain &operator=(const _generic_code_domain &) = default;
-    _generic_code_domain &operator=(_generic_code_domain &&) = default;
-    ~_generic_code_domain() = default;
-
-    //! Constexpr singleton getter. Returns the address of the constexpr generic_code_domain variable.
-    static inline constexpr const _generic_code_domain *get();
-
-    virtual _base::string_ref name() const noexcept override final { return string_ref("generic domain"); }
-  protected:
-    virtual bool _failure(const status_code<void> &code) const noexcept override final
-    {
-      assert(code.domain() == *this);
-      return static_cast<const generic_code &>(code).value() != errc::success;
-    }
-    virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final
-    {
-      assert(code1.domain() == *this);
-      const auto &c1 = static_cast<const generic_code &>(code1);
-      if(code2.domain() == *this)
-      {
-        const auto &c2 = static_cast<const generic_code &>(code2);
-        return c1.value() == c2.value();
-      }
-      return false;
-    }
-    virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final
-    {
-      assert(code.domain() == *this);
-      return static_cast<const generic_code &>(code);
-    }
-    virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final
-    {
-      assert(code.domain() == *this);
-      const auto &c = static_cast<const generic_code &>(code);
-      static STATUS_CODE_CONSTEXPR14 detail::generic_code_messages msgs;
-      return string_ref(msgs[static_cast<int>(c.value())]);
-    }
-    virtual void _throw_exception(const status_code<void> &code) const override final
-    {
-      assert(code.domain() == *this);
-      const auto &c = static_cast<const generic_code &>(code);
-      throw status_error<_generic_code_domain>(c);
     }
   };
-  //! A constexpr source variable for the generic code domain, which is that of `errc` (POSIX). Returned by `_generic_code_domain::get()`.
-  constexpr _generic_code_domain generic_code_domain;
-  inline constexpr const _generic_code_domain *_generic_code_domain::get() { return &generic_code_domain; }
+}
 
+/*! The implementation of the domain for generic status codes, those mapped by `errc` (POSIX).
+*/
+class _generic_code_domain : public status_code_domain
+{
+  template <class> friend class status_code;
+  using _base = status_code_domain;
 
-  /*************************************************************************************************************/
-
-
-  template <class T> inline bool status_code<void>::equivalent(const status_code<T> &o) const noexcept
+public:
+  //! The value type of the generic code, which is an `errc` as per POSIX.
+  using value_type = errc;
+  //! Thread safe reference to a message string, reimplemented to implement finality for better codegen
+  class string_ref : public status_code_domain::string_ref
   {
-    if(_domain && o._domain)
+  protected:
+    virtual void _copy(_base::string_ref *dest) const & override final { new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]); }
+    virtual void _move(_base::string_ref *dest) && noexcept override final { new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]); }
+  public:
+    using status_code_domain::string_ref::string_ref;
+    // Allow explicit cast up
+    explicit string_ref(_base::string_ref v) { static_cast<string_ref &&>(v)._move(this); }
+    ~string_ref() override final = default;
+  };
+
+public:
+  //! Default constructor
+  constexpr _generic_code_domain()
+      : status_code_domain(0x746d6354f4f733e9)
+  {
+  }
+  _generic_code_domain(const _generic_code_domain &) = default;
+  _generic_code_domain(_generic_code_domain &&) = default;
+  _generic_code_domain &operator=(const _generic_code_domain &) = default;
+  _generic_code_domain &operator=(_generic_code_domain &&) = default;
+  ~_generic_code_domain() = default;
+
+  //! Constexpr singleton getter. Returns the address of the constexpr generic_code_domain variable.
+  static inline constexpr const _generic_code_domain *get();
+
+  virtual _base::string_ref name() const noexcept override final { return string_ref("generic domain"); }
+protected:
+  virtual bool _failure(const status_code<void> &code) const noexcept override final
+  {
+    assert(code.domain() == *this);
+    return static_cast<const generic_code &>(code).value() != errc::success;
+  }
+  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final
+  {
+    assert(code1.domain() == *this);
+    const auto &c1 = static_cast<const generic_code &>(code1);
+    if(code2.domain() == *this)
     {
-      if(_domain->_equivalent(*this, o))
-        return true;
-      if(o._domain->_equivalent(o, *this))
-        return true;
-      generic_code c1 = o._domain->_generic_code(o);
-      if(_domain->_equivalent(*this, c1))
-        return true;
-      generic_code c2 = _domain->_generic_code(*this);
-      if(o._domain->_equivalent(o, c2))
-        return true;
+      const auto &c2 = static_cast<const generic_code &>(code2);
+      return c1.value() == c2.value();
     }
-    // If we are both empty, we are equivalent
-    if(!_domain && !o._domain)
-      return true;
-    // Otherwise not equivalent
     return false;
   }
-  //! True if the status code's are semantically equal via `equivalent()`.
-  template <class DomainType1, class DomainType2> inline bool operator==(const status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept { return a.equivalent(b); }
-  //! True if the status code's are not semantically equal via `equivalent()`.
-  template <class DomainType1, class DomainType2> inline bool operator!=(const status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept { return !a.equivalent(b); }
-  //! True if the status code's are semantically equal via `equivalent()` to the generic code.
-  template <class DomainType1, class DomainType2> inline bool operator==(const status_code<DomainType1> &a, errc b) noexcept { return a.equivalent(generic_code(b)); }
-  //! True if the status code's are semantically equal via `equivalent()` to the generic code.
-  template <class DomainType1, class DomainType2> inline bool operator==(errc a, const status_code<DomainType1> &b) noexcept { return b.equivalent(generic_code(a)); }
-  //! True if the status code's are not semantically equal via `equivalent()` to the generic code.
-  template <class DomainType1, class DomainType2> inline bool operator!=(const status_code<DomainType1> &a, errc b) noexcept { return !a.equivalent(generic_code(b)); }
-  //! True if the status code's are not semantically equal via `equivalent()` to the generic code.
-  template <class DomainType1, class DomainType2> inline bool operator!=(errc a, const status_code<DomainType1> &b) noexcept { return !b.equivalent(generic_code(a)); }
-}  // namespace
+  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final
+  {
+    assert(code.domain() == *this);
+    return static_cast<const generic_code &>(code);
+  }
+  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final
+  {
+    assert(code.domain() == *this);
+    const auto &c = static_cast<const generic_code &>(code);
+    static SYSTEM_ERROR2_CONSTEXPR14 detail::generic_code_messages msgs;
+    return string_ref(msgs[static_cast<int>(c.value())]);
+  }
+  virtual void _throw_exception(const status_code<void> &code) const override final
+  {
+    assert(code.domain() == *this);
+    const auto &c = static_cast<const generic_code &>(code);
+    throw status_error<_generic_code_domain>(c);
+  }
+};
+//! A constexpr source variable for the generic code domain, which is that of `errc` (POSIX). Returned by `_generic_code_domain::get()`.
+constexpr _generic_code_domain generic_code_domain;
+inline constexpr const _generic_code_domain *_generic_code_domain::get()
+{
+  return &generic_code_domain;
+}
+
+
+/*************************************************************************************************************/
+
+
+template <class T> inline bool status_code<void>::equivalent(const status_code<T> &o) const noexcept
+{
+  if(_domain && o._domain)
+  {
+    if(_domain->_equivalent(*this, o))
+      return true;
+    if(o._domain->_equivalent(o, *this))
+      return true;
+    generic_code c1 = o._domain->_generic_code(o);
+    if(_domain->_equivalent(*this, c1))
+      return true;
+    generic_code c2 = _domain->_generic_code(*this);
+    if(o._domain->_equivalent(o, c2))
+      return true;
+  }
+  // If we are both empty, we are equivalent
+  if(!_domain && !o._domain)
+    return true;
+  // Otherwise not equivalent
+  return false;
+}
+//! True if the status code's are semantically equal via `equivalent()`.
+template <class DomainType1, class DomainType2> inline bool operator==(const status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
+{
+  return a.equivalent(b);
+}
+//! True if the status code's are not semantically equal via `equivalent()`.
+template <class DomainType1, class DomainType2> inline bool operator!=(const status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
+{
+  return !a.equivalent(b);
+}
+//! True if the status code's are semantically equal via `equivalent()` to the generic code.
+template <class DomainType1, class DomainType2> inline bool operator==(const status_code<DomainType1> &a, errc b) noexcept
+{
+  return a.equivalent(generic_code(b));
+}
+//! True if the status code's are semantically equal via `equivalent()` to the generic code.
+template <class DomainType1, class DomainType2> inline bool operator==(errc a, const status_code<DomainType1> &b) noexcept
+{
+  return b.equivalent(generic_code(a));
+}
+//! True if the status code's are not semantically equal via `equivalent()` to the generic code.
+template <class DomainType1, class DomainType2> inline bool operator!=(const status_code<DomainType1> &a, errc b) noexcept
+{
+  return !a.equivalent(generic_code(b));
+}
+//! True if the status code's are not semantically equal via `equivalent()` to the generic code.
+template <class DomainType1, class DomainType2> inline bool operator!=(errc a, const status_code<DomainType1> &b) noexcept
+{
+  return !b.equivalent(generic_code(a));
+}
+
+SYSTEM_ERROR2_NAMESPACE_END
 
 #endif

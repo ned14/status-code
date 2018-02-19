@@ -175,7 +175,7 @@ namespace system_error2
     string_ref message() const noexcept { return this->_domain ? string_ref(domain()._message(*this)) : string_ref("(empty)"); }
 
     //! Reset the code to empty.
-    STATUS_CODE_CONSTEXPR14 void clear() { *this = status_code(); }
+    SYSTEM_ERROR2_CONSTEXPR14 void clear() { *this = status_code(); }
 
 #if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
     //! Return a reference to the `value_type`.

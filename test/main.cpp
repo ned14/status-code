@@ -202,18 +202,22 @@ inline constexpr const Code_domain_impl *Code_domain_impl::get()
 
 int main()
 {
-  using namespace system_error2;
+  using namespace SYSTEM_ERROR2_NAMESPACE;
   int retcode = 0;
 
   constexpr generic_code empty1, success1(errc::success), failure1(errc::filename_too_long);
   CHECK(empty1.empty());
   CHECK(!success1.empty());
   CHECK(!failure1.empty());
+  CHECK(success1.success());
+  CHECK(failure1.failure());
   printf("generic_code empty has value %d (%s) is success %d is failure %d\n", empty1.value(), empty1.message().c_str(), empty1.success(), empty1.failure());
   printf("generic_code success has value %d (%s) is success %d is failure %d\n", success1.value(), success1.message().c_str(), success1.success(), success1.failure());
   printf("generic_code failure has value %d (%s) is success %d is failure %d\n", failure1.value(), failure1.message().c_str(), failure1.success(), failure1.failure());
 
   constexpr StatusCode empty2, success2(Code::success1), failure2(Code::nospace);
+  CHECK(success2.success());
+  CHECK(failure2.failure());
   printf("\nStatusCode empty has value %zu (%s) is success %d is failure %d\n", empty2.value(), empty2.message().c_str(), empty2.success(), empty2.failure());
   printf("StatusCode success has value %zu (%s) is success %d is failure %d\n", success2.value(), success2.message().c_str(), success2.success(), success2.failure());
   printf("StatusCode failure has value %zu (%s) is success %d is failure %d\n", failure2.value(), failure2.message().c_str(), failure2.success(), failure2.failure());
@@ -223,9 +227,27 @@ int main()
   printf("(success1 == failure2) = %d\n", success1 == failure2);  // False, success does not map onto failure
   printf("(failure1 == success2) = %d\n", failure1 == success2);  // False, failure does not map onto success
   printf("(failure1 == failure2) = %d\n", failure1 == failure2);  // True, filename_too_long maps onto nospace
+  CHECK(empty1 == empty2);
+  CHECK(success1 == success2);
+  CHECK(success1 != failure2);
+  CHECK(failure1 != success2);
+  CHECK(failure1 == failure2);
 
+
+  // Test status code erasure
   status_code<erased<int>> success3(success1), failure3(failure1);
+  CHECK(success3.success());
+  CHECK(success3.domain() == success1.domain());
+  CHECK(failure3.failure());
+  CHECK(failure3.domain() == failure1.domain());
   printf("\nerased<int> success has value %d (%s) is success %d is failure %d\n", success3.value(), success3.message().c_str(), success3.success(), success3.failure());
   printf("erased<int> failure has value %d (%s) is success %d is failure %d\n", failure3.value(), failure3.message().c_str(), failure3.success(), failure3.failure());
+  generic_code success4(success3), failure4(failure3);
+  CHECK(success4.value() == success1.value());
+  CHECK(success4.domain() == success1.domain());
+  CHECK(failure4.value() == failure1.value());
+  CHECK(failure4.domain() == failure1.domain());
+
+
   return retcode;
 }

@@ -94,3 +94,11 @@ restrictions. As a pointer to the original category is retained, and trivially
 copyable types may be legally copied by `memcpy()`, type erased status codes
 work exactly as normal, except that publicly it does not advertise its type.
 
+8. `std::system_category` assumes that there is only one "system" error coding,
+something mostly true on POSIX, but not elsewhere. This library defines
+`system_code` to a type erased status code sufficiently large enough to carry
+any of the system error codings on the current platform. This allows code to
+construct the precise error code for the system failure in question, and
+return it type erased from the function. Depending on the system call which
+failed, a function may therefore return any one of many system code domains.
+

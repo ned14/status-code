@@ -29,40 +29,40 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include <exception>  // for std::exception
 
-namespace system_error2
-{
-  /*! Exception type representing a thrown status_code
+SYSTEM_ERROR2_NAMESPACE_BEGIN
+
+/*! Exception type representing a thrown status_code
   */
-  template <class DomainType> class status_error : public std::exception
+template <class DomainType> class status_error : public std::exception
+{
+  status_code<DomainType> _code;
+  typename DomainType::string_ref _msgref;
+
+public:
+  //! The type of the status domain
+  using domain_type = DomainType;
+  //! The type of the status code
+  using status_code_type = status_code<DomainType>;
+
+  //! Constructs an instance
+  status_error(status_code<DomainType> code)
+      : _code(static_cast<status_code<DomainType> &&>(code))
+      , _msgref(_code.message())
   {
-    status_code<DomainType> _code;
-    typename DomainType::string_ref _msgref;
+  }
 
-  public:
-    //! The type of the status domain
-    using domain_type = DomainType;
-    //! The type of the status code
-    using status_code_type = status_code<DomainType>;
+  //! Return an explanatory string
+  virtual const char *what() const noexcept { return _msgref.c_str(); }
+  //! Returns a reference to the code
+  const status_code_type &code() const & { return _code; }
+  //! Returns a reference to the code
+  status_code_type &code() & { return _code; }
+  //! Returns a reference to the code
+  const status_code_type &&code() const && { return _code; }
+  //! Returns a reference to the code
+  status_code_type &&code() && { return _code; }
+};
 
-    //! Constructs an instance
-    status_error(status_code<DomainType> code)
-        : _code(static_cast<status_code<DomainType> &&>(code))
-        , _msgref(_code.message())
-    {
-    }
-
-    //! Return an explanatory string
-    virtual const char *what() const noexcept { return _msgref.c_str(); }
-    //! Returns a reference to the code
-    const status_code_type &code() const & { return _code; }
-    //! Returns a reference to the code
-    status_code_type &code() & { return _code; }
-    //! Returns a reference to the code
-    const status_code_type &&code() const && { return _code; }
-    //! Returns a reference to the code
-    status_code_type &&code() && { return _code; }
-  };
-
-}  // namespace
+SYSTEM_ERROR2_NAMESPACE_END
 
 #endif

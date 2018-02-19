@@ -25,17 +25,25 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_CONFIG_HPP
 #define SYSTEM_ERROR2_CONFIG_HPP
 
-#ifndef STATUS_CODE_CONSTEXPR14
+#ifndef SYSTEM_ERROR2_CONSTEXPR14
 #if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
 //! Defined to be `constexpr` when on C++ 14 or better compilers. Usually automatic, can be overriden.
-#define STATUS_CODE_CONSTEXPR14 constexpr
+#define SYSTEM_ERROR2_CONSTEXPR14 constexpr
 #else
-#define STATUS_CODE_CONSTEXPR14
+#define SYSTEM_ERROR2_CONSTEXPR14
 #endif
 #endif
 
+#ifndef SYSTEM_ERROR2_NAMESPACE
+#define SYSTEM_ERROR2_NAMESPACE system_error2
+#define SYSTEM_ERROR2_NAMESPACE_BEGIN                                                                                                                                                                                                                                                                                          \
+  namespace system_error2                                                                                                                                                                                                                                                                                                      \
+  {
+#define SYSTEM_ERROR2_NAMESPACE_END }
+#endif
+
 //! Namespace for the library
-namespace system_error2
-{
-}
+SYSTEM_ERROR2_NAMESPACE_BEGIN
+SYSTEM_ERROR2_NAMESPACE_END
+
 #endif
