@@ -65,6 +65,8 @@ class _win32_code_domain : public status_code_domain
   {
     switch(c)
     {
+    case 0:
+      return 0;
 #include "detail/win32_code_to_generic_code.ipp"
     }
     return -1;
@@ -121,6 +123,10 @@ public:
         if(bytes != 0)
         {
           this->_begin = p;
+          this->_end = strchr(p, 0);
+          while(this->_end[-1] == 10 || this->_end[-1] == 13)
+            --this->_end;
+          *const_cast<char *>(this->_end) = 0;
           break;
         }
         free(p);

@@ -371,22 +371,22 @@ template <class DomainType1, class DomainType2> inline bool operator!=(const sta
   return !a.equivalent(b);
 }
 //! True if the status code's are semantically equal via `equivalent()` to the generic code.
-template <class DomainType1, class DomainType2> inline bool operator==(const status_code<DomainType1> &a, errc b) noexcept
+template <class DomainType1> inline bool operator==(const status_code<DomainType1> &a, errc b) noexcept
 {
   return a.equivalent(generic_code(b));
 }
 //! True if the status code's are semantically equal via `equivalent()` to the generic code.
-template <class DomainType1, class DomainType2> inline bool operator==(errc a, const status_code<DomainType1> &b) noexcept
+template <class DomainType1> inline bool operator==(errc a, const status_code<DomainType1> &b) noexcept
 {
   return b.equivalent(generic_code(a));
 }
 //! True if the status code's are not semantically equal via `equivalent()` to the generic code.
-template <class DomainType1, class DomainType2> inline bool operator!=(const status_code<DomainType1> &a, errc b) noexcept
+template <class DomainType1> inline bool operator!=(const status_code<DomainType1> &a, errc b) noexcept
 {
   return !a.equivalent(generic_code(b));
 }
 //! True if the status code's are not semantically equal via `equivalent()` to the generic code.
-template <class DomainType1, class DomainType2> inline bool operator!=(errc a, const status_code<DomainType1> &b) noexcept
+template <class DomainType1> inline bool operator!=(errc a, const status_code<DomainType1> &b) noexcept
 {
   return !b.equivalent(generic_code(a));
 }

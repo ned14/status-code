@@ -249,5 +249,18 @@ int main()
   CHECK(failure4.domain() == failure1.domain());
 
 
+#ifdef _WIN32
+  // Test win32_code
+  constexpr win32_code success5(0 /*ERROR_SUCCESS*/), failure5(0x2 /*ERROR_FILE_NOT_FOUND*/);
+  CHECK(success5.success());
+  CHECK(failure5.failure());
+  printf("\nWin32 code success has value %zu (%s) is success %d is failure %d\n", success5.value(), success5.message().c_str(), success5.success(), success5.failure());
+  printf("Win32 code failure has value %zu (%s) is success %d is failure %d\n", failure5.value(), failure5.message().c_str(), failure5.success(), failure5.failure());
+  CHECK(success5 == errc::success);
+  CHECK(failure5 == errc::no_such_file_or_directory);
+  system_code success6(success5), failure6(failure5);
+  CHECK(success6 == errc::success);
+  CHECK(failure6 == errc::no_such_file_or_directory);
+#endif
   return retcode;
 }
