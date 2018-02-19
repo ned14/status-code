@@ -25,26 +25,35 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_SYSTEM_ERROR_HPP
 #define SYSTEM_ERROR2_SYSTEM_ERROR_HPP
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(STANDARDESE_IS_IN_THE_HOUSE)
 #include "win32_code.hpp"
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
-/*! A type erased status code suitably large for all the system codes
-which can be returned on this system. For Windows, `win32_code` (`DWORD`)
-or `nt_code` (`LONG`) is possible, so this erased type is `LONG`. For
-POSIX, `posix_code` (`int`) is possible, so this erased type is `int`.
+/*! An erased-mutable status code suitably large for all the system codes
+which can be returned on this system.
+
+For Windows, these might be:
+
+    - `win32_code` (`DWORD`)
+    - `nt_code` (`LONG`)
+    - `com_code` (`HRESULT`)
+
+So the erased type is `LONG` on Windows, as that can represent all of
+the above.
+
+For POSIX, `posix_code` (`int`) is possible, so this erased type is `int`
+i.e. this is the type alias on POSIX, not the above:
+
+`using system_code = status_code<erased<int>>`
 */
 using system_code = status_code<erased<long>>;
 SYSTEM_ERROR2_NAMESPACE_END
 
 #else
 
+#include "generic_code.hpp"
+
 SYSTEM_ERROR2_NAMESPACE_BEGIN
-/*! A type erased status code suitably large for all the system codes
-which can be returned on this system. For Windows, `win32_code` (`DWORD`)
-or `nt_code` (`LONG`) is possible, so this erased type is `LONG`. For
-POSIX, `posix_code` (`int`) is possible, so this erased type is `int`.
-*/
 using system_code = status_code<erased<int>>;
 SYSTEM_ERROR2_NAMESPACE_END
 

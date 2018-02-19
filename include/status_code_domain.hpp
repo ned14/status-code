@@ -36,7 +36,6 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 /*! The main workhorse of the system_error2 library, can be typed (`status_code<DomainType>`), erased-immutable (`status_code<void>`) or erased-mutable (`status_code<erased<T>>`).
   */
 template <class DomainType> class status_code;
-//! Forward declaration of the implementation of the generic code domain
 class _generic_code_domain;
 //! The generic code is a status code with the generic code domain, which is that of `errc` (POSIX).
 using generic_code = status_code<_generic_code_domain>;

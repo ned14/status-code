@@ -25,7 +25,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_WIN32_CODE_HPP
 #define SYSTEM_ERROR2_WIN32_CODE_HPP
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(STANDARDESE_IS_IN_THE_HOUSE)
 #error This file should only be included on Windows
 #endif
 
@@ -33,9 +33,11 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include <atomic>
 #include <cstdlib>  // for malloc
+#include <cstring>  // for strchr
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
+//! \exclude
 namespace win32
 {
   // A Win32 DWORD
@@ -43,17 +45,17 @@ namespace win32
   // Used to retrieve the current Win32 error code
   extern "C" DWORD __stdcall GetLastError();
   // Used to retrieve a locale-specific message string for some error code
-  extern "C" DWORD __stdcall FormatMessageW(DWORD dwFlags, const void *lpSource, DWORD dwMessageId, DWORD dwLanguageId, wchar_t *lpBuffer, DWORD nSize, va_list *Arguments);
+  extern "C" DWORD __stdcall FormatMessageW(DWORD dwFlags, const void *lpSource, DWORD dwMessageId, DWORD dwLanguageId, wchar_t *lpBuffer, DWORD nSize, void /*va_list*/ *Arguments);
   // Converts UTF-16 message string to UTF-8
   extern "C" int __stdcall WideCharToMultiByte(unsigned int CodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, int cchWideChar, char *lpMultiByteStr, int cbMultiByte, const char *lpDefaultChar, int *lpUsedDefaultChar);
 #pragma comment(lib, "kernel32.lib")
 }
 
 class _win32_code_domain;
-//! A Win32 error code, those returned by `GetLastError()`.
+//! (Windows only) A Win32 error code, those returned by `GetLastError()`.
 using win32_code = status_code<_win32_code_domain>;
 
-/*! The implementation of the domain for Win32 error codes, those returned by `GetLastError()` (Windows).
+/*! (Windows only) The implementation of the domain for Win32 error codes, those returned by `GetLastError()`.
 */
 class _win32_code_domain : public status_code_domain
 {
@@ -216,7 +218,7 @@ protected:
     throw status_error<_win32_code_domain>(c);
   }
 };
-//! A constexpr source variable for the win32 code domain, which is that of `GetLastError()` (Windows). Returned by `_win32_code_domain::get()`.
+//! (Windows only) A constexpr source variable for the win32 code domain, which is that of `GetLastError()` (Windows). Returned by `_win32_code_domain::get()`.
 constexpr _win32_code_domain win32_code_domain;
 inline constexpr const _win32_code_domain *_win32_code_domain::get()
 {

@@ -35,10 +35,13 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #ifndef SYSTEM_ERROR2_NAMESPACE
+//! The system_error2 namespace name.
 #define SYSTEM_ERROR2_NAMESPACE system_error2
+//! Begins the system_error2 namespace.
 #define SYSTEM_ERROR2_NAMESPACE_BEGIN                                                                                                                                                                                                                                                                                          \
   namespace system_error2                                                                                                                                                                                                                                                                                                      \
   {
+//! Ends the system_error2 namespace.
 #define SYSTEM_ERROR2_NAMESPACE_END }
 #endif
 
