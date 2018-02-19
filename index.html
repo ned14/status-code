@@ -124,13 +124,16 @@ failed, a function may therefore return any one of many system code domains.</p>
 <p><a href="doc_config.html#standardese-SYSTEM_ERROR2_CONSTEXPR14"><code>SYSTEM_ERROR2_CONSTEXPR14</code></a> &mdash; Defined to be <code>constexpr</code> when on C++ 14 or better compilers. Usually automatic, can be overriden.</p>
 </li>
 <li>
-<p><a href="doc_config.html#standardese-config-hpp"><code>SYSTEM_ERROR2_NAMESPACE</code></a></p>
+<p><a href="doc_config.html#standardese-SYSTEM_ERROR2_NAMESPACE"><code>SYSTEM_ERROR2_NAMESPACE</code></a> &mdash; The system_error2 namespace name.</p>
 </li>
 <li>
-<p><a href="doc_config.html#standardese-config-hpp"><code>SYSTEM_ERROR2_NAMESPACE_BEGIN</code></a></p>
+<p><a href="doc_config.html#standardese-SYSTEM_ERROR2_NAMESPACE_BEGIN"><code>SYSTEM_ERROR2_NAMESPACE_BEGIN</code></a> &mdash; Begins the system_error2 namespace.</p>
 </li>
 <li>
-<p><a href="doc_config.html#standardese-config-hpp"><code>SYSTEM_ERROR2_NAMESPACE_END</code></a></p>
+<p><a href="doc_config.html#standardese-SYSTEM_ERROR2_NAMESPACE_END"><code>SYSTEM_ERROR2_NAMESPACE_END</code></a> &mdash; Ends the system_error2 namespace.</p>
+</li>
+<li>
+<p><a href="doc_system_code.html#standardese-system_code-hpp"><code>SYSTEM_ERROR2_SYSTEM_ERROR_HPP</code></a></p>
 </li>
 <li>
 <h2>Namespace <code>system_error2</code></h2>
@@ -139,6 +142,9 @@ failed, a function may therefore return any one of many system code domains.</p>
 <ul>
 <li>
 <p><a href="doc_generic_code.html#standardese-system_error2___generic_code_domain"><code>_generic_code_domain</code></a> &mdash; The implementation of the domain for generic status codes, those mapped by <code>errc</code> (POSIX).</p>
+</li>
+<li>
+<p><a href="doc_win32_code.html#standardese-system_error2___win32_code_domain"><code>_win32_code_domain</code></a> &mdash; (Windows only) The implementation of the domain for Win32 error codes, those returned by <code>GetLastError()</code>.</p>
 </li>
 <li>
 <p><a href="doc_generic_code.html#standardese-system_error2"><code>equivalent</code></a></p>
@@ -165,13 +171,22 @@ failed, a function may therefore return any one of many system code domains.</p>
 <p><a href="doc_generic_code.html#standardese-system_error2__operator---DomainType1-DomainType2--status_code-DomainType1-const--status_code-DomainType2-const--"><code>operator==</code></a> &mdash; True if the status code’s are semantically equal via <code>equivalent()</code>.</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__status_code-"><code>status_code</code></a> &mdash; A type erased lightweight status code reflecting empty, success, or failure.</p>
+<p><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><code>status_code</code></a> &mdash; The main workhorse of the system_error2 library, can be typed (<code>status_code&lt;DomainType&gt;</code>), erased-immutable (<code>status_code&lt;void&gt;</code>) or erased-mutable (<code>status_code&lt;erased&lt;T&gt;&gt;</code>).</p>
 </li>
 <li>
 <p><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain"><code>status_code_domain</code></a> &mdash; Abstract base class for a coding domain of a status code.</p>
 </li>
 <li>
 <p><a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-"><code>status_error</code></a> &mdash; Exception type representing a thrown status_code</p>
+</li>
+<li>
+<p><a href="doc_system_code.html#standardese-system_error2__system_code"><code>system_code</code></a> &mdash; An erased-mutable status code suitably large for all the system codes which can be returned on this system.</p>
+</li>
+<li>
+<p><a href="doc_win32_code.html#standardese-system_error2__win32_code"><code>win32_code</code></a> &mdash; (Windows only) A Win32 error code, those returned by <code>GetLastError()</code>.</p>
+</li>
+<li>
+<p><a href="doc_win32_code.html#standardese-system_error2__win32_code_domain"><code>win32_code_domain</code></a> &mdash; (Windows only) A constexpr source variable for the win32 code domain, which is that of <code>GetLastError()</code> (Windows). Returned by <code>_win32_code_domain::get()</code>.</p>
 </li>
 </ul>
 </li>
