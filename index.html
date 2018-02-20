@@ -189,10 +189,13 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_generic_code.html#standardese-system_error2__operator---DomainType1-DomainType2--status_code-DomainType1-const--status_code-DomainType2-const--"><code>operator!=</code></a> &mdash; True if the status code’s are not semantically equal via <code>equivalent()</code>.</p>
 </li>
 <li>
+<p><a href="doc_iostream_support.html#standardese-system_error2__operator---DomainType---std__ostream--status_code-DomainType-const--"><code>operator&lt;&lt;</code></a> &mdash; Print the status code to a <code>std::ostream &amp;</code>.</p>
+</li>
+<li>
 <p><a href="doc_generic_code.html#standardese-system_error2__operator---DomainType1-DomainType2--status_code-DomainType1-const--status_code-DomainType2-const--"><code>operator==</code></a> &mdash; True if the status code’s are semantically equal via <code>equivalent()</code>.</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><code>status_code</code></a> &mdash; The main workhorse of the system_error2 library, can be typed (<code>status_code&lt;DomainType&gt;</code>), erased-immutable (<code>status_code&lt;void&gt;</code>) or erased-mutable (<code>status_code&lt;erased&lt;T&gt;&gt;</code>).</p>
+<p><a href="doc_status_code.html#standardese-system_error2__status_code-"><code>status_code</code></a> &mdash; A type erased lightweight status code reflecting empty, success, or failure.</p>
 </li>
 <li>
 <p><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain"><code>status_code_domain</code></a> &mdash; Abstract base class for a coding domain of a status code.</p>
