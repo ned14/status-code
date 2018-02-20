@@ -22,6 +22,7 @@ Distributed under the Boost Software License, Version 1.0.
 http://www.boost.org/LICENSE_1_0.txt)
 */
 
+#include "iostream_support.hpp"
 #include "system_error2.hpp"
 
 #include <cstdio>
@@ -44,6 +45,10 @@ enum class Code : size_t
   success2,
   error2
 };
+inline std::ostream &operator<<(std::ostream &s, Code v)
+{
+  return s << static_cast<size_t>(v);
+}
 class Code_domain_impl;
 using StatusCode = system_error2::status_code<Code_domain_impl>;
 // Category for Code
@@ -248,6 +253,10 @@ int main()
   CHECK(failure4.value() == failure1.value());
   CHECK(failure4.domain() == failure1.domain());
 
+  // ostream printers
+  std::cout << "\ngeneric_code failure: " << failure1 << std::endl;
+  std::cout << "StatusCode failure: " << failure2 << std::endl;
+  std::cout << "erased<int> failure: " << failure3 << std::endl;
 
 #ifdef _WIN32
   // Test win32_code
