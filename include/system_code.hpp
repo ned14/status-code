@@ -26,7 +26,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define SYSTEM_ERROR2_SYSTEM_ERROR_HPP
 
 #if defined(_WIN32) || defined(STANDARDESE_IS_IN_THE_HOUSE)
-#include "win32_code.hpp"
+#include "nt_code.hpp"
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 /*! An erased-mutable status code suitably large for all the system codes
@@ -34,9 +34,9 @@ which can be returned on this system.
 
 For Windows, these might be:
 
-    - `win32_code` (`DWORD`)
-    - `nt_code` (`LONG`)
     - `com_code` (`HRESULT`)
+    - `nt_code` (`LONG`)
+    - `win32_code` (`DWORD`)
 
 So the erased type is `LONG` on Windows, as that can represent all of
 the above.

@@ -22,59 +22,62 @@ Distributed under the Boost Software License, Version 1.0.
 http://www.boost.org/LICENSE_1_0.txt)
 */
 
-#ifndef SYSTEM_ERROR2_WIN32_CODE_HPP
-#define SYSTEM_ERROR2_WIN32_CODE_HPP
+#ifndef SYSTEM_ERROR2_NT_CODE_HPP
+#define SYSTEM_ERROR2_NT_CODE_HPP
 
 #if !defined(_WIN32) && !defined(STANDARDESE_IS_IN_THE_HOUSE)
 #error This file should only be included on Windows
 #endif
 
-#include "generic_code.hpp"
-
-#include <atomic>
-#include <cstdlib>  // for malloc
-#include <cstring>  // for strchr
+#include "win32_code.hpp"
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 //! \exclude
 namespace win32
 {
-  // A Win32 DWORD
-  using DWORD = unsigned long;
-  // Used to retrieve the current Win32 error code
-  extern "C" DWORD __stdcall GetLastError();
-  // Used to retrieve a locale-specific message string for some error code
-  extern "C" DWORD __stdcall FormatMessageW(DWORD dwFlags, const void *lpSource, DWORD dwMessageId, DWORD dwLanguageId, wchar_t *lpBuffer, DWORD nSize, void /*va_list*/ *Arguments);
-  // Converts UTF-16 message string to UTF-8
-  extern "C" int __stdcall WideCharToMultiByte(unsigned int CodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, int cchWideChar, char *lpMultiByteStr, int cbMultiByte, const char *lpDefaultChar, int *lpUsedDefaultChar);
-#pragma comment(lib, "kernel32.lib")
+  // A Win32 NTSTATUS
+  using NTSTATUS = long;
+  // A Win32 HMODULE
+  using HMODULE = void *;
+  // Used to retrieve where the NTDLL DLL is mapped into memory
+  extern "C" HMODULE __stdcall GetModuleHandleW(const wchar_t *lpModuleName);
 }
 
-class _win32_code_domain;
-//! (Windows only) A Win32 error code, those returned by `GetLastError()`.
-using win32_code = status_code<_win32_code_domain>;
+class _nt_code_domain;
+//! (Windows only) A NT error code, those returned by NT kernel functions.
+using nt_code = status_code<_nt_code_domain>;
 
-/*! (Windows only) The implementation of the domain for Win32 error codes, those returned by `GetLastError()`.
+/*! (Windows only) The implementation of the domain for NT error codes, those returned by NT kernel functions.
 */
-class _win32_code_domain : public status_code_domain
+class _nt_code_domain : public status_code_domain
 {
   template <class DomainType> friend class status_code;
   using _base = status_code_domain;
-  int _win32_code_to_errno(win32::DWORD c) const
+  int _nt_code_to_errno(win32::NTSTATUS c) const
   {
+    if(c >= 0)
+      return 0;  // success
     switch(c)
     {
-    case 0:
-      return 0;
-#include "detail/win32_code_to_generic_code.ipp"
+#include "detail/nt_code_to_generic_code.ipp"
     }
     return -1;
   }
+  win32::DWORD _nt_code_to_win32_code(win32::NTSTATUS c) const
+  {
+    if(c >= 0)
+      return 0;  // success
+    switch(c)
+    {
+#include "detail/nt_code_to_win32_code.ipp"
+    }
+    return static_cast<win32::DWORD>(-1);
+  }
 
 public:
-  //! The value type of the win32 code, which is a `win32::DWORD`
-  using value_type = win32::DWORD;
+  //! The value type of the NT code, which is a `win32::NTSTATUS`
+  using value_type = win32::NTSTATUS;
   //! Thread safe reference to a message string fetched by `FormatMessage()`
   class string_ref : public _base::string_ref
   {
@@ -105,11 +108,12 @@ public:
 
   public:
     using _base::string_ref::string_ref;
-    //! Construct from a Win32 error code
-    explicit string_ref(win32::DWORD c)
+    //! Construct from a NT error code
+    explicit string_ref(win32::NTSTATUS c)
     {
       wchar_t buffer[32768];
-      win32::DWORD wlen = win32::FormatMessageW(0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, 0, c, 0, buffer, 32768, nullptr);
+      static win32::HMODULE ntdll = win32::GetModuleHandleW(L"NTDLL.DLL");
+      win32::DWORD wlen = win32::FormatMessageW(0x00000800 /*FORMAT_MESSAGE_FROM_HMODULE*/ | 0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, ntdll, c, (1 << 10) /*MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT)*/, buffer, 32768, nullptr);
       if(wlen == 0)
         goto failure;
       size_t allocation = wlen + (wlen >> 1);
@@ -168,39 +172,45 @@ public:
 
 public:
   //! Default constructor
-  constexpr _win32_code_domain()
-      : _base(0x8cd18ee72d680f1b)
+  constexpr _nt_code_domain()
+      : _base(0x93f3b4487e4af25b)
   {
   }
-  _win32_code_domain(const _win32_code_domain &) = default;
-  _win32_code_domain(_win32_code_domain &&) = default;
-  _win32_code_domain &operator=(const _win32_code_domain &) = default;
-  _win32_code_domain &operator=(_win32_code_domain &&) = default;
-  ~_win32_code_domain() = default;
+  _nt_code_domain(const _nt_code_domain &) = default;
+  _nt_code_domain(_nt_code_domain &&) = default;
+  _nt_code_domain &operator=(const _nt_code_domain &) = default;
+  _nt_code_domain &operator=(_nt_code_domain &&) = default;
+  ~_nt_code_domain() = default;
 
-  //! Constexpr singleton getter. Returns the address of the constexpr win32_code_domain variable.
-  static inline constexpr const _win32_code_domain *get();
+  //! Constexpr singleton getter. Returns the address of the constexpr nt_code_domain variable.
+  static inline constexpr const _nt_code_domain *get();
 
-  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("win32 domain"); }
+  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("NT domain"); }
 protected:
   virtual bool _failure(const status_code<void> &code) const noexcept override final
   {
     assert(code.domain() == *this);
-    return static_cast<const win32_code &>(code).value() != 0;
+    return static_cast<const nt_code &>(code).value() < 0;
   }
   virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final
   {
     assert(code1.domain() == *this);
-    const auto &c1 = static_cast<const win32_code &>(code1);
+    const auto &c1 = static_cast<const nt_code &>(code1);
     if(code2.domain() == *this)
     {
-      const auto &c2 = static_cast<const win32_code &>(code2);
+      const auto &c2 = static_cast<const nt_code &>(code2);
       return c1.value() == c2.value();
     }
     if(code2.domain() == generic_code_domain)
     {
       const auto &c2 = static_cast<const generic_code &>(code2);
-      if(static_cast<int>(c2.value()) == _win32_code_to_errno(c1.value()))
+      if(static_cast<int>(c2.value()) == _nt_code_to_errno(c1.value()))
+        return true;
+    }
+    if(code2.domain() == win32_code_domain)
+    {
+      const auto &c2 = static_cast<const win32_code &>(code2);
+      if(c2.value() == _nt_code_to_win32_code(c1.value()))
         return true;
     }
     return false;
@@ -208,27 +218,27 @@ protected:
   virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const win32_code &>(code);
-    return generic_code(static_cast<errc>(_win32_code_to_errno(c.value())));
+    const auto &c = static_cast<const nt_code &>(code);
+    return generic_code(static_cast<errc>(_nt_code_to_errno(c.value())));
   }
   virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const win32_code &>(code);
+    const auto &c = static_cast<const nt_code &>(code);
     return string_ref(c.value());
   }
   virtual void _throw_exception(const status_code<void> &code) const override final
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const win32_code &>(code);
-    throw status_error<_win32_code_domain>(c);
+    const auto &c = static_cast<const nt_code &>(code);
+    throw status_error<_nt_code_domain>(c);
   }
 };
-//! (Windows only) A constexpr source variable for the win32 code domain, which is that of `GetLastError()` (Windows). Returned by `_win32_code_domain::get()`.
-constexpr _win32_code_domain win32_code_domain;
-inline constexpr const _win32_code_domain *_win32_code_domain::get()
+//! (Windows only) A constexpr source variable for the NT code domain, which is that of NT kernel functions. Returned by `_nt_code_domain::get()`.
+constexpr _nt_code_domain nt_code_domain;
+inline constexpr const _nt_code_domain *_nt_code_domain::get()
 {
-  return &win32_code_domain;
+  return &nt_code_domain;
 }
 
 SYSTEM_ERROR2_NAMESPACE_END

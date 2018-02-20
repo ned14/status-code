@@ -261,6 +261,18 @@ int main()
   system_code success6(success5), failure6(failure5);
   CHECK(success6 == errc::success);
   CHECK(failure6 == errc::no_such_file_or_directory);
+
+  // Test nt_code
+  constexpr nt_code success7(1 /* positive */), failure7(0xC000000F /*STATUS_NO_SUCH_FILE*/);
+  CHECK(success7.success());
+  CHECK(failure7.failure());
+  printf("\nNT code success has value %zu (%s) is success %d is failure %d\n", success7.value(), success7.message().c_str(), success7.success(), success7.failure());
+  printf("NT code failure has value %zu (%s) is success %d is failure %d\n", failure7.value(), failure7.message().c_str(), failure7.success(), failure7.failure());
+  CHECK(success7 == errc::success);
+  CHECK(failure7 == errc::no_such_file_or_directory);
+  system_code success8(success7), failure8(failure7);
+  CHECK(success8 == errc::success);
+  CHECK(failure8 == errc::no_such_file_or_directory);
 #endif
   return retcode;
 }

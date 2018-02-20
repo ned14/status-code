@@ -24,7 +24,7 @@ across huge codebases.
 - Minimum compile time load, making it suitable for use in the global headers of
 multi-million line codebases.
 
-## Problems with `<system_error>` listed by P0824 solved:
+## Problems with `<system_error>` solved:
 
 1. Does not cause `#include <string>`, and thus including the entire STL allocator and algorithm
 machinery, thus preventing use in freestanding C++ as well as substantially
@@ -102,3 +102,13 @@ construct the precise error code for the system failure in question, and
 return it type erased from the function. Depending on the system call which
 failed, a function may therefore return any one of many system code domains.
 
+9. Too much `<system_error>` code written for POSIX uses `std::generic_category`
+when they really meant `std::system_category` because the two are interchangeable
+on POSIX. Further confusion stems from `std::error_condition` also sharing the same
+coding and type. This causes portability problems. This library's `generic_code` has
+a value type of `errc` which is a strong enum. This prevents implicit confusion
+with `posix_code`, whose value type is an `int` same as `errno` returns. There is
+no distinction between codes and conditions in this library, rather we treat
+`generic_code` as something special, because it represents `errc`. The cleanup
+of these ambiguities in `<system_error>` should result in users writing clearer
+code with fewer unintended portability problems.
