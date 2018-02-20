@@ -10,7 +10,7 @@ doc_system_code
 
 <h1>Header file <code>system_code.hpp</code></h1>
 <p><span id="standardese-system_code-hpp"></span></p>
-<pre><code class="standardese-language-cpp"><span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_win32_code.html#standardese-win32_code-hpp"><span class="typ dec var fun">win32_code.hpp</span></a><span class="pre">&quot;</span>
+<pre><code class="standardese-language-cpp"><span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_nt_code.html#standardese-nt_code-hpp"><span class="typ dec var fun">nt_code.hpp</span></a><span class="pre">&quot;</span>
 
 <span class="pre">#define</span> <span class="typ dec var fun">SYSTEM_ERROR2_SYSTEM_ERROR_HPP</span>
 
@@ -28,9 +28,9 @@ doc_system_code
 
 <p>An erased-mutable status code suitably large for all the system codes which can be returned on this system.</p>
 <p>For Windows, these might be:</p>
-<pre><code>- `win32_code` (`DWORD`)
+<pre><code>- `com_code` (`HRESULT`)
 - `nt_code` (`LONG`)
-- `com_code` (`HRESULT`)
+- `win32_code` (`DWORD`)
 </code></pre>
 
 <p>So the erased type is <code>LONG</code> on Windows, as that can represent all of the above.</p>

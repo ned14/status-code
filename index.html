@@ -32,7 +32,7 @@ across huge codebases.</li>
 <li>Minimum compile time load, making it suitable for use in the global headers of
 multi-million line codebases.</li>
 </ul>
-<h2>Problems with <code>&lt;system_error&gt;</code> listed by P0824 solved:</h2>
+<h2>Problems with <code>&lt;system_error&gt;</code> solved:</h2>
 <ol>
 <li>
 <p>Does not cause <code>#include &lt;string&gt;</code>, and thus including the entire STL allocator and algorithm
@@ -117,6 +117,18 @@ construct the precise error code for the system failure in question, and
 return it type erased from the function. Depending on the system call which
 failed, a function may therefore return any one of many system code domains.</p>
 </li>
+<li>
+<p>Too much <code>&lt;system_error&gt;</code> code written for POSIX uses <code>std::generic_category</code>
+when they really meant <code>std::system_category</code> because the two are interchangeable
+on POSIX. Further confusion stems from <code>std::error_condition</code> also sharing the same
+coding and type. This causes portability problems. This library's <code>generic_code</code> has
+a value type of <code>errc</code> which is a strong enum. This prevents implicit confusion
+with <code>posix_code</code>, whose value type is an <code>int</code> same as <code>errno</code> returns. There is
+no distinction between codes and conditions in this library, rather we treat
+<code>generic_code</code> as something special, because it represents <code>errc</code>. The cleanup
+of these ambiguities in <code>&lt;system_error&gt;</code> should result in users writing clearer
+code with fewer unintended portability problems.</p>
+</li>
 </ol>
 <h1>Project index</h1>
 <ul>
@@ -144,6 +156,9 @@ failed, a function may therefore return any one of many system code domains.</p>
 <p><a href="doc_generic_code.html#standardese-system_error2___generic_code_domain"><code>_generic_code_domain</code></a> &mdash; The implementation of the domain for generic status codes, those mapped by <code>errc</code> (POSIX).</p>
 </li>
 <li>
+<p><a href="doc_nt_code.html#standardese-system_error2___nt_code_domain"><code>_nt_code_domain</code></a> &mdash; (Windows only) The implementation of the domain for NT error codes, those returned by NT kernel functions.</p>
+</li>
+<li>
 <p><a href="doc_win32_code.html#standardese-system_error2___win32_code_domain"><code>_win32_code_domain</code></a> &mdash; (Windows only) The implementation of the domain for Win32 error codes, those returned by <code>GetLastError()</code>.</p>
 </li>
 <li>
@@ -163,6 +178,12 @@ failed, a function may therefore return any one of many system code domains.</p>
 </li>
 <li>
 <p><a href="doc_generic_code.html#standardese-system_error2"><code>get</code></a></p>
+</li>
+<li>
+<p><a href="doc_nt_code.html#standardese-system_error2__nt_code"><code>nt_code</code></a> &mdash; (Windows only) A NT error code, those returned by NT kernel functions.</p>
+</li>
+<li>
+<p><a href="doc_nt_code.html#standardese-system_error2__nt_code_domain"><code>nt_code_domain</code></a> &mdash; (Windows only) A constexpr source variable for the NT code domain, which is that of NT kernel functions. Returned by <code>_nt_code_domain::get()</code>.</p>
 </li>
 <li>
 <p><a href="doc_generic_code.html#standardese-system_error2__operator---DomainType1-DomainType2--status_code-DomainType1-const--status_code-DomainType2-const--"><code>operator!=</code></a> &mdash; True if the status code’s are not semantically equal via <code>equivalent()</code>.</p>
