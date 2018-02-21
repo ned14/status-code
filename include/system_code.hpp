@@ -25,6 +25,8 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_SYSTEM_ERROR_HPP
 #define SYSTEM_ERROR2_SYSTEM_ERROR_HPP
 
+#include "generic_code.hpp"
+
 #if defined(_WIN32) || defined(STANDARDESE_IS_IN_THE_HOUSE)
 #include "nt_code.hpp"
 
@@ -50,8 +52,6 @@ using system_code = status_code<erased<long>>;
 SYSTEM_ERROR2_NAMESPACE_END
 
 #else
-
-#include "generic_code.hpp"
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 using system_code = status_code<erased<int>>;

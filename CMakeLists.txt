@@ -19,6 +19,32 @@ target_include_directories(status-code INTERFACE "include")
 #)
 
 if(NOT PROJECT_IS_DEPENDENCY)
+  include(FindPythonInterp)
+  # Make preprocessed edition of this library target
+  if(NOT PYTHONINTERP_FOUND)
+    message(WARNING "NOT rebuilding preprocessed edition of library due to python not being installed")
+  else()
+    # See if the ply package is installed so pcpp can run
+    execute_process(COMMAND python -c "import pcpp" RESULT_VARIABLE python_has_pcpp)
+    if(NOT python_has_pcpp EQUAL 0)
+      message(WARNING "NOT rebuilding preprocessed edition of library due to installed python not having the pcpp package installed. "
+        "Do '(sudo) pip install pcpp' to fix.")
+    else()
+      add_custom_target(status-code-pp 
+        pcpp -o "${CMAKE_CURRENT_SOURCE_DIR}/single-header/system_error2.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/system_error2.hpp"
+        --passthru-defines --passthru-unfound-includes --passthru-unknown-exprs
+        --passthru-comments --line-directive # --debug
+        -U STANDARDESE_IS_IN_THE_HOUSE
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMENT "Preprocessing ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}.hpp into ${CMAKE_CURRENT_SOURCE_DIR}/single-header/${PROJECT_NAME}.hpp ..."
+      )
+      if(NOT CMAKE_VERSION VERSION_LESS 3.3)
+        add_dependencies(status-code status-code-pp)
+      endif()
+    endif()
+  endif()
+
   add_executable(test-status-code "test/main.cpp")
   target_link_libraries(test-status-code PRIVATE status-code)
   set_target_properties(test-status-code PROPERTIES

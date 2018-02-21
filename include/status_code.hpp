@@ -168,6 +168,13 @@ namespace system_error2
 #endif
     }
 
+    //! Assignment from a `value_type`.
+    constexpr status_code &operator=(const value_type &v) noexcept(std::is_nothrow_copy_assignable<value_type>::value)
+    {
+      _value = v;
+      return *this;
+    }
+
     // Replace the type erased implementations with type aware implementations for better codegen
     //! Return the status code domain.
     constexpr const domain_type &domain() const noexcept { return *static_cast<const domain_type *>(this->_domain); }
@@ -222,10 +229,10 @@ namespace system_error2
     //! Move assignment
     status_code &operator=(status_code &&) = default;
 
-    //! Explicit copy construction from any other status code if its type is trivially copyable and it would fit into our storage
+    //! Implicit copy construction from any other status code if its type is trivially copyable and it would fit into our storage
     template <class DomainType,  //
               typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
-    constexpr explicit status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(reinterpret_cast<const value_type &>(v.value()))
+    constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(reinterpret_cast<const value_type &>(v.value()))
     {
     }
     //! Return the erased `value_type` by value.

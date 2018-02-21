@@ -34,7 +34,13 @@ http://www.boost.org/LICENSE_1_0.txt)
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 /*! The main workhorse of the system_error2 library, can be typed (`status_code<DomainType>`), erased-immutable (`status_code<void>`) or erased-mutable (`status_code<erased<T>>`).
-  */
+
+Be careful of placing these into containers! Equality and inequality operators are
+*semantic* not exact. Therefore two distinct items will test true! To help prevent
+surprise on this, `operator<` and `std::hash<>` are NOT implemented in order to
+trap potential incorrectness. Define your own custom comparison functions for your
+container which perform exact comparisons.
+*/
 template <class DomainType> class status_code;
 class _generic_code_domain;
 //! The generic code is a status code with the generic code domain, which is that of `errc` (POSIX).

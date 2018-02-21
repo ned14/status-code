@@ -18,7 +18,7 @@ do
 </head>
 <body>
 ' >> ${f%.md}.html
-  python -m markdown $f >> ${f%.md}.html
+  python -m markdown $f -x markdown.extensions.fenced_code >> ${f%.md}.html
   echo '</body>
 </html>' >> ${f%.md}.html
   sed -i -e 's/standardese_entities\.md/index.md/g' ${f%.md}.html
