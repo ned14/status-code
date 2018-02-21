@@ -148,6 +148,7 @@ static constexpr std::pair<NTSTATUS, NTSTATUS> inputs[] = {
 //{0x00000000L, 0x0000ffffL},  //
 //{0x40000000L, 0x4000ffffL},  //
 {0x80000001L, 0x8000ffffL},  //
+{0x80100001L, 0x801fffffL},  //
 {0xC0000001L, 0xC000ffffL}   //
 };
 

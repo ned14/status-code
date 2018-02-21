@@ -41,7 +41,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 enum class Code : size_t
 {
   success1,
-  nospace,
+  goaway,
   success2,
   error2
 };
@@ -129,16 +129,11 @@ public:
       case Code::success1:
       case Code::success2:
         return static_cast<system_error2::errc>(c2.value()) == system_error2::errc::success;
-      case Code::nospace:
+      case Code::goaway:
         switch(static_cast<system_error2::errc>(c2.value()))
         {
-        case system_error2::errc::filename_too_long:
-        case system_error2::errc::no_buffer_space:
-        case system_error2::errc::no_space_on_device:
-        case system_error2::errc::not_enough_memory:
-        case system_error2::errc::too_many_files_open_in_system:
-        case system_error2::errc::too_many_files_open:
-        case system_error2::errc::too_many_links:
+        case system_error2::errc::permission_denied:
+        case system_error2::errc::operation_not_permitted:
           return true;
         default:
           return false;
@@ -156,9 +151,10 @@ public:
     case Code::success1:
     case Code::success2:
       return system_error2::generic_code(system_error2::errc::success);
-    case Code::nospace:
-      return system_error2::generic_code(system_error2::errc::no_buffer_space);
-      // error2 gets no mapping to generic_code
+    case Code::goaway:
+      return system_error2::generic_code(system_error2::errc::permission_denied);
+    case Code::error2:
+      return {};
     }
     return {};
   }
@@ -173,9 +169,9 @@ public:
       static string_ref v("success1");
       return v;
     }
-    case Code::nospace:
+    case Code::goaway:
     {
-      static string_ref v("nospace");
+      static string_ref v("goaway");
       return v;
     }
     case Code::success2:
@@ -210,7 +206,7 @@ int main()
   using namespace SYSTEM_ERROR2_NAMESPACE;
   int retcode = 0;
 
-  constexpr generic_code empty1, success1(errc::success), failure1(errc::filename_too_long);
+  constexpr generic_code empty1, success1(errc::success), failure1(errc::permission_denied);
   CHECK(empty1.empty());
   CHECK(!success1.empty());
   CHECK(!failure1.empty());
@@ -220,7 +216,7 @@ int main()
   printf("generic_code success has value %d (%s) is success %d is failure %d\n", success1.value(), success1.message().c_str(), success1.success(), success1.failure());
   printf("generic_code failure has value %d (%s) is success %d is failure %d\n", failure1.value(), failure1.message().c_str(), failure1.success(), failure1.failure());
 
-  constexpr StatusCode empty2, success2(Code::success1), failure2(Code::nospace);
+  constexpr StatusCode empty2, success2(Code::success1), failure2(Code::goaway);
   CHECK(success2.success());
   CHECK(failure2.failure());
   printf("\nStatusCode empty has value %zu (%s) is success %d is failure %d\n", empty2.value(), empty2.message().c_str(), empty2.success(), empty2.failure());
@@ -260,28 +256,55 @@ int main()
 
 #ifdef _WIN32
   // Test win32_code
-  constexpr win32_code success5(0 /*ERROR_SUCCESS*/), failure5(0x2 /*ERROR_FILE_NOT_FOUND*/);
+  constexpr win32_code success5(0 /*ERROR_SUCCESS*/), failure5(0x5 /*ERROR_ACCESS_DENIED*/);
   CHECK(success5.success());
   CHECK(failure5.failure());
   printf("\nWin32 code success has value %zu (%s) is success %d is failure %d\n", success5.value(), success5.message().c_str(), success5.success(), success5.failure());
   printf("Win32 code failure has value %zu (%s) is success %d is failure %d\n", failure5.value(), failure5.message().c_str(), failure5.success(), failure5.failure());
   CHECK(success5 == errc::success);
-  CHECK(failure5 == errc::no_such_file_or_directory);
+  CHECK(failure5 == errc::permission_denied);
+  CHECK(failure5 == failure1);
+  CHECK(failure5 == failure2);
   system_code success6(success5), failure6(failure5);
   CHECK(success6 == errc::success);
-  CHECK(failure6 == errc::no_such_file_or_directory);
+  CHECK(failure6 == errc::permission_denied);
+  CHECK(failure6 == failure1);
+  CHECK(failure6 == failure2);
 
   // Test nt_code
-  constexpr nt_code success7(1 /* positive */), failure7(0xC000000F /*STATUS_NO_SUCH_FILE*/);
+  constexpr nt_code success7(1 /* positive */), failure7(0xC0000022 /*STATUS_ACCESS_DENIED*/);
   CHECK(success7.success());
   CHECK(failure7.failure());
   printf("\nNT code success has value %zu (%s) is success %d is failure %d\n", success7.value(), success7.message().c_str(), success7.success(), success7.failure());
-  printf("NT code failure has value %zu (%s) is success %d is failure %d\n", failure7.value(), failure7.message().c_str(), failure7.success(), failure7.failure());
+  printf("NT code warning has value %zu (%s) is success %d is failure %d\n", failure7.value(), failure7.message().c_str(), failure7.success(), failure7.failure());
   CHECK(success7 == errc::success);
-  CHECK(failure7 == errc::no_such_file_or_directory);
+  CHECK(failure7 == errc::permission_denied);
+  CHECK(failure7 == failure1);
+  CHECK(failure7 == failure2);
+  CHECK(failure7 == failure5);
   system_code success8(success7), failure8(failure7);
   CHECK(success8 == errc::success);
-  CHECK(failure8 == errc::no_such_file_or_directory);
+  CHECK(failure8 == errc::permission_denied);
+  CHECK(failure8 == failure1);
+  CHECK(failure8 == failure2);
+  CHECK(failure8 == failure5);
 #endif
+
+  // Test posix_code
+  constexpr posix_code success9(0), failure9(EACCES);
+  CHECK(success9.success());
+  CHECK(failure9.failure());
+  printf("\nPOSIX code success has value %zu (%s) is success %d is failure %d\n", success9.value(), success9.message().c_str(), success9.success(), success9.failure());
+  printf("POSIX code failure has value %zu (%s) is success %d is failure %d\n", failure9.value(), failure9.message().c_str(), failure9.success(), failure9.failure());
+  CHECK(success9 == errc::success);
+  CHECK(failure9 == errc::permission_denied);
+  CHECK(failure9 == failure1);
+  CHECK(failure9 == failure2);
+  system_code success10(success9), failure10(failure9);
+  CHECK(success10 == errc::success);
+  CHECK(failure10 == errc::permission_denied);
+  CHECK(failure10 == failure1);
+  CHECK(failure10 == failure2);
+
   return retcode;
 }
