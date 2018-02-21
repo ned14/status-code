@@ -10,12 +10,15 @@ index
 
 <h1>Reference implementation for proposed SG14 <code>status_code</code> (<code>&lt;system_error2&gt;</code>) in C++ 11</h1>
 <p>(C) 2018 Niall Douglas <a href="http://www.nedproductions.biz/">http://www.nedproductions.biz/</a>
-Please send feedback to the SG14 study group mailing list at https://groups.google.com/a/isocpp.org/d/forum/sg14.</p>
+Please send feedback to the SG14 study group mailing list at <a href="https://groups.google.com/a/isocpp.org/d/forum/sg14">https://groups.google.com/a/isocpp.org/d/forum/sg14</a>.</p>
 <p>Docs: <a href="https://ned14.github.io/status-code/">https://ned14.github.io/status-code/</a>
 (reference API docs are at bottom of page) Linux: <a href="https://travis-ci.org/ned14/status-code"><img alt="Build Status" src="https://travis-ci.org/ned14/status-code.svg?branch=master" /></a> Windows: <a href="https://ci.appveyor.com/project/ned14/status-code/branch/master"><img alt="Build status" src="https://ci.appveyor.com/api/projects/status/doyh9rol1gupcwd0/branch/master?svg=true" /></a></p>
 <p>Solves the problems for low latency/large code base users with <code>&lt;system_error&gt;</code>
 as listed by <a href="https://wg21.link/P0824">WG21 P0824</a>. This proposed <code>&lt;system_error2&gt;</code>
 library is EXPERIMENTAL and is subject to change as the committee evolves the design.</p>
+<pre><code>wget https://github.com/ned14/status-code/raw/develop/single-header/system_error2.hpp
+</code></pre>
+
 <h2>Features:</h2>
 <ul>
 <li>Portable to any C++ 11 compiler. These are known to work:<ul>
@@ -32,6 +35,70 @@ across huge codebases.</li>
 <li>Minimum compile time load, making it suitable for use in the global headers of
 multi-million line codebases.</li>
 </ul>
+<h2>Example of use:</h2>
+<table width="100%">
+<tr>
+<th>POSIX</th>
+<th>Windows</th>
+</tr>
+<tr>
+<td valign="top">
+<pre><code class="c++">using native_handle_type = int;
+native_handle_type open_file(const char *path, system_error2::system_code &sc) noexcept
+{
+  sc.clear();  // clears to empty
+  native_handle_type h = ::open(path, O_RDONLY);
+  if(-1 == h)
+  {
+    sc = system_error2::posix_code(errno);  // posix_code type erases into system_code
+  }
+  return h;
+}
+</code></pre>
+</td>
+<td valign="top">
+<pre><code class="c++">using native_handle_type = HANDLE;
+native_handle_type open_file(const wchar_t *path, system_error2::system_code &sc) noexcept
+{
+  sc.clear();  // clears to empty
+  native_handle_type h = CreateFile(path, GENERIC_READ,
+    FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+    nullptr,
+    OPEN_EXISTING,
+    FILE_ATTRIBUTE_NORMAL,
+    nullptr
+  );
+  if(INVALID_HANDLE_VALUE == h)
+  {
+    sc = system_error2::win32_code(GetLastError());  // win32_code type erases into system_code
+  }
+  return h;
+}
+</code></pre>
+</td>
+</tr>
+<tr>
+<th colspan="2">Portable code</th>
+</tr>
+<tr>
+<td colspan="2">
+<pre><code class="c++" style="display: inline-block; position: relative; left: 50%; transform: translateX(-50%);">system_error2::system_code sc;  // default constructs to empty
+native_handle_type h = open_file(path, sc);
+// Is the code a failure?
+if(sc.failure())
+{
+  // Do semantic comparison to test if this was a file not found failure
+  // This will match any system-specific error codes meaning a file not found
+  if(sc != system_error2::errc::no_such_file_or_directory)
+  {
+    std::cerr << "FATAL: " << sc << std::endl;
+    std::terminate();
+  }
+}
+</code></pre>
+</tr>
+</table>
+
 <h2>Problems with <code>&lt;system_error&gt;</code> solved:</h2>
 <ol>
 <li>
