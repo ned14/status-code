@@ -40,7 +40,7 @@ multi-million line codebases.
 <td valign="top">
 <pre><code class="c++">using native_handle_type = int;
 native_handle_type open_file(const char *path,
-                             system_error2::system_code &sc) noexcept
+  system_error2::system_code &sc) noexcept
 {
   sc.clear();  // clears to empty
   native_handle_type h = ::open(path, O_RDONLY);
@@ -56,7 +56,7 @@ native_handle_type open_file(const char *path,
 <td valign="top">
 <pre><code class="c++">using native_handle_type = HANDLE;
 native_handle_type open_file(const wchar_t *path,
-                             system_error2::system_code &sc) noexcept
+  system_error2::system_code &sc) noexcept
 {
   sc.clear();  // clears to empty
   native_handle_type h = CreateFile(path, GENERIC_READ,
