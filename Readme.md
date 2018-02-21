@@ -9,6 +9,7 @@ Docs: [https://ned14.github.io/status-code/](https://ned14.github.io/status-code
 Solves the problems for low latency/large code base users with `<system_error>`
 as listed by [WG21 P0824](https://wg21.link/P0824). This proposed `<system_error2>`
 library is EXPERIMENTAL and is subject to change as the committee evolves the design.
+To fetch a drop-in standalone single file implementation:
 
 ```
 wget https://github.com/ned14/status-code/raw/develop/single-header/system_error2.hpp
@@ -38,13 +39,15 @@ multi-million line codebases.
 <tr>
 <td valign="top">
 <pre><code class="c++">using native_handle_type = int;
-native_handle_type open_file(const char *path, system_error2::system_code &sc) noexcept
+native_handle_type open_file(const char *path,
+                             system_error2::system_code &sc) noexcept
 {
   sc.clear();  // clears to empty
   native_handle_type h = ::open(path, O_RDONLY);
   if(-1 == h)
   {
-    sc = system_error2::posix_code(errno);  // posix_code type erases into system_code
+    // posix_code type erases into system_code
+    sc = system_error2::posix_code(errno);
   }
   return h;
 }
@@ -52,7 +55,8 @@ native_handle_type open_file(const char *path, system_error2::system_code &sc) n
 </td>
 <td valign="top">
 <pre><code class="c++">using native_handle_type = HANDLE;
-native_handle_type open_file(const wchar_t *path, system_error2::system_code &sc) noexcept
+native_handle_type open_file(const wchar_t *path,
+                             system_error2::system_code &sc) noexcept
 {
   sc.clear();  // clears to empty
   native_handle_type h = CreateFile(path, GENERIC_READ,
@@ -64,7 +68,8 @@ native_handle_type open_file(const wchar_t *path, system_error2::system_code &sc
   );
   if(INVALID_HANDLE_VALUE == h)
   {
-    sc = system_error2::win32_code(GetLastError());  // win32_code type erases into system_code
+    // win32_code type erases into system_code
+    sc = system_error2::win32_code(GetLastError());
   }
   return h;
 }
