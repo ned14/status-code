@@ -80,9 +80,16 @@ public:
     //! Construct from a POSIX error code
     explicit string_ref(int c)
     {
-      char buffer[1024];
+      char buffer[1024] = "";
 #ifdef _WIN32
       strerror_s(buffer, sizeof(buffer), c);
+#elif defined(__linux__)
+      char *s = strerror_r(c, buffer, sizeof(buffer));
+      if(s != nullptr)
+      {
+        strncpy(buffer, s, sizeof(buffer));
+        buffer[1023] = 0;
+      }
 #else
       strerror_r(c, buffer, sizeof(buffer));
 #endif
