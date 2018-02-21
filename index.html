@@ -91,7 +91,7 @@ if(sc.failure())
   // This will match any system-specific error codes meaning a file not found
   if(sc != system_error2::errc::no_such_file_or_directory)
   {
-    std::cerr << "FATAL: " << sc << std::endl;
+    std::cerr << "FATAL: " << sc.message().c_str() << std::endl;
     std::terminate();
   }
 }
@@ -226,6 +226,9 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_nt_code.html#standardese-system_error2___nt_code_domain"><code>_nt_code_domain</code></a> &mdash; (Windows only) The implementation of the domain for NT error codes, those returned by NT kernel functions.</p>
 </li>
 <li>
+<p><a href="doc_posix_code.html#standardese-system_error2___posix_code_domain"><code>_posix_code_domain</code></a> &mdash; The implementation of the domain for POSIX error codes, those returned by <code>errno</code>.</p>
+</li>
+<li>
 <p><a href="doc_win32_code.html#standardese-system_error2___win32_code_domain"><code>_win32_code_domain</code></a> &mdash; (Windows only) The implementation of the domain for Win32 error codes, those returned by <code>GetLastError()</code>.</p>
 </li>
 <li>
@@ -262,7 +265,13 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_generic_code.html#standardese-system_error2__operator---DomainType1-DomainType2--status_code-DomainType1-const--status_code-DomainType2-const--"><code>operator==</code></a> &mdash; True if the status code’s are semantically equal via <code>equivalent()</code>.</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__status_code-"><code>status_code</code></a> &mdash; A type erased lightweight status code reflecting empty, success, or failure.</p>
+<p><a href="doc_posix_code.html#standardese-system_error2__posix_code"><code>posix_code</code></a> &mdash; A POSIX error code, those returned by <code>errno</code>.</p>
+</li>
+<li>
+<p><a href="doc_posix_code.html#standardese-system_error2__posix_code_domain"><code>posix_code_domain</code></a> &mdash; A constexpr source variable for the POSIX code domain, which is that of <code>errno</code>. Returned by <code>_posix_code_domain::get()</code>.</p>
+</li>
+<li>
+<p><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><code>status_code</code></a> &mdash; The main workhorse of the system_error2 library, can be typed (<code>status_code&lt;DomainType&gt;</code>), erased-immutable (<code>status_code&lt;void&gt;</code>) or erased-mutable (<code>status_code&lt;erased&lt;T&gt;&gt;</code>).</p>
 </li>
 <li>
 <p><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain"><code>status_code_domain</code></a> &mdash; Abstract base class for a coding domain of a status code.</p>
