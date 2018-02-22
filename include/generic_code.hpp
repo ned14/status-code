@@ -108,7 +108,7 @@ namespace detail
   {
     const char *msgs[256];
     SYSTEM_ERROR2_CONSTEXPR14 size_t size() const { return sizeof(msgs) / sizeof(*msgs); }
-    SYSTEM_ERROR2_CONSTEXPR14 const char *operator[](int i) const { return (i < 0 || i >= (int) size() || !msgs[i]) ? "unknown" : msgs[i]; }
+    SYSTEM_ERROR2_CONSTEXPR14 const char *operator[](int i) const { return (i < 0 || i >= static_cast<int>(size()) || nullptr == msgs[i]) ? "unknown" : msgs[i]; }  // NOLINT
     SYSTEM_ERROR2_CONSTEXPR14 generic_code_messages()
         : msgs{}
     {
@@ -251,7 +251,7 @@ namespace detail
 #endif
     }
   };
-}
+}  // namespace detail
 
 /*! The implementation of the domain for generic status codes, those mapped by `errc` (POSIX).
 */
@@ -263,23 +263,12 @@ class _generic_code_domain : public status_code_domain
 public:
   //! The value type of the generic code, which is an `errc` as per POSIX.
   using value_type = errc;
-  //! Thread safe reference to a message string, reimplemented to implement finality for better codegen
-  class string_ref : public status_code_domain::string_ref
-  {
-  protected:
-    virtual void _copy(_base::string_ref *dest) const & override final { new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]); }
-    virtual void _move(_base::string_ref *dest) && noexcept override final { new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]); }
-  public:
-    using status_code_domain::string_ref::string_ref;
-    // Allow explicit cast up
-    explicit string_ref(_base::string_ref v) { static_cast<string_ref &&>(v)._move(this); }
-    ~string_ref() override final = default;
-  };
+  using string_ref = _base::string_ref;
 
 public:
   //! Default constructor
   constexpr _generic_code_domain()
-      : status_code_domain(0x746d6354f4f733e9)
+      : _base(0x746d6354f4f733e9)
   {
   }
   _generic_code_domain(const _generic_code_domain &) = default;
@@ -291,7 +280,7 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr generic_code_domain variable.
   static inline constexpr const _generic_code_domain *get();
 
-  virtual _base::string_ref name() const noexcept override final { return string_ref("generic domain"); }
+  virtual _base::string_ref name() const noexcept override final { return string_ref("generic domain"); }  // NOLINT
 protected:
   virtual bool _failure(const status_code<void> &code) const noexcept override final
   {

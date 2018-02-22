@@ -31,8 +31,6 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include "generic_code.hpp"
 
-#include <atomic>
-#include <cstdlib>  // for malloc
 #include <cstring>  // for strchr
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
@@ -78,35 +76,31 @@ public:
   //! Thread safe reference to a message string fetched by `FormatMessage()`
   class string_ref : public _base::string_ref
   {
-    struct _allocated_msg
-    {
-      mutable std::atomic<unsigned> count;
-    };
-    _allocated_msg *&_msg() { return reinterpret_cast<_allocated_msg *&>(this->_state[0]); }
-    const _allocated_msg *_msg() const { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); }
-  protected:
-    virtual void _copy(_base::string_ref *dest) const & override final
-    {
-      if(_msg())
-      {
-        auto count = _msg()->count.fetch_add(1);
-        assert(count != 0);
-      }
-      new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]);
-    }
-    virtual void _move(_base::string_ref *dest) && noexcept override final
-    {
-      new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]);
-      if(_msg())
-      {
-        _msg() = nullptr;
-      }
-    }
-
   public:
-    using _base::string_ref::string_ref;
+    string_ref(const _base::string_ref &o)
+        : _base::string_ref(o)
+    {
+    }
+    string_ref(_base::string_ref &&o)
+        : _base::string_ref(std::move(o))
+    {
+    }
+    constexpr string_ref()
+        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
+    {
+    }
+    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str)
+        : _base::string_ref(str, _base::string_ref::_refcounted_string_thunk)
+    {
+    }
+    string_ref(const string_ref &) = default;
+    string_ref(string_ref &&) = default;
+    string_ref &operator=(const string_ref &) = default;
+    string_ref &operator=(string_ref &&) = default;
+    ~string_ref() = default;
     //! Construct from a Win32 error code
     explicit string_ref(win32::DWORD c)
+        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
     {
       wchar_t buffer[32768];
       win32::DWORD wlen = win32::FormatMessageW(0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, 0, c, 0, buffer, 32768, nullptr);
@@ -149,20 +143,6 @@ public:
       _msg() = nullptr;  // disabled
       this->_begin = "failed to get message from system";
       this->_end = strchr(this->_begin, 0);
-    }
-    //! Allow explicit cast up
-    explicit string_ref(_base::string_ref v) { static_cast<string_ref &&>(v)._move(this); }
-    ~string_ref() override final
-    {
-      if(_msg())
-      {
-        auto count = _msg()->count.fetch_sub(1);
-        if(count == 1)
-        {
-          free((void *) this->_begin);
-          delete _msg();
-        }
-      }
     }
   };
 

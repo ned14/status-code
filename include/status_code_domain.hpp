@@ -27,7 +27,10 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include "config.hpp"
 
+#include <atomic>
+#include <cassert>
 #include <cstddef>  // for size_t
+#include <cstdlib>  // for malloc
 #include <new>
 #include <type_traits>
 
@@ -100,49 +103,107 @@ public:
     using const_iterator = const char *;
 
   protected:
-    pointer _begin{}, _end{};
-    void *_state[2]{};  // at least the size of a shared_ptr
+    enum class _thunk_op
+    {
+      copy,
+      move,
+      destruct
+    };
+    using _thunk_spec = void (*)(string_ref *dest, const string_ref *src, _thunk_op op);
+    static void _static_string_thunk(string_ref *dest, const string_ref *src, _thunk_op /*unused*/)
+    {
+      (void) dest;
+      (void) src;
+      assert(dest->_thunk == _static_string_thunk);
+      assert(src == nullptr || src->_thunk == _static_string_thunk);
+      // do nothing
+    }
+    struct _allocated_msg
+    {
+      mutable std::atomic<unsigned> count;
+    };
+    _allocated_msg *&_msg() { return reinterpret_cast<_allocated_msg *&>(this->_state[0]); }
+    const _allocated_msg *_msg() const { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); }
+    static void _refcounted_string_thunk(string_ref *dest, const string_ref *src, _thunk_op op)
+    {
+      (void) src;
+      assert(dest->_thunk == _refcounted_string_thunk);
+      assert(src == nullptr || src->_thunk == _refcounted_string_thunk);
+      switch(op)
+      {
+      case _thunk_op::copy:
+      case _thunk_op::move:
+      {
+        if(dest->_msg())
+        {
+          auto count = dest->_msg()->count.fetch_add(1);
+          assert(count != 0);
+        }
+        return;
+      }
+      case _thunk_op::destruct:
+      {
+        if(dest->_msg())
+        {
+          auto count = dest->_msg()->count.fetch_sub(1);
+          if(count == 1)
+          {
+            free((void *) dest->_begin);
+            delete dest->_msg();
+          }
+        }
+      }
+      }
+    }
 
-    string_ref() = default;
-    //! Invoked to perform a copy construction
-    virtual void _copy(string_ref *dest) const & { new(dest) string_ref(_begin, _end, _state[0], _state[1]); }
-    //! Invoked to perform a move construction
-    virtual void _move(string_ref *dest) && noexcept { new(dest) string_ref(_begin, _end, _state[0], _state[1]); }
+    pointer _begin{}, _end{};
+    void *_state[3]{};  // at least the size of a shared_ptr
+    _thunk_spec _thunk;
+
+    constexpr string_ref(_thunk_spec thunk)
+        : _thunk(thunk)
+    {
+    }
 
   public:
     //! Construct from a C string literal
-    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str)
+    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str, _thunk_spec thunk = _static_string_thunk)
         : _begin(str)
         , _end(str + detail::cstrlen(str))
-    {
-    }
-    //! Construct from a set of data
-    constexpr string_ref(pointer begin, pointer end, void *state0, void *state1)
-        : _begin(begin)
-        , _end(end)
-        , _state{state0, state1}
+        , _thunk(thunk)
     {
     }
     //! Copy construct the derived implementation.
-    string_ref(const string_ref &o) { o._copy(this); }
+    string_ref(const string_ref &o)
+        : _begin(o._begin)
+        , _end(o._end)
+        , _state{o._state[0], o._state[1], o._state[2]}
+        , _thunk(o._thunk)
+    {
+      _thunk(this, &o, _thunk_op::copy);
+    }
     //! Move construct the derived implementation.
-    string_ref(string_ref &&o) noexcept { static_cast<string_ref &&>(o)._move(this); }
+    string_ref(string_ref &&o) noexcept : _begin(o._begin), _end(o._end), _state{o._state[0], o._state[1], o._state[2]}, _thunk(o._thunk) { _thunk(this, &o, _thunk_op::move); }
     //! Copy assignment
     string_ref &operator=(const string_ref &o)
     {
       this->~string_ref();
-      o._copy(this);
+      new(this) string_ref(o);
       return *this;
     }
-    //! Public moving not permitted.
+    //! Move assignment
     string_ref &operator=(string_ref &&o) noexcept
     {
       this->~string_ref();
-      static_cast<string_ref &&>(o)._move(this);
+      new(this) string_ref(static_cast<string_ref &&>(o));
       return *this;
     }
-    //! Destruction permitted.
-    virtual ~string_ref() { _begin = _end = nullptr; }
+    //! Destruction
+    ~string_ref()
+    {
+      _thunk(this, nullptr, _thunk_op::destruct);
+      _begin = _end = nullptr;
+    }
 
     //! Returns whether the reference is empty or not
     bool empty() const noexcept { return _begin == _end; }

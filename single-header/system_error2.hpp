@@ -408,7 +408,10 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 SYSTEM_ERROR2_NAMESPACE_END
 
 #endif
+#include <atomic>
+#include <cassert>
 #include <cstddef> // for size_t
+#include <cstdlib> // for malloc
 #include <new>
 #include <type_traits>
 
@@ -494,49 +497,107 @@ public:
     using const_iterator = const char *;
 
   protected:
-    pointer _begin{}, _end{};
-    void *_state[2]{}; // at least the size of a shared_ptr
+    enum class _thunk_op
+    {
+      copy,
+      move,
+      destruct
+    };
+    using _thunk_spec = void (*)(string_ref *dest, const string_ref *src, _thunk_op op);
+    static void _static_string_thunk(string_ref *dest, const string_ref *src, _thunk_op /*unused*/)
+    {
+      (void) dest;
+      (void) src;
+      assert(dest->_thunk == _static_string_thunk);
+      assert(src == nullptr || src->_thunk == _static_string_thunk);
+      // do nothing
+    }
+    struct _allocated_msg
+    {
+      mutable std::atomic<unsigned> count;
+    };
+    _allocated_msg *&_msg() { return reinterpret_cast<_allocated_msg *&>(this->_state[0]); }
+    const _allocated_msg *_msg() const { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); }
+    static void _refcounted_string_thunk(string_ref *dest, const string_ref *src, _thunk_op op)
+    {
+      (void) src;
+      assert(dest->_thunk == _refcounted_string_thunk);
+      assert(src == nullptr || src->_thunk == _refcounted_string_thunk);
+      switch(op)
+      {
+      case _thunk_op::copy:
+      case _thunk_op::move:
+      {
+        if(dest->_msg())
+        {
+          auto count = dest->_msg()->count.fetch_add(1);
+          assert(count != 0);
+        }
+        return;
+      }
+      case _thunk_op::destruct:
+      {
+        if(dest->_msg())
+        {
+          auto count = dest->_msg()->count.fetch_sub(1);
+          if(count == 1)
+          {
+            free((void *) dest->_begin);
+            delete dest->_msg();
+          }
+        }
+      }
+      }
+    }
 
-    string_ref() = default;
-    //! Invoked to perform a copy construction
-    virtual void _copy(string_ref *dest) const & { new(dest) string_ref(_begin, _end, _state[0], _state[1]); }
-    //! Invoked to perform a move construction
-    virtual void _move(string_ref *dest) && noexcept { new(dest) string_ref(_begin, _end, _state[0], _state[1]); }
+    pointer _begin{}, _end{};
+    void *_state[3]{}; // at least the size of a shared_ptr
+    _thunk_spec _thunk;
+
+    constexpr string_ref(_thunk_spec thunk)
+        : _thunk(thunk)
+    {
+    }
 
   public:
     //! Construct from a C string literal
-    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str)
+    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str, _thunk_spec thunk = _static_string_thunk)
         : _begin(str)
         , _end(str + detail::cstrlen(str))
-    {
-    }
-    //! Construct from a set of data
-    constexpr string_ref(pointer begin, pointer end, void *state0, void *state1)
-        : _begin(begin)
-        , _end(end)
-        , _state{state0, state1}
+        , _thunk(thunk)
     {
     }
     //! Copy construct the derived implementation.
-    string_ref(const string_ref &o) { o._copy(this); }
+    string_ref(const string_ref &o)
+        : _begin(o._begin)
+        , _end(o._end)
+        , _state{o._state[0], o._state[1], o._state[2]}
+        , _thunk(o._thunk)
+    {
+      _thunk(this, &o, _thunk_op::copy);
+    }
     //! Move construct the derived implementation.
-    string_ref(string_ref &&o) noexcept { static_cast<string_ref &&>(o)._move(this); }
+    string_ref(string_ref &&o) noexcept : _begin(o._begin), _end(o._end), _state{o._state[0], o._state[1], o._state[2]}, _thunk(o._thunk) { _thunk(this, &o, _thunk_op::move); }
     //! Copy assignment
     string_ref &operator=(const string_ref &o)
     {
       this->~string_ref();
-      o._copy(this);
+      new(this) string_ref(o);
       return *this;
     }
-    //! Public moving not permitted.
+    //! Move assignment
     string_ref &operator=(string_ref &&o) noexcept
     {
       this->~string_ref();
-      static_cast<string_ref &&>(o)._move(this);
+      new(this) string_ref(static_cast<string_ref &&>(o));
       return *this;
     }
-    //! Destruction permitted.
-    virtual ~string_ref() { _begin = _end = nullptr; }
+    //! Destruction
+    ~string_ref()
+    {
+      _thunk(this, nullptr, _thunk_op::destruct);
+      _begin = _end = nullptr;
+    }
 
     //! Returns whether the reference is empty or not
     bool empty() const noexcept { return _begin == _end; }
@@ -610,7 +671,6 @@ protected:
 SYSTEM_ERROR2_NAMESPACE_END
 
 #endif
-#include <cassert>
 #include <exception> // for std::exception
 
 namespace system_error2
@@ -960,7 +1020,7 @@ namespace detail
   {
     const char *msgs[256];
     SYSTEM_ERROR2_CONSTEXPR14 size_t size() const { return sizeof(msgs) / sizeof(*msgs); }
-    SYSTEM_ERROR2_CONSTEXPR14 const char *operator[](int i) const { return (i < 0 || i >= (int) size() || !msgs[i]) ? "unknown" : msgs[i]; }
+    SYSTEM_ERROR2_CONSTEXPR14 const char *operator[](int i) const { return (i < 0 || i >= static_cast<int>(size()) || nullptr == msgs[i]) ? "unknown" : msgs[i]; } // NOLINT
     SYSTEM_ERROR2_CONSTEXPR14 generic_code_messages()
         : msgs{}
     {
@@ -1103,7 +1163,7 @@ namespace detail
 
     }
   };
-}
+} // namespace detail
 
 /*! The implementation of the domain for generic status codes, those mapped by `errc` (POSIX).
 */
@@ -1116,23 +1176,12 @@ class _generic_code_domain : public status_code_domain
 public:
   //! The value type of the generic code, which is an `errc` as per POSIX.
   using value_type = errc;
-  //! Thread safe reference to a message string, reimplemented to implement finality for better codegen
-  class string_ref : public status_code_domain::string_ref
-  {
-  protected:
-    virtual void _copy(_base::string_ref *dest) const & override final { new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]); }
-    virtual void _move(_base::string_ref *dest) && noexcept override final { new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]); }
-  public:
-    using status_code_domain::string_ref::string_ref;
-    // Allow explicit cast up
-    explicit string_ref(_base::string_ref v) { static_cast<string_ref &&>(v)._move(this); }
-    ~string_ref() override final = default;
-  };
+  using string_ref = _base::string_ref;
 
 public:
   //! Default constructor
   constexpr _generic_code_domain()
-      : status_code_domain(0x746d6354f4f733e9)
+      : _base(0x746d6354f4f733e9)
   {
   }
   _generic_code_domain(const _generic_code_domain &) = default;
@@ -1144,7 +1193,7 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr generic_code_domain variable.
   static inline constexpr const _generic_code_domain *get();
 
-  virtual _base::string_ref name() const noexcept override final { return string_ref("generic domain"); }
+  virtual _base::string_ref name() const noexcept override final { return string_ref("generic domain"); } // NOLINT
 protected:
   virtual bool _failure(const status_code<void> &code) const noexcept override final
   {
@@ -1247,8 +1296,6 @@ template <class DomainType1> inline bool operator!=(errc a, const status_code<Do
 SYSTEM_ERROR2_NAMESPACE_END
 
 #endif
-#include <atomic>
-#include <cstdlib> // for malloc
 #include <cstring> // for strchr and strerror_r
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
@@ -1271,35 +1318,31 @@ public:
   //! Thread safe reference to a message string fetched by `strerror_r()`
   class string_ref : public _base::string_ref
   {
-    struct _allocated_msg
-    {
-      mutable std::atomic<unsigned> count;
-    };
-    _allocated_msg *&_msg() { return reinterpret_cast<_allocated_msg *&>(this->_state[0]); }
-    const _allocated_msg *_msg() const { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); }
-  protected:
-    virtual void _copy(_base::string_ref *dest) const & override final
-    {
-      if(_msg())
-      {
-        auto count = _msg()->count.fetch_add(1);
-        assert(count != 0);
-      }
-      new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]);
-    }
-    virtual void _move(_base::string_ref *dest) && noexcept override final
-    {
-      new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]);
-      if(_msg())
-      {
-        _msg() = nullptr;
-      }
-    }
-
   public:
-    using _base::string_ref::string_ref;
+    string_ref(const _base::string_ref &o)
+        : _base::string_ref(o)
+    {
+    }
+    string_ref(_base::string_ref &&o)
+        : _base::string_ref(std::move(o))
+    {
+    }
+    constexpr string_ref()
+        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
+    {
+    }
+    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str)
+        : _base::string_ref(str, _base::string_ref::_refcounted_string_thunk)
+    {
+    }
+    string_ref(const string_ref &) = default;
+    string_ref(string_ref &&) = default;
+    string_ref &operator=(const string_ref &) = default;
+    string_ref &operator=(string_ref &&) = default;
+    ~string_ref() = default;
     //! Construct from a POSIX error code
     explicit string_ref(int c)
+        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
     {
       char buffer[1024] = "";
 #ifdef _WIN32
@@ -1333,20 +1376,6 @@ public:
       _msg() = nullptr; // disabled
       this->_begin = "failed to get message from system";
       this->_end = strchr(this->_begin, 0);
-    }
-    //! Allow explicit cast up
-    explicit string_ref(_base::string_ref v) { static_cast<string_ref &&>(v)._move(this); }
-    ~string_ref() override final
-    {
-      if(_msg())
-      {
-        auto count = _msg()->count.fetch_sub(1);
-        if(count == 1)
-        {
-          free((void *) this->_begin);
-          delete _msg();
-        }
-      }
     }
   };
 
@@ -1526,8 +1555,6 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 
 
-#include <atomic>
-#include <cstdlib> // for malloc
 #include <cstring> // for strchr
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
@@ -1647,35 +1674,31 @@ public:
   //! Thread safe reference to a message string fetched by `FormatMessage()`
   class string_ref : public _base::string_ref
   {
-    struct _allocated_msg
-    {
-      mutable std::atomic<unsigned> count;
-    };
-    _allocated_msg *&_msg() { return reinterpret_cast<_allocated_msg *&>(this->_state[0]); }
-    const _allocated_msg *_msg() const { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); }
-  protected:
-    virtual void _copy(_base::string_ref *dest) const & override final
-    {
-      if(_msg())
-      {
-        auto count = _msg()->count.fetch_add(1);
-        assert(count != 0);
-      }
-      new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]);
-    }
-    virtual void _move(_base::string_ref *dest) && noexcept override final
-    {
-      new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]);
-      if(_msg())
-      {
-        _msg() = nullptr;
-      }
-    }
-
   public:
-    using _base::string_ref::string_ref;
+    string_ref(const _base::string_ref &o)
+        : _base::string_ref(o)
+    {
+    }
+    string_ref(_base::string_ref &&o)
+        : _base::string_ref(std::move(o))
+    {
+    }
+    constexpr string_ref()
+        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
+    {
+    }
+    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str)
+        : _base::string_ref(str, _base::string_ref::_refcounted_string_thunk)
+    {
+    }
+    string_ref(const string_ref &) = default;
+    string_ref(string_ref &&) = default;
+    string_ref &operator=(const string_ref &) = default;
+    string_ref &operator=(string_ref &&) = default;
+    ~string_ref() = default;
     //! Construct from a Win32 error code
     explicit string_ref(win32::DWORD c)
+        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
     {
       wchar_t buffer[32768];
       win32::DWORD wlen = win32::FormatMessageW(0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, 0, c, 0, buffer, 32768, nullptr);
@@ -1718,20 +1741,6 @@ public:
       _msg() = nullptr; // disabled
       this->_begin = "failed to get message from system";
       this->_end = strchr(this->_begin, 0);
-    }
-    //! Allow explicit cast up
-    explicit string_ref(_base::string_ref v) { static_cast<string_ref &&>(v)._move(this); }
-    ~string_ref() override final
-    {
-      if(_msg())
-      {
-        auto count = _msg()->count.fetch_sub(1);
-        if(count == 1)
-        {
-          free((void *) this->_begin);
-          delete _msg();
-        }
-      }
     }
   };
 
@@ -1831,7 +1840,7 @@ class _nt_code_domain : public status_code_domain
   {
     if(c >= 0)
       return 0; // success
-    switch(c)
+    switch(static_cast<unsigned>(c))
     {
 case 0x80000002: return EACCES;
 case 0x8000000f: return EAGAIN;
@@ -1938,7 +1947,7 @@ case 0xc000a203: return EACCES;
   {
     if(c >= 0)
       return 0; // success
-    switch(c)
+    switch(static_cast<unsigned>(c))
     {
 case 0x80000002: return 0x3e6;
 case 0x80000005: return 0xea;
@@ -2968,35 +2977,31 @@ public:
   //! Thread safe reference to a message string fetched by `FormatMessage()`
   class string_ref : public _base::string_ref
   {
-    struct _allocated_msg
-    {
-      mutable std::atomic<unsigned> count;
-    };
-    _allocated_msg *&_msg() { return reinterpret_cast<_allocated_msg *&>(this->_state[0]); }
-    const _allocated_msg *_msg() const { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); }
-  protected:
-    virtual void _copy(_base::string_ref *dest) const & override final
-    {
-      if(_msg())
-      {
-        auto count = _msg()->count.fetch_add(1);
-        assert(count != 0);
-      }
-      new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]);
-    }
-    virtual void _move(_base::string_ref *dest) && noexcept override final
-    {
-      new(static_cast<string_ref *>(dest)) string_ref(this->_begin, this->_end, this->_state[0], this->_state[1]);
-      if(_msg())
-      {
-        _msg() = nullptr;
-      }
-    }
-
   public:
-    using _base::string_ref::string_ref;
+    string_ref(const _base::string_ref &o)
+        : _base::string_ref(o)
+    {
+    }
+    string_ref(_base::string_ref &&o)
+        : _base::string_ref(std::move(o))
+    {
+    }
+    constexpr string_ref()
+        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
+    {
+    }
+    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str)
+        : _base::string_ref(str, _base::string_ref::_refcounted_string_thunk)
+    {
+    }
+    string_ref(const string_ref &) = default;
+    string_ref(string_ref &&) = default;
+    string_ref &operator=(const string_ref &) = default;
+    string_ref &operator=(string_ref &&) = default;
+    ~string_ref() = default;
     //! Construct from a NT error code
     explicit string_ref(win32::NTSTATUS c)
+        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
     {
       wchar_t buffer[32768];
       static win32::HMODULE ntdll = win32::GetModuleHandleW(L"NTDLL.DLL");
@@ -3040,20 +3045,6 @@ public:
       _msg() = nullptr; // disabled
       this->_begin = "failed to get message from system";
       this->_end = strchr(this->_begin, 0);
-    }
-    //! Allow explicit cast up
-    explicit string_ref(_base::string_ref v) { static_cast<string_ref &&>(v)._move(this); }
-    ~string_ref() override final
-    {
-      if(_msg())
-      {
-        auto count = _msg()->count.fetch_sub(1);
-        if(count == 1)
-        {
-          free((void *) this->_begin);
-          delete _msg();
-        }
-      }
     }
   };
 

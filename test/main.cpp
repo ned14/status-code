@@ -66,64 +66,85 @@ public:
     using shared_ptr_type = std::shared_ptr<std::string>;
 
   protected:
-    virtual void _copy(_base::string_ref *dest) const & override final { new(static_cast<string_ref *>(dest)) string_ref(_begin, _end, _state); }
-    virtual void _move(_base::string_ref *dest) && noexcept override final { new(static_cast<string_ref *>(dest)) string_ref(_begin, _end, _state); }
+    static void _custom_string_thunk(_base::string_ref *_dest, const _base::string_ref *_src, _base::string_ref::_thunk_op op)
+    {
+      auto *dest = static_cast<string_ref *>(_dest);
+      auto *src = static_cast<const string_ref *>(_src);
+      assert(dest->_thunk == _custom_string_thunk);
+      assert(src == nullptr || src->_thunk == _custom_string_thunk);
+      switch(op)
+      {
+      case _base::string_ref::_thunk_op::copy:
+        new(reinterpret_cast<shared_ptr_type *>(dest->_state)) shared_ptr_type(*reinterpret_cast<const shared_ptr_type *>(src->_state));  // NOLINT
+        return;
+      case _base::string_ref::_thunk_op::move:
+        new(reinterpret_cast<shared_ptr_type *>(dest->_state)) shared_ptr_type(std::move(*reinterpret_cast<shared_ptr_type *>(const_cast<void **>(src->_state))));  // NOLINT
+        return;
+      case _base::string_ref::_thunk_op::destruct:
+      {
+        auto *p = reinterpret_cast<shared_ptr_type *>(dest->_state);  // NOLINT
+        p->~shared_ptr_type();
+      }
+      }
+    }
+
   public:
-    string_ref() { new(reinterpret_cast<shared_ptr_type *>(this->_state)) shared_ptr_type(); }
-    // Allow explicit cast up
-    explicit string_ref(_base::string_ref v) { static_cast<string_ref &&>(v)._move(this); }
+    string_ref(const _base::string_ref &o)
+        : _base::string_ref(o)
+    {
+    }
+    string_ref(_base::string_ref &&o)
+        : _base::string_ref(std::move(o))
+    {
+    }
+    string_ref()
+        : _base::string_ref(_custom_string_thunk)
+    {
+      new(reinterpret_cast<shared_ptr_type *>(this->_state)) shared_ptr_type();
+    }  // NOLINT
+    string_ref(const string_ref &) = default;
+    string_ref(string_ref &&) = default;
+    string_ref &operator=(const string_ref &) = default;
+    string_ref &operator=(string_ref &&) = default;
+    ~string_ref() = default;
+
     // Construct from a C string literal, holding ref counted copy of string
     explicit string_ref(const char *str)
+        : _base::string_ref(_custom_string_thunk)
     {
       static_assert(sizeof(shared_ptr_type) <= sizeof(this->_state), "A shared_ptr does not fit into status_code's state");
       auto len = strlen(str);
       auto p = std::make_shared<std::string>(str, len);
-      new(reinterpret_cast<shared_ptr_type *>(this->_state)) shared_ptr_type(p);
+      new(reinterpret_cast<shared_ptr_type *>(this->_state)) shared_ptr_type(p);  // NOLINT
       this->_begin = p->data();
-      this->_end = p->data() + p->size();
-    }
-    // Construct from a set of data
-    string_ref(pointer begin, pointer end, void *const state[])
-        : _base::string_ref(begin, end, nullptr, nullptr)
-    {
-      // Increase the ref count
-      new(reinterpret_cast<shared_ptr_type *>(_state)) shared_ptr_type(*reinterpret_cast<const shared_ptr_type *>(state));
-    }
-    virtual ~string_ref()
-    {
-      // Decrease the ref count
-      auto *p = reinterpret_cast<shared_ptr_type *>(_state);
-      p->~shared_ptr_type();
+      this->_end = p->data() + p->size();  // NOLINT
     }
   };
-  constexpr Code_domain_impl()
-      : _base(0x430f120194fc06c7)
-  {
-  }
+  constexpr Code_domain_impl() noexcept : _base(0x430f120194fc06c7) {}
   static inline constexpr const Code_domain_impl *get();
-  virtual _base::string_ref name() const noexcept override final
+  virtual _base::string_ref name() const noexcept override final  // NOLINT
   {
     static string_ref v("Code_category_impl");
-    return v;
+    return v;  // NOLINT
   }
-  virtual bool _failure(const system_error2::status_code<void> &code) const noexcept override final
+  virtual bool _failure(const system_error2::status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
-    return (static_cast<size_t>(static_cast<const StatusCode &>(code).value()) & 1) != 0;
+    return (static_cast<size_t>(static_cast<const StatusCode &>(code).value()) & 1) != 0;  // NOLINT
   }
-  virtual bool _equivalent(const system_error2::status_code<void> &code1, const system_error2::status_code<void> &code2) const noexcept override final
+  virtual bool _equivalent(const system_error2::status_code<void> &code1, const system_error2::status_code<void> &code2) const noexcept override final  // NOLINT
   {
     assert(code1.domain() == *this);
-    const auto &c1 = static_cast<const StatusCode &>(code1);
+    const auto &c1 = static_cast<const StatusCode &>(code1);  // NOLINT
     if(code2.domain() == *this)
     {
-      const auto &c2 = static_cast<const StatusCode &>(code2);
+      const auto &c2 = static_cast<const StatusCode &>(code2);  // NOLINT
       return c1.value() == c2.value();
     }
     // If the other category is generic
     if(code2.domain() == system_error2::generic_code_domain)
     {
-      const auto &c2 = static_cast<const system_error2::generic_code &>(code2);
+      const auto &c2 = static_cast<const system_error2::generic_code &>(code2);  // NOLINT
       switch(c1.value())
       {
       case Code::success1:
@@ -138,14 +159,16 @@ public:
         default:
           return false;
         }
+      case Code::error2:
+        return false;
       }
     }
     return false;
   }
-  virtual system_error2::generic_code _generic_code(const system_error2::status_code<void> &code) const noexcept override final
+  virtual system_error2::generic_code _generic_code(const system_error2::status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c1 = static_cast<const StatusCode &>(code);
+    const auto &c1 = static_cast<const StatusCode &>(code);  // NOLINT
     switch(c1.value())
     {
     case Code::success1:
@@ -158,39 +181,39 @@ public:
     }
     return {};
   }
-  virtual _base::string_ref _message(const system_error2::status_code<void> &code) const noexcept override final
+  virtual _base::string_ref _message(const system_error2::status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c1 = static_cast<const StatusCode &>(code);
+    const auto &c1 = static_cast<const StatusCode &>(code);  // NOLINT
     switch(c1.value())
     {
     case Code::success1:
     {
       static string_ref v("success1");
-      return v;
+      return v;  // NOLINT
     }
     case Code::goaway:
     {
       static string_ref v("goaway");
-      return v;
+      return v;  // NOLINT
     }
     case Code::success2:
     {
       static string_ref v("success2");
-      return v;
+      return v;  // NOLINT
     }
     case Code::error2:
     {
       static string_ref v("error2");
-      return v;
+      return v;  // NOLINT
     }
     }
-    return string_ref{};
+    return string_ref{};  // NOLINT
   }
-  virtual void _throw_exception(const system_error2::status_code<void> &code) const override final
+  virtual void _throw_exception(const system_error2::status_code<void> &code) const override final  // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const StatusCode &>(code);
+    const auto &c = static_cast<const StatusCode &>(code);  // NOLINT
     throw system_error2::status_error<Code_domain_impl>(c);
   }
 };
@@ -205,6 +228,10 @@ int main()
 {
   using namespace SYSTEM_ERROR2_NAMESPACE;
   int retcode = 0;
+
+#ifdef _MSC_VER
+  _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
 
   constexpr generic_code empty1, success1(errc::success), failure1(errc::permission_denied);
   CHECK(empty1.empty());

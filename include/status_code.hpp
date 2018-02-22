@@ -27,7 +27,6 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include "status_code_domain.hpp"
 
-#include <cassert>
 #include <exception>  // for std::exception
 
 namespace system_error2
