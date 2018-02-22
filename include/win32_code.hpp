@@ -47,7 +47,7 @@ namespace win32
   // Converts UTF-16 message string to UTF-8
   extern "C" int __stdcall WideCharToMultiByte(unsigned int CodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, int cchWideChar, char *lpMultiByteStr, int cbMultiByte, const char *lpDefaultChar, int *lpUsedDefaultChar);
 #pragma comment(lib, "kernel32.lib")
-}
+}  // namespace win32
 
 class _win32_code_domain;
 //! (Windows only) A Win32 error code, those returned by `GetLastError()`.
@@ -107,19 +107,25 @@ public:
       size_t allocation = wlen + (wlen >> 1);
       win32::DWORD bytes;
       if(wlen == 0)
+      {
         goto failure;
+      }
       for(;;)
       {
         auto *p = static_cast<char *>(malloc(allocation));  // NOLINT
         if(p == nullptr)
+        {
           goto failure;
+        }
         bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, wlen + 1, p, allocation, nullptr, nullptr);
         if(bytes != 0)
         {
           this->_begin = p;
           this->_end = strchr(p, 0);
           while(this->_end[-1] == 10 || this->_end[-1] == 13)
+          {
             --this->_end;
+          }
           *const_cast<char *>(this->_end) = 0;  // NOLINT
           break;
         }
@@ -178,7 +184,9 @@ protected:
     {
       const auto &c2 = static_cast<const generic_code &>(code2);  // NOLINT
       if(static_cast<int>(c2.value()) == _win32_code_to_errno(c1.value()))
+      {
         return true;
+      }
     }
     return false;
   }

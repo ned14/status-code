@@ -90,7 +90,9 @@ public:
       size_t length = strlen(buffer);
       auto *p = static_cast<char *>(malloc(length + 1));  // NOLINT
       if(p == nullptr)
+      {
         goto failure;
+      }
       memcpy(p, buffer, length + 1);
       this->_begin = p;
       this->_end = p + length;                                                    // NOLINT
@@ -141,7 +143,9 @@ protected:
     {
       const auto &c2 = static_cast<const generic_code &>(code2);  // NOLINT
       if(static_cast<int>(c2.value()) == c1.value())
+      {
         return true;
+      }
     }
     return false;
   }

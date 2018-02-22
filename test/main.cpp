@@ -239,22 +239,22 @@ int main()
   CHECK(!failure1.empty());
   CHECK(success1.success());
   CHECK(failure1.failure());
-  printf("generic_code empty has value %d (%s) is success %d is failure %d\n", empty1.value(), empty1.message().c_str(), empty1.success(), empty1.failure());
-  printf("generic_code success has value %d (%s) is success %d is failure %d\n", success1.value(), success1.message().c_str(), success1.success(), success1.failure());
-  printf("generic_code failure has value %d (%s) is success %d is failure %d\n", failure1.value(), failure1.message().c_str(), failure1.success(), failure1.failure());
+  printf("generic_code empty has value %d (%s) is success %d is failure %d\n", static_cast<int>(empty1.value()), empty1.message().c_str(), static_cast<int>(empty1.success()), static_cast<int>(empty1.failure()));
+  printf("generic_code success has value %d (%s) is success %d is failure %d\n", static_cast<int>(success1.value()), success1.message().c_str(), static_cast<int>(success1.success()), static_cast<int>(success1.failure()));
+  printf("generic_code failure has value %d (%s) is success %d is failure %d\n", static_cast<int>(failure1.value()), failure1.message().c_str(), static_cast<int>(failure1.success()), static_cast<int>(failure1.failure()));
 
   constexpr StatusCode empty2, success2(Code::success1), failure2(Code::goaway);
   CHECK(success2.success());
   CHECK(failure2.failure());
-  printf("\nStatusCode empty has value %zu (%s) is success %d is failure %d\n", empty2.value(), empty2.message().c_str(), empty2.success(), empty2.failure());
-  printf("StatusCode success has value %zu (%s) is success %d is failure %d\n", success2.value(), success2.message().c_str(), success2.success(), success2.failure());
-  printf("StatusCode failure has value %zu (%s) is success %d is failure %d\n", failure2.value(), failure2.message().c_str(), failure2.success(), failure2.failure());
+  printf("\nStatusCode empty has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(empty2.value()), empty2.message().c_str(), static_cast<int>(empty2.success()), static_cast<int>(empty2.failure()));
+  printf("StatusCode success has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(success2.value()), success2.message().c_str(), static_cast<int>(success2.success()), static_cast<int>(success2.failure()));
+  printf("StatusCode failure has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(failure2.value()), failure2.message().c_str(), static_cast<int>(failure2.success()), static_cast<int>(failure2.failure()));
 
-  printf("\n(empty1 == empty2) = %d\n", empty1 == empty2);        // True, empty ec's always compare equal no matter the type
-  printf("(success1 == success2) = %d\n", success1 == success2);  // True, success maps onto success
-  printf("(success1 == failure2) = %d\n", success1 == failure2);  // False, success does not map onto failure
-  printf("(failure1 == success2) = %d\n", failure1 == success2);  // False, failure does not map onto success
-  printf("(failure1 == failure2) = %d\n", failure1 == failure2);  // True, filename_too_long maps onto nospace
+  printf("\n(empty1 == empty2) = %d\n", static_cast<int>(empty1 == empty2));        // True, empty ec's always compare equal no matter the type
+  printf("(success1 == success2) = %d\n", static_cast<int>(success1 == success2));  // True, success maps onto success
+  printf("(success1 == failure2) = %d\n", static_cast<int>(success1 == failure2));  // False, success does not map onto failure
+  printf("(failure1 == success2) = %d\n", static_cast<int>(failure1 == success2));  // False, failure does not map onto success
+  printf("(failure1 == failure2) = %d\n", static_cast<int>(failure1 == failure2));  // True, filename_too_long maps onto nospace
   CHECK(empty1 == empty2);
   CHECK(success1 == success2);
   CHECK(success1 != failure2);
@@ -268,8 +268,8 @@ int main()
   CHECK(success3.domain() == success1.domain());
   CHECK(failure3.failure());
   CHECK(failure3.domain() == failure1.domain());
-  printf("\nerased<int> success has value %d (%s) is success %d is failure %d\n", success3.value(), success3.message().c_str(), success3.success(), success3.failure());
-  printf("erased<int> failure has value %d (%s) is success %d is failure %d\n", failure3.value(), failure3.message().c_str(), failure3.success(), failure3.failure());
+  printf("\nerased<int> success has value %d (%s) is success %d is failure %d\n", success3.value(), success3.message().c_str(), static_cast<int>(success3.success()), static_cast<int>(success3.failure()));
+  printf("erased<int> failure has value %d (%s) is success %d is failure %d\n", failure3.value(), failure3.message().c_str(), static_cast<int>(failure3.success()), static_cast<int>(failure3.failure()));
   generic_code success4(success3), failure4(failure3);
   CHECK(success4.value() == success1.value());
   CHECK(success4.domain() == success1.domain());
@@ -286,8 +286,8 @@ int main()
   constexpr win32_code success5(0 /*ERROR_SUCCESS*/), failure5(0x5 /*ERROR_ACCESS_DENIED*/);
   CHECK(success5.success());
   CHECK(failure5.failure());
-  printf("\nWin32 code success has value %zu (%s) is success %d is failure %d\n", success5.value(), success5.message().c_str(), success5.success(), success5.failure());
-  printf("Win32 code failure has value %zu (%s) is success %d is failure %d\n", failure5.value(), failure5.message().c_str(), failure5.success(), failure5.failure());
+  printf("\nWin32 code success has value %lu (%s) is success %d is failure %d\n", success5.value(), success5.message().c_str(), static_cast<int>(success5.success()), static_cast<int>(success5.failure()));
+  printf("Win32 code failure has value %lu (%s) is success %d is failure %d\n", failure5.value(), failure5.message().c_str(), static_cast<int>(failure5.success()), static_cast<int>(failure5.failure()));
   CHECK(success5 == errc::success);
   CHECK(failure5 == errc::permission_denied);
   CHECK(failure5 == failure1);
@@ -302,8 +302,8 @@ int main()
   constexpr nt_code success7(1 /* positive */), failure7(0xC0000022 /*STATUS_ACCESS_DENIED*/);
   CHECK(success7.success());
   CHECK(failure7.failure());
-  printf("\nNT code success has value %zu (%s) is success %d is failure %d\n", success7.value(), success7.message().c_str(), success7.success(), success7.failure());
-  printf("NT code warning has value %zu (%s) is success %d is failure %d\n", failure7.value(), failure7.message().c_str(), failure7.success(), failure7.failure());
+  printf("\nNT code success has value %ld (%s) is success %d is failure %d\n", success7.value(), success7.message().c_str(), static_cast<int>(success7.success()), static_cast<int>(success7.failure()));
+  printf("NT code warning has value %ld (%s) is success %d is failure %d\n", failure7.value(), failure7.message().c_str(), static_cast<int>(failure7.success()), static_cast<int>(failure7.failure()));
   CHECK(success7 == errc::success);
   CHECK(failure7 == errc::permission_denied);
   CHECK(failure7 == failure1);
@@ -321,8 +321,8 @@ int main()
   constexpr posix_code success9(0), failure9(EACCES);
   CHECK(success9.success());
   CHECK(failure9.failure());
-  printf("\nPOSIX code success has value %zu (%s) is success %d is failure %d\n", success9.value(), success9.message().c_str(), success9.success(), success9.failure());
-  printf("POSIX code failure has value %zu (%s) is success %d is failure %d\n", failure9.value(), failure9.message().c_str(), failure9.success(), failure9.failure());
+  printf("\nPOSIX code success has value %d (%s) is success %d is failure %d\n", success9.value(), success9.message().c_str(), static_cast<int>(success9.success()), static_cast<int>(success9.failure()));
+  printf("POSIX code failure has value %d (%s) is success %d is failure %d\n", failure9.value(), failure9.message().c_str(), static_cast<int>(failure9.success()), static_cast<int>(failure9.failure()));
   CHECK(success9 == errc::success);
   CHECK(failure9 == errc::permission_denied);
   CHECK(failure9 == failure1);

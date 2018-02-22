@@ -442,7 +442,7 @@ namespace detail
   inline SYSTEM_ERROR2_CONSTEXPR14 size_t cstrlen(const char *str)
   {
     const char *end = nullptr;
-    for(end = str; *end != 0; ++end)
+    for(end = str; *end != 0; ++end) // NOLINT
       ;
     return end - str;
   }
@@ -457,7 +457,7 @@ namespace detail
     static constexpr bool value = std::is_trivially_copyable<From>::value //
                                   && (sizeof(status_code_sizer<From>) <= sizeof(status_code_sizer<To>));
   };
-}
+} // namespace detail
 
 /*! Abstract base class for a coding domain of a status code.
 */
@@ -516,8 +516,8 @@ public:
     {
       mutable std::atomic<unsigned> count;
     };
-    _allocated_msg *&_msg() { return reinterpret_cast<_allocated_msg *&>(this->_state[0]); }
-    const _allocated_msg *_msg() const { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); }
+    _allocated_msg *&_msg() { return reinterpret_cast<_allocated_msg *&>(this->_state[0]); } // NOLINT
+    const _allocated_msg *_msg() const { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); } // NOLINT
     static void _refcounted_string_thunk(string_ref *dest, const string_ref *src, _thunk_op op)
     {
       (void) src;
@@ -528,7 +528,7 @@ public:
       case _thunk_op::copy:
       case _thunk_op::move:
       {
-        if(dest->_msg())
+        if(dest->_msg() != nullptr)
         {
           auto count = dest->_msg()->count.fetch_add(1);
           assert(count != 0);
@@ -537,12 +537,12 @@ public:
       }
       case _thunk_op::destruct:
       {
-        if(dest->_msg())
+        if(dest->_msg() != nullptr)
         {
           auto count = dest->_msg()->count.fetch_sub(1);
           if(count == 1)
           {
-            free((void *) dest->_begin);
+            free((void *) dest->_begin); // NOLINT
             delete dest->_msg();
           }
         }
@@ -554,7 +554,7 @@ public:
     void *_state[3]{}; // at least the size of a shared_ptr
     _thunk_spec _thunk;
 
-    constexpr string_ref(_thunk_spec thunk)
+    constexpr explicit string_ref(_thunk_spec thunk)
         : _thunk(thunk)
     {
     }
@@ -563,7 +563,7 @@ public:
     //! Construct from a C string literal
     SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str, _thunk_spec thunk = _static_string_thunk)
         : _begin(str)
-        , _end(str + detail::cstrlen(str))
+        , _end(str + detail::cstrlen(str)) // NOLINT
         , _thunk(thunk)
     {
     }
@@ -737,11 +737,11 @@ namespace system_error2
     constexpr bool empty() const noexcept { return _domain == nullptr; }
 
     //! Return a reference to a string textually representing a code.
-    string_ref message() const noexcept { return _domain ? _domain->_message(*this) : string_ref("(empty)"); }
+    string_ref message() const noexcept { return (_domain != nullptr) ? _domain->_message(*this) : string_ref("(empty)"); }
     //! True if code means success.
-    bool success() const noexcept { return _domain ? !_domain->_failure(*this) : false; }
+    bool success() const noexcept { return (_domain != nullptr) ? !_domain->_failure(*this) : false; }
     //! True if code means failure.
-    bool failure() const noexcept { return _domain ? _domain->_failure(*this) : false; }
+    bool failure() const noexcept { return (_domain != nullptr) ? _domain->_failure(*this) : false; }
     //! True if code is strictly (and potentially non-transitively) equivalent to another code in another domain.
     template <class T> bool strictly_equivalent(const status_code<T> &o) const noexcept
     {
@@ -786,17 +786,18 @@ namespace system_error2
     //! Copy constructor
     status_code(const status_code &) = default;
     //! Move constructor
-    status_code(status_code &&) = default;
+    status_code(status_code &&) = default; // NOLINT
     //! Copy assignment
     status_code &operator=(const status_code &) = default;
     //! Move assignment
-    status_code &operator=(status_code &&) = default;
+    status_code &operator=(status_code &&) = default; // NOLINT
+    ~status_code() = default;
 
     //! Implicit construction from any type where an ADL discovered `make_status_code(T &&)` returns a `status_code`.
     template <class T, //
               typename std::enable_if<std::is_same<typename std::decay<decltype(make_status_code(std::declval<T>()))>::type, status_code>::value, bool>::type = true>
-    constexpr explicit status_code(T &&v) noexcept(noexcept(make_status_code(std::declval<T>())))
-        : status_code(make_status_code(static_cast<T &&>(v)))
+    constexpr explicit status_code(T &&v) noexcept(noexcept(make_status_code(std::declval<T>()))) // NOLINT
+    : status_code(make_status_code(static_cast<T &&>(v)))
     {
     }
     //! Explicit construction from a `value_type`.
@@ -815,7 +816,7 @@ namespace system_error2
     template <class ErasedType, //
               typename std::enable_if<detail::type_erasure_is_safe<ErasedType, value_type>::value, bool>::type = true>
     constexpr explicit status_code(const status_code<erased<ErasedType>> &v)
-        : status_code(reinterpret_cast<const value_type &>(v._value))
+        : status_code(reinterpret_cast<const value_type &>(v._value)) // NOLINT
     {
 #if __cplusplus >= 201400
       assert(v.domain() == domain());
@@ -881,22 +882,23 @@ namespace system_error2
     //! Copy constructor
     status_code(const status_code &) = default;
     //! Move constructor
-    status_code(status_code &&) = default;
+    status_code(status_code &&) = default; // NOLINT
     //! Copy assignment
     status_code &operator=(const status_code &) = default;
     //! Move assignment
-    status_code &operator=(status_code &&) = default;
+    status_code &operator=(status_code &&) = default; // NOLINT
+    ~status_code() = default;
 
     //! Implicit copy construction from any other status code if its type is trivially copyable and it would fit into our storage
     template <class DomainType, //
               typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
-    constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(reinterpret_cast<const value_type &>(v.value()))
+    constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(reinterpret_cast<const value_type &>(v.value())) // NOLINT
     {
     }
     //! Return the erased `value_type` by value.
     constexpr value_type value() const noexcept { return _value; }
   };
-} // namespace
+} // namespace system_error2
 
 #endif
 #include <exception> // for std::exception
@@ -918,14 +920,14 @@ public:
   using status_code_type = status_code<DomainType>;
 
   //! Constructs an instance
-  status_error(status_code<DomainType> code)
+  explicit status_error(status_code<DomainType> code)
       : _code(static_cast<status_code<DomainType> &&>(code))
       , _msgref(_code.message())
   {
   }
 
   //! Return an explanatory string
-  virtual const char *what() const noexcept { return _msgref.c_str(); }
+  virtual const char *what() const noexcept override { return _msgref.c_str(); } // NOLINT
   //! Returns a reference to the code
   const status_code_type &code() const & { return _code; }
   //! Returns a reference to the code
@@ -1180,10 +1182,7 @@ public:
 
 public:
   //! Default constructor
-  constexpr _generic_code_domain()
-      : _base(0x746d6354f4f733e9)
-  {
-  }
+  constexpr _generic_code_domain() noexcept : _base(0x746d6354f4f733e9) {}
   _generic_code_domain(const _generic_code_domain &) = default;
   _generic_code_domain(_generic_code_domain &&) = default;
   _generic_code_domain &operator=(const _generic_code_domain &) = default;
@@ -1195,38 +1194,38 @@ public:
 
   virtual _base::string_ref name() const noexcept override final { return string_ref("generic domain"); } // NOLINT
 protected:
-  virtual bool _failure(const status_code<void> &code) const noexcept override final
+  virtual bool _failure(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
-    return static_cast<const generic_code &>(code).value() != errc::success;
+    return static_cast<const generic_code &>(code).value() != errc::success; // NOLINT
   }
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final
+  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final // NOLINT
   {
     assert(code1.domain() == *this);
-    const auto &c1 = static_cast<const generic_code &>(code1);
+    const auto &c1 = static_cast<const generic_code &>(code1); // NOLINT
     if(code2.domain() == *this)
     {
-      const auto &c2 = static_cast<const generic_code &>(code2);
+      const auto &c2 = static_cast<const generic_code &>(code2); // NOLINT
       return c1.value() == c2.value();
     }
     return false;
   }
-  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final
+  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
-    return static_cast<const generic_code &>(code);
+    return static_cast<const generic_code &>(code); // NOLINT
   }
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final
+  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const generic_code &>(code);
+    const auto &c = static_cast<const generic_code &>(code); // NOLINT
     static SYSTEM_ERROR2_CONSTEXPR14 detail::generic_code_messages msgs;
     return string_ref(msgs[static_cast<int>(c.value())]);
   }
-  virtual void _throw_exception(const status_code<void> &code) const override final
+  virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const generic_code &>(code);
+    const auto &c = static_cast<const generic_code &>(code); // NOLINT
     throw status_error<_generic_code_domain>(c);
   }
 };
@@ -1246,19 +1245,29 @@ template <class T> inline bool status_code<void>::equivalent(const status_code<T
   if(_domain && o._domain)
   {
     if(_domain->_equivalent(*this, o))
+    {
       return true;
+    }
     if(o._domain->_equivalent(o, *this))
+    {
       return true;
+    }
     generic_code c1 = o._domain->_generic_code(o);
     if(_domain->_equivalent(*this, c1))
+    {
       return true;
+    }
     generic_code c2 = _domain->_generic_code(*this);
     if(o._domain->_equivalent(o, c2))
+    {
       return true;
+    }
   }
   // If we are both empty, we are equivalent
   if(!_domain && !o._domain)
+  {
     return true;
+  }
   // Otherwise not equivalent
   return false;
 }
@@ -1319,11 +1328,11 @@ public:
   class string_ref : public _base::string_ref
   {
   public:
-    string_ref(const _base::string_ref &o)
+    explicit string_ref(const _base::string_ref &o)
         : _base::string_ref(o)
     {
     }
-    string_ref(_base::string_ref &&o)
+    explicit string_ref(_base::string_ref &&o)
         : _base::string_ref(std::move(o))
     {
     }
@@ -1358,16 +1367,18 @@ public:
       strerror_r(c, buffer, sizeof(buffer));
 #endif
       size_t length = strlen(buffer);
-      char *p = (char *) malloc(length + 1);
+      auto *p = static_cast<char *>(malloc(length + 1)); // NOLINT
       if(p == nullptr)
+      {
         goto failure;
+      }
       memcpy(p, buffer, length + 1);
       this->_begin = p;
-      this->_end = p + length;
-      _msg() = (_allocated_msg *) calloc(1, sizeof(_allocated_msg));
+      this->_end = p + length; // NOLINT
+      _msg() = static_cast<_allocated_msg *>(calloc(1, sizeof(_allocated_msg))); // NOLINT
       if(_msg() == nullptr)
       {
-        free((void *) this->_begin);
+        free((void *) this->_begin); // NOLINT
         goto failure;
       }
       ++_msg()->count;
@@ -1381,10 +1392,7 @@ public:
 
 public:
   //! Default constructor
-  constexpr _posix_code_domain()
-      : _base(0xa59a56fe5f310933)
-  {
-  }
+  constexpr _posix_code_domain() noexcept : _base(0xa59a56fe5f310933) {}
   _posix_code_domain(const _posix_code_domain &) = default;
   _posix_code_domain(_posix_code_domain &&) = default;
   _posix_code_domain &operator=(const _posix_code_domain &) = default;
@@ -1394,46 +1402,48 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr posix_code_domain variable.
   static inline constexpr const _posix_code_domain *get();
 
-  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("posix domain"); }
+  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("posix domain"); } // NOLINT
 protected:
-  virtual bool _failure(const status_code<void> &code) const noexcept override final
+  virtual bool _failure(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
-    return static_cast<const posix_code &>(code).value() != 0;
+    return static_cast<const posix_code &>(code).value() != 0; // NOLINT
   }
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final
+  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final // NOLINT
   {
     assert(code1.domain() == *this);
-    const auto &c1 = static_cast<const posix_code &>(code1);
+    const auto &c1 = static_cast<const posix_code &>(code1); // NOLINT
     if(code2.domain() == *this)
     {
-      const auto &c2 = static_cast<const posix_code &>(code2);
+      const auto &c2 = static_cast<const posix_code &>(code2); // NOLINT
       return c1.value() == c2.value();
     }
     if(code2.domain() == generic_code_domain)
     {
-      const auto &c2 = static_cast<const generic_code &>(code2);
+      const auto &c2 = static_cast<const generic_code &>(code2); // NOLINT
       if(static_cast<int>(c2.value()) == c1.value())
+      {
         return true;
+      }
     }
     return false;
   }
-  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final
+  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const posix_code &>(code);
+    const auto &c = static_cast<const posix_code &>(code); // NOLINT
     return generic_code(static_cast<errc>(c.value()));
   }
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final
+  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const posix_code &>(code);
+    const auto &c = static_cast<const posix_code &>(code); // NOLINT
     return string_ref(c.value());
   }
-  virtual void _throw_exception(const status_code<void> &code) const override final
+  virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const posix_code &>(code);
+    const auto &c = static_cast<const posix_code &>(code); // NOLINT
     throw status_error<_posix_code_domain>(c);
   }
 };
@@ -1571,7 +1581,7 @@ namespace win32
   // Converts UTF-16 message string to UTF-8
   extern "C" int __stdcall WideCharToMultiByte(unsigned int CodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, int cchWideChar, char *lpMultiByteStr, int cbMultiByte, const char *lpDefaultChar, int *lpUsedDefaultChar);
 #pragma comment(lib, "kernel32.lib")
-}
+} // namespace win32
 
 class _win32_code_domain;
 //! (Windows only) A Win32 error code, those returned by `GetLastError()`.
@@ -1675,11 +1685,11 @@ public:
   class string_ref : public _base::string_ref
   {
   public:
-    string_ref(const _base::string_ref &o)
+    explicit string_ref(const _base::string_ref &o)
         : _base::string_ref(o)
     {
     }
-    string_ref(_base::string_ref &&o)
+    explicit string_ref(_base::string_ref &&o)
         : _base::string_ref(std::move(o))
     {
     }
@@ -1701,27 +1711,33 @@ public:
         : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
     {
       wchar_t buffer[32768];
-      win32::DWORD wlen = win32::FormatMessageW(0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, 0, c, 0, buffer, 32768, nullptr);
-      if(wlen == 0)
-        goto failure;
+      win32::DWORD wlen = win32::FormatMessageW(0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, nullptr, c, 0, buffer, 32768, nullptr);
       size_t allocation = wlen + (wlen >> 1);
       win32::DWORD bytes;
+      if(wlen == 0)
+      {
+        goto failure;
+      }
       for(;;)
       {
-        char *p = (char *) malloc(allocation);
+        auto *p = static_cast<char *>(malloc(allocation)); // NOLINT
         if(p == nullptr)
+        {
           goto failure;
+        }
         bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, wlen + 1, p, allocation, nullptr, nullptr);
         if(bytes != 0)
         {
           this->_begin = p;
           this->_end = strchr(p, 0);
           while(this->_end[-1] == 10 || this->_end[-1] == 13)
+          {
             --this->_end;
-          *const_cast<char *>(this->_end) = 0;
+          }
+          *const_cast<char *>(this->_end) = 0; // NOLINT
           break;
         }
-        free(p);
+        free(p); // NOLINT
         if(win32::GetLastError() == 0x7a /*ERROR_INSUFFICIENT_BUFFER*/)
         {
           allocation += allocation >> 2;
@@ -1729,10 +1745,10 @@ public:
         }
         goto failure;
       }
-      _msg() = (_allocated_msg *) calloc(1, sizeof(_allocated_msg));
+      _msg() = (_allocated_msg *) calloc(1, sizeof(_allocated_msg)); // NOLINT
       if(_msg() == nullptr)
       {
-        free((void *) this->_begin);
+        free((void *) this->_begin); // NOLINT
         goto failure;
       }
       ++_msg()->count;
@@ -1746,10 +1762,7 @@ public:
 
 public:
   //! Default constructor
-  constexpr _win32_code_domain()
-      : _base(0x8cd18ee72d680f1b)
-  {
-  }
+  constexpr _win32_code_domain() noexcept : _base(0x8cd18ee72d680f1b) {}
   _win32_code_domain(const _win32_code_domain &) = default;
   _win32_code_domain(_win32_code_domain &&) = default;
   _win32_code_domain &operator=(const _win32_code_domain &) = default;
@@ -1759,46 +1772,48 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr win32_code_domain variable.
   static inline constexpr const _win32_code_domain *get();
 
-  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("win32 domain"); }
+  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("win32 domain"); } // NOLINT
 protected:
-  virtual bool _failure(const status_code<void> &code) const noexcept override final
+  virtual bool _failure(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
-    return static_cast<const win32_code &>(code).value() != 0;
+    return static_cast<const win32_code &>(code).value() != 0; // NOLINT
   }
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final
+  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final // NOLINT
   {
     assert(code1.domain() == *this);
-    const auto &c1 = static_cast<const win32_code &>(code1);
+    const auto &c1 = static_cast<const win32_code &>(code1); // NOLINT
     if(code2.domain() == *this)
     {
-      const auto &c2 = static_cast<const win32_code &>(code2);
+      const auto &c2 = static_cast<const win32_code &>(code2); // NOLINT
       return c1.value() == c2.value();
     }
     if(code2.domain() == generic_code_domain)
     {
-      const auto &c2 = static_cast<const generic_code &>(code2);
+      const auto &c2 = static_cast<const generic_code &>(code2); // NOLINT
       if(static_cast<int>(c2.value()) == _win32_code_to_errno(c1.value()))
+      {
         return true;
+      }
     }
     return false;
   }
-  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final
+  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const win32_code &>(code);
+    const auto &c = static_cast<const win32_code &>(code); // NOLINT
     return generic_code(static_cast<errc>(_win32_code_to_errno(c.value())));
   }
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final
+  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const win32_code &>(code);
+    const auto &c = static_cast<const win32_code &>(code); // NOLINT
     return string_ref(c.value());
   }
-  virtual void _throw_exception(const status_code<void> &code) const override final
+  virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const win32_code &>(code);
+    const auto &c = static_cast<const win32_code &>(code); // NOLINT
     throw status_error<_win32_code_domain>(c);
   }
 };
@@ -1839,7 +1854,9 @@ class _nt_code_domain : public status_code_domain
   int _nt_code_to_errno(win32::NTSTATUS c) const
   {
     if(c >= 0)
+    {
       return 0; // success
+    }
     switch(static_cast<unsigned>(c))
     {
 case 0x80000002: return EACCES;
@@ -1943,10 +1960,12 @@ case 0xc000a203: return EACCES;
     }
     return -1;
   }
-  win32::DWORD _nt_code_to_win32_code(win32::NTSTATUS c) const
+  win32::DWORD _nt_code_to_win32_code(win32::NTSTATUS c) const // NOLINT
   {
     if(c >= 0)
+    {
       return 0; // success
+    }
     switch(static_cast<unsigned>(c))
     {
 case 0x80000002: return 0x3e6;
@@ -2978,11 +2997,11 @@ public:
   class string_ref : public _base::string_ref
   {
   public:
-    string_ref(const _base::string_ref &o)
+    explicit string_ref(const _base::string_ref &o)
         : _base::string_ref(o)
     {
     }
-    string_ref(_base::string_ref &&o)
+    explicit string_ref(_base::string_ref &&o)
         : _base::string_ref(std::move(o))
     {
     }
@@ -3006,26 +3025,32 @@ public:
       wchar_t buffer[32768];
       static win32::HMODULE ntdll = win32::GetModuleHandleW(L"NTDLL.DLL");
       win32::DWORD wlen = win32::FormatMessageW(0x00000800 /*FORMAT_MESSAGE_FROM_HMODULE*/ | 0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, ntdll, c, (1 << 10) /*MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT)*/, buffer, 32768, nullptr);
-      if(wlen == 0)
-        goto failure;
       size_t allocation = wlen + (wlen >> 1);
       win32::DWORD bytes;
+      if(wlen == 0)
+      {
+        goto failure;
+      }
       for(;;)
       {
-        char *p = (char *) malloc(allocation);
+        auto *p = static_cast<char *>(malloc(allocation)); // NOLINT
         if(p == nullptr)
+        {
           goto failure;
+        }
         bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, wlen + 1, p, allocation, nullptr, nullptr);
         if(bytes != 0)
         {
           this->_begin = p;
           this->_end = strchr(p, 0);
           while(this->_end[-1] == 10 || this->_end[-1] == 13)
+          {
             --this->_end;
-          *const_cast<char *>(this->_end) = 0;
+          }
+          *const_cast<char *>(this->_end) = 0; // NOLINT
           break;
         }
-        free(p);
+        free(p); // NOLINT
         if(win32::GetLastError() == 0x7a /*ERROR_INSUFFICIENT_BUFFER*/)
         {
           allocation += allocation >> 2;
@@ -3033,10 +3058,10 @@ public:
         }
         goto failure;
       }
-      _msg() = (_allocated_msg *) calloc(1, sizeof(_allocated_msg));
+      _msg() = static_cast<_allocated_msg *>(calloc(1, sizeof(_allocated_msg))); // NOLINT
       if(_msg() == nullptr)
       {
-        free((void *) this->_begin);
+        free((void *) this->_begin); // NOLINT
         goto failure;
       }
       ++_msg()->count;
@@ -3050,10 +3075,7 @@ public:
 
 public:
   //! Default constructor
-  constexpr _nt_code_domain()
-      : _base(0x93f3b4487e4af25b)
-  {
-  }
+  constexpr _nt_code_domain() noexcept : _base(0x93f3b4487e4af25b) {}
   _nt_code_domain(const _nt_code_domain &) = default;
   _nt_code_domain(_nt_code_domain &&) = default;
   _nt_code_domain &operator=(const _nt_code_domain &) = default;
@@ -3063,52 +3085,56 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr nt_code_domain variable.
   static inline constexpr const _nt_code_domain *get();
 
-  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("NT domain"); }
+  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("NT domain"); } // NOLINT
 protected:
-  virtual bool _failure(const status_code<void> &code) const noexcept override final
+  virtual bool _failure(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
-    return static_cast<const nt_code &>(code).value() < 0;
+    return static_cast<const nt_code &>(code).value() < 0; // NOLINT
   }
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final
+  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final // NOLINT
   {
     assert(code1.domain() == *this);
-    const auto &c1 = static_cast<const nt_code &>(code1);
+    const auto &c1 = static_cast<const nt_code &>(code1); // NOLINT
     if(code2.domain() == *this)
     {
-      const auto &c2 = static_cast<const nt_code &>(code2);
+      const auto &c2 = static_cast<const nt_code &>(code2); // NOLINT
       return c1.value() == c2.value();
     }
     if(code2.domain() == generic_code_domain)
     {
-      const auto &c2 = static_cast<const generic_code &>(code2);
+      const auto &c2 = static_cast<const generic_code &>(code2); // NOLINT
       if(static_cast<int>(c2.value()) == _nt_code_to_errno(c1.value()))
+      {
         return true;
+      }
     }
     if(code2.domain() == win32_code_domain)
     {
-      const auto &c2 = static_cast<const win32_code &>(code2);
+      const auto &c2 = static_cast<const win32_code &>(code2); // NOLINT
       if(c2.value() == _nt_code_to_win32_code(c1.value()))
+      {
         return true;
+      }
     }
     return false;
   }
-  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final
+  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const nt_code &>(code);
+    const auto &c = static_cast<const nt_code &>(code); // NOLINT
     return generic_code(static_cast<errc>(_nt_code_to_errno(c.value())));
   }
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final
+  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const nt_code &>(code);
+    const auto &c = static_cast<const nt_code &>(code); // NOLINT
     return string_ref(c.value());
   }
-  virtual void _throw_exception(const status_code<void> &code) const override final
+  virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const nt_code &>(code);
+    const auto &c = static_cast<const nt_code &>(code); // NOLINT
     throw status_error<_nt_code_domain>(c);
   }
 };

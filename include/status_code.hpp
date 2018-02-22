@@ -239,6 +239,6 @@ namespace system_error2
     //! Return the erased `value_type` by value.
     constexpr value_type value() const noexcept { return _value; }
   };
-}  // namespace
+}  // namespace system_error2
 
 #endif

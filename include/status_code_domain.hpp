@@ -69,7 +69,7 @@ namespace detail
     static constexpr bool value = std::is_trivially_copyable<From>::value  //
                                   && (sizeof(status_code_sizer<From>) <= sizeof(status_code_sizer<To>));
   };
-}
+}  // namespace detail
 
 /*! Abstract base class for a coding domain of a status code.
 */
@@ -134,7 +134,7 @@ public:
       case _thunk_op::copy:
       case _thunk_op::move:
       {
-        if(dest->_msg())
+        if(dest->_msg() != nullptr)
         {
           auto count = dest->_msg()->count.fetch_add(1);
           assert(count != 0);
@@ -143,7 +143,7 @@ public:
       }
       case _thunk_op::destruct:
       {
-        if(dest->_msg())
+        if(dest->_msg() != nullptr)
         {
           auto count = dest->_msg()->count.fetch_sub(1);
           if(count == 1)

@@ -39,7 +39,9 @@ template <class DomainType,  //
 inline std::ostream &operator<<(std::ostream &s, const status_code<DomainType> &v)
 {
   if(v.empty())
+  {
     return s << "(empty)";
+  }
   return s << v.domain().name().c_str() << ": " << v.value();
 }
 
@@ -48,7 +50,9 @@ inline std::ostream &operator<<(std::ostream &s, const status_code<DomainType> &
 inline std::ostream &operator<<(std::ostream &s, const generic_code &v)
 {
   if(v.empty())
+  {
     return s << "(empty)";
+  }
   return s << v.domain().name().c_str() << ": " << v.message().c_str();
 }
 

@@ -57,7 +57,9 @@ class _nt_code_domain : public status_code_domain
   int _nt_code_to_errno(win32::NTSTATUS c) const
   {
     if(c >= 0)
+    {
       return 0;  // success
+    }
     switch(static_cast<unsigned>(c))
     {
 #include "detail/nt_code_to_generic_code.ipp"
@@ -67,7 +69,9 @@ class _nt_code_domain : public status_code_domain
   win32::DWORD _nt_code_to_win32_code(win32::NTSTATUS c) const  // NOLINT
   {
     if(c >= 0)
+    {
       return 0;  // success
+    }
     switch(static_cast<unsigned>(c))
     {
 #include "detail/nt_code_to_win32_code.ipp"
@@ -113,19 +117,25 @@ public:
       size_t allocation = wlen + (wlen >> 1);
       win32::DWORD bytes;
       if(wlen == 0)
+      {
         goto failure;
+      }
       for(;;)
       {
         auto *p = static_cast<char *>(malloc(allocation));  // NOLINT
         if(p == nullptr)
+        {
           goto failure;
+        }
         bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, wlen + 1, p, allocation, nullptr, nullptr);
         if(bytes != 0)
         {
           this->_begin = p;
           this->_end = strchr(p, 0);
           while(this->_end[-1] == 10 || this->_end[-1] == 13)
+          {
             --this->_end;
+          }
           *const_cast<char *>(this->_end) = 0;  // NOLINT
           break;
         }
@@ -184,13 +194,17 @@ protected:
     {
       const auto &c2 = static_cast<const generic_code &>(code2);  // NOLINT
       if(static_cast<int>(c2.value()) == _nt_code_to_errno(c1.value()))
+      {
         return true;
+      }
     }
     if(code2.domain() == win32_code_domain)
     {
       const auto &c2 = static_cast<const win32_code &>(code2);  // NOLINT
       if(c2.value() == _nt_code_to_win32_code(c1.value()))
+      {
         return true;
+      }
     }
     return false;
   }

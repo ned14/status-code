@@ -330,19 +330,29 @@ template <class T> inline bool status_code<void>::equivalent(const status_code<T
   if(_domain && o._domain)
   {
     if(_domain->_equivalent(*this, o))
+    {
       return true;
+    }
     if(o._domain->_equivalent(o, *this))
+    {
       return true;
+    }
     generic_code c1 = o._domain->_generic_code(o);
     if(_domain->_equivalent(*this, c1))
+    {
       return true;
+    }
     generic_code c2 = _domain->_generic_code(*this);
     if(o._domain->_equivalent(o, c2))
+    {
       return true;
+    }
   }
   // If we are both empty, we are equivalent
   if(!_domain && !o._domain)
+  {
     return true;
+  }
   // Otherwise not equivalent
   return false;
 }
