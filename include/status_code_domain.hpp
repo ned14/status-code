@@ -54,7 +54,7 @@ namespace detail
   inline SYSTEM_ERROR2_CONSTEXPR14 size_t cstrlen(const char *str)
   {
     const char *end = nullptr;
-    for(end = str; *end != 0; ++end)
+    for(end = str; *end != 0; ++end)  // NOLINT
       ;
     return end - str;
   }
@@ -122,8 +122,8 @@ public:
     {
       mutable std::atomic<unsigned> count;
     };
-    _allocated_msg *&_msg() { return reinterpret_cast<_allocated_msg *&>(this->_state[0]); }
-    const _allocated_msg *_msg() const { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); }
+    _allocated_msg *&_msg() { return reinterpret_cast<_allocated_msg *&>(this->_state[0]); }                  // NOLINT
+    const _allocated_msg *_msg() const { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); }  // NOLINT
     static void _refcounted_string_thunk(string_ref *dest, const string_ref *src, _thunk_op op)
     {
       (void) src;
@@ -148,7 +148,7 @@ public:
           auto count = dest->_msg()->count.fetch_sub(1);
           if(count == 1)
           {
-            free((void *) dest->_begin);
+            free((void *) dest->_begin);  // NOLINT
             delete dest->_msg();
           }
         }
@@ -160,7 +160,7 @@ public:
     void *_state[3]{};  // at least the size of a shared_ptr
     _thunk_spec _thunk;
 
-    constexpr string_ref(_thunk_spec thunk)
+    constexpr explicit string_ref(_thunk_spec thunk)
         : _thunk(thunk)
     {
     }
@@ -169,7 +169,7 @@ public:
     //! Construct from a C string literal
     SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str, _thunk_spec thunk = _static_string_thunk)
         : _begin(str)
-        , _end(str + detail::cstrlen(str))
+        , _end(str + detail::cstrlen(str))  // NOLINT
         , _thunk(thunk)
     {
     }

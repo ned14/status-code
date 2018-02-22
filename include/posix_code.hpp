@@ -49,11 +49,11 @@ public:
   class string_ref : public _base::string_ref
   {
   public:
-    string_ref(const _base::string_ref &o)
+    explicit string_ref(const _base::string_ref &o)
         : _base::string_ref(o)
     {
     }
-    string_ref(_base::string_ref &&o)
+    explicit string_ref(_base::string_ref &&o)
         : _base::string_ref(std::move(o))
     {
     }
@@ -88,16 +88,16 @@ public:
       strerror_r(c, buffer, sizeof(buffer));
 #endif
       size_t length = strlen(buffer);
-      char *p = (char *) malloc(length + 1);
+      auto *p = static_cast<char *>(malloc(length + 1));  // NOLINT
       if(p == nullptr)
         goto failure;
       memcpy(p, buffer, length + 1);
       this->_begin = p;
-      this->_end = p + length;
-      _msg() = (_allocated_msg *) calloc(1, sizeof(_allocated_msg));
+      this->_end = p + length;                                                    // NOLINT
+      _msg() = static_cast<_allocated_msg *>(calloc(1, sizeof(_allocated_msg)));  // NOLINT
       if(_msg() == nullptr)
       {
-        free((void *) this->_begin);
+        free((void *) this->_begin);  // NOLINT
         goto failure;
       }
       ++_msg()->count;
@@ -111,10 +111,7 @@ public:
 
 public:
   //! Default constructor
-  constexpr _posix_code_domain()
-      : _base(0xa59a56fe5f310933)
-  {
-  }
+  constexpr _posix_code_domain() noexcept : _base(0xa59a56fe5f310933) {}
   _posix_code_domain(const _posix_code_domain &) = default;
   _posix_code_domain(_posix_code_domain &&) = default;
   _posix_code_domain &operator=(const _posix_code_domain &) = default;
@@ -124,46 +121,46 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr posix_code_domain variable.
   static inline constexpr const _posix_code_domain *get();
 
-  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("posix domain"); }
+  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("posix domain"); }  // NOLINT
 protected:
-  virtual bool _failure(const status_code<void> &code) const noexcept override final
+  virtual bool _failure(const status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
-    return static_cast<const posix_code &>(code).value() != 0;
+    return static_cast<const posix_code &>(code).value() != 0;  // NOLINT
   }
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final
+  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final  // NOLINT
   {
     assert(code1.domain() == *this);
-    const auto &c1 = static_cast<const posix_code &>(code1);
+    const auto &c1 = static_cast<const posix_code &>(code1);  // NOLINT
     if(code2.domain() == *this)
     {
-      const auto &c2 = static_cast<const posix_code &>(code2);
+      const auto &c2 = static_cast<const posix_code &>(code2);  // NOLINT
       return c1.value() == c2.value();
     }
     if(code2.domain() == generic_code_domain)
     {
-      const auto &c2 = static_cast<const generic_code &>(code2);
+      const auto &c2 = static_cast<const generic_code &>(code2);  // NOLINT
       if(static_cast<int>(c2.value()) == c1.value())
         return true;
     }
     return false;
   }
-  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final
+  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const posix_code &>(code);
+    const auto &c = static_cast<const posix_code &>(code);  // NOLINT
     return generic_code(static_cast<errc>(c.value()));
   }
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final
+  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const posix_code &>(code);
+    const auto &c = static_cast<const posix_code &>(code);  // NOLINT
     return string_ref(c.value());
   }
-  virtual void _throw_exception(const status_code<void> &code) const override final
+  virtual void _throw_exception(const status_code<void> &code) const override final  // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const posix_code &>(code);
+    const auto &c = static_cast<const posix_code &>(code);  // NOLINT
     throw status_error<_posix_code_domain>(c);
   }
 };

@@ -87,11 +87,11 @@ namespace system_error2
     constexpr bool empty() const noexcept { return _domain == nullptr; }
 
     //! Return a reference to a string textually representing a code.
-    string_ref message() const noexcept { return _domain ? _domain->_message(*this) : string_ref("(empty)"); }
+    string_ref message() const noexcept { return (_domain != nullptr) ? _domain->_message(*this) : string_ref("(empty)"); }
     //! True if code means success.
-    bool success() const noexcept { return _domain ? !_domain->_failure(*this) : false; }
+    bool success() const noexcept { return (_domain != nullptr) ? !_domain->_failure(*this) : false; }
     //! True if code means failure.
-    bool failure() const noexcept { return _domain ? _domain->_failure(*this) : false; }
+    bool failure() const noexcept { return (_domain != nullptr) ? _domain->_failure(*this) : false; }
     //! True if code is strictly (and potentially non-transitively) equivalent to another code in another domain.
     template <class T> bool strictly_equivalent(const status_code<T> &o) const noexcept
     {
@@ -134,17 +134,18 @@ namespace system_error2
     //! Copy constructor
     status_code(const status_code &) = default;
     //! Move constructor
-    status_code(status_code &&) = default;
+    status_code(status_code &&) = default;  // NOLINT
     //! Copy assignment
     status_code &operator=(const status_code &) = default;
     //! Move assignment
-    status_code &operator=(status_code &&) = default;
+    status_code &operator=(status_code &&) = default;  // NOLINT
+    ~status_code() = default;
 
     //! Implicit construction from any type where an ADL discovered `make_status_code(T &&)` returns a `status_code`.
     template <class T,  //
               typename std::enable_if<std::is_same<typename std::decay<decltype(make_status_code(std::declval<T>()))>::type, status_code>::value, bool>::type = true>
-    constexpr explicit status_code(T &&v) noexcept(noexcept(make_status_code(std::declval<T>())))
-        : status_code(make_status_code(static_cast<T &&>(v)))
+    constexpr explicit status_code(T &&v) noexcept(noexcept(make_status_code(std::declval<T>())))  // NOLINT
+    : status_code(make_status_code(static_cast<T &&>(v)))
     {
     }
     //! Explicit construction from a `value_type`.
@@ -160,7 +161,7 @@ namespace system_error2
     template <class ErasedType,  //
               typename std::enable_if<detail::type_erasure_is_safe<ErasedType, value_type>::value, bool>::type = true>
     constexpr explicit status_code(const status_code<erased<ErasedType>> &v)
-        : status_code(reinterpret_cast<const value_type &>(v._value))
+        : status_code(reinterpret_cast<const value_type &>(v._value))  // NOLINT
     {
 #if __cplusplus >= 201400
       assert(v.domain() == domain());
@@ -222,16 +223,17 @@ namespace system_error2
     //! Copy constructor
     status_code(const status_code &) = default;
     //! Move constructor
-    status_code(status_code &&) = default;
+    status_code(status_code &&) = default;  // NOLINT
     //! Copy assignment
     status_code &operator=(const status_code &) = default;
     //! Move assignment
-    status_code &operator=(status_code &&) = default;
+    status_code &operator=(status_code &&) = default;  // NOLINT
+    ~status_code() = default;
 
     //! Implicit copy construction from any other status code if its type is trivially copyable and it would fit into our storage
     template <class DomainType,  //
               typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
-    constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(reinterpret_cast<const value_type &>(v.value()))
+    constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(reinterpret_cast<const value_type &>(v.value()))  // NOLINT
     {
     }
     //! Return the erased `value_type` by value.

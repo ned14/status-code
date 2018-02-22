@@ -267,10 +267,7 @@ public:
 
 public:
   //! Default constructor
-  constexpr _generic_code_domain()
-      : _base(0x746d6354f4f733e9)
-  {
-  }
+  constexpr _generic_code_domain() noexcept : _base(0x746d6354f4f733e9) {}
   _generic_code_domain(const _generic_code_domain &) = default;
   _generic_code_domain(_generic_code_domain &&) = default;
   _generic_code_domain &operator=(const _generic_code_domain &) = default;
@@ -282,38 +279,38 @@ public:
 
   virtual _base::string_ref name() const noexcept override final { return string_ref("generic domain"); }  // NOLINT
 protected:
-  virtual bool _failure(const status_code<void> &code) const noexcept override final
+  virtual bool _failure(const status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
-    return static_cast<const generic_code &>(code).value() != errc::success;
+    return static_cast<const generic_code &>(code).value() != errc::success;  // NOLINT
   }
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final
+  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final  // NOLINT
   {
     assert(code1.domain() == *this);
-    const auto &c1 = static_cast<const generic_code &>(code1);
+    const auto &c1 = static_cast<const generic_code &>(code1);  // NOLINT
     if(code2.domain() == *this)
     {
-      const auto &c2 = static_cast<const generic_code &>(code2);
+      const auto &c2 = static_cast<const generic_code &>(code2);  // NOLINT
       return c1.value() == c2.value();
     }
     return false;
   }
-  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final
+  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
-    return static_cast<const generic_code &>(code);
+    return static_cast<const generic_code &>(code);  // NOLINT
   }
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final
+  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const generic_code &>(code);
+    const auto &c = static_cast<const generic_code &>(code);  // NOLINT
     static SYSTEM_ERROR2_CONSTEXPR14 detail::generic_code_messages msgs;
     return string_ref(msgs[static_cast<int>(c.value())]);
   }
-  virtual void _throw_exception(const status_code<void> &code) const override final
+  virtual void _throw_exception(const status_code<void> &code) const override final  // NOLINT
   {
     assert(code.domain() == *this);
-    const auto &c = static_cast<const generic_code &>(code);
+    const auto &c = static_cast<const generic_code &>(code);  // NOLINT
     throw status_error<_generic_code_domain>(c);
   }
 };

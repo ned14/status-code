@@ -68,8 +68,8 @@ public:
   protected:
     static void _custom_string_thunk(_base::string_ref *_dest, const _base::string_ref *_src, _base::string_ref::_thunk_op op)
     {
-      auto *dest = static_cast<string_ref *>(_dest);
-      auto *src = static_cast<const string_ref *>(_src);
+      auto *dest = static_cast<string_ref *>(_dest);      // NOLINT
+      auto *src = static_cast<const string_ref *>(_src);  // NOLINT
       assert(dest->_thunk == _custom_string_thunk);
       assert(src == nullptr || src->_thunk == _custom_string_thunk);
       switch(op)
@@ -89,19 +89,19 @@ public:
     }
 
   public:
-    string_ref(const _base::string_ref &o)
+    explicit string_ref(const _base::string_ref &o)
         : _base::string_ref(o)
     {
     }
-    string_ref(_base::string_ref &&o)
+    explicit string_ref(_base::string_ref &&o)
         : _base::string_ref(std::move(o))
     {
     }
     string_ref()
         : _base::string_ref(_custom_string_thunk)
     {
-      new(reinterpret_cast<shared_ptr_type *>(this->_state)) shared_ptr_type();
-    }  // NOLINT
+      new(reinterpret_cast<shared_ptr_type *>(this->_state)) shared_ptr_type();  // NOLINT
+    }                                                                            // NOLINT
     string_ref(const string_ref &) = default;
     string_ref(string_ref &&) = default;
     string_ref &operator=(const string_ref &) = default;

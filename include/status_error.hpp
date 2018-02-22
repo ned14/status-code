@@ -45,14 +45,14 @@ public:
   using status_code_type = status_code<DomainType>;
 
   //! Constructs an instance
-  status_error(status_code<DomainType> code)
+  explicit status_error(status_code<DomainType> code)
       : _code(static_cast<status_code<DomainType> &&>(code))
       , _msgref(_code.message())
   {
   }
 
   //! Return an explanatory string
-  virtual const char *what() const noexcept { return _msgref.c_str(); }
+  virtual const char *what() const noexcept override { return _msgref.c_str(); }
   //! Returns a reference to the code
   const status_code_type &code() const & { return _code; }
   //! Returns a reference to the code
