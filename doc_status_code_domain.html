@@ -112,22 +112,32 @@ doc_status_code_domain
     <span class="kwd">using</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__const_iterator"><span class="typ dec var fun">const_iterator</span></a> <span class="pun">=</span> <span class="kwd">char</span> <span class="kwd">const</span><span class="pun">*</span><span class="pun">;</span>
 
 <span class="kwd">protected</span><span class="pun">:</span>
+    <span class="kwd">enum</span> <span class="kwd">class</span> <span class="typ dec var fun">_thunk_op</span><span class="pun">;</span>
+
+    <span class="kwd">using</span> <span class="typ dec var fun">_thunk_spec</span> <span class="pun">=</span> <span class="kwd">void</span><span class="pun">(</span><span class="pun">*</span><span class="pun">)</span><span class="pun">(</span><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span><span class="pun">*</span><span class="pun">,</span> <span class="typ dec var fun">system_error2::status_code_domain::string_ref</span> <span class="kwd">const</span><span class="pun">*</span><span class="pun">,</span> <span class="typ dec var fun">system_error2::status_code_domain::string_ref::_thunk_op</span><span class="pun">)</span><span class="pun">;</span>
+
+    <span class="kwd">static</span> <span class="kwd">void</span> <span class="typ dec var fun">_static_string_thunk</span><span class="pun">(</span><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span><span class="pun">*</span> <span class="typ dec var fun">dest</span><span class="pun">,</span> <span class="typ dec var fun">system_error2::status_code_domain::string_ref</span> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">src</span><span class="pun">,</span> <span class="typ dec var fun">system_error2::status_code_domain::string_ref::_thunk_op</span><span class="pun">)</span><span class="pun">;</span>
+
+    <span class="kwd">struct</span> <span class="typ dec var fun">_allocated_msg</span><span class="pun">;</span>
+
+    <span class="typ dec var fun">system_error2::status_code_domain::string_ref::_allocated_msg</span><span class="pun">*</span><span class="pun">&amp;</span> <span class="typ dec var fun">_msg</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+
+    <span class="typ dec var fun">system_error2::status_code_domain::string_ref::_allocated_msg</span> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">_msg</span><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span><span class="pun">;</span>
+
+    <span class="kwd">static</span> <span class="kwd">void</span> <span class="typ dec var fun">_refcounted_string_thunk</span><span class="pun">(</span><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span><span class="pun">*</span> <span class="typ dec var fun">dest</span><span class="pun">,</span> <span class="typ dec var fun">system_error2::status_code_domain::string_ref</span> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">src</span><span class="pun">,</span> <span class="typ dec var fun">system_error2::status_code_domain::string_ref::_thunk_op</span> <span class="typ dec var fun">op</span><span class="pun">)</span><span class="pun">;</span>
+
     <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__pointer"><span class="typ dec var fun">pointer</span></a> <span class="typ dec var fun">_begin</span><span class="pun">;</span>
 
     <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__pointer"><span class="typ dec var fun">pointer</span></a> <span class="typ dec var fun">_end</span><span class="pun">;</span>
 
-    <span class="kwd">void</span><span class="pun">*</span> <span class="typ dec var fun">_state</span><span class="pun">[</span><span class="lit">2</span><span class="pun">]</span><span class="pun">;</span>
+    <span class="kwd">void</span><span class="pun">*</span> <span class="typ dec var fun">_state</span><span class="pun">[</span><span class="lit">3</span><span class="pun">]</span><span class="pun">;</span>
 
-    <span class="typ dec var fun">string_ref</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+    <span class="typ dec var fun">_thunk_spec</span> <span class="typ dec var fun">_thunk</span><span class="pun">;</span>
 
-    <span class="kwd">virtual</span> <span class="kwd">void</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref___copy-system_error2__status_code_domain__string_ref--const-"><span class="typ dec var fun">_copy</span></a><span class="pun">(</span><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span><span class="pun">*</span> <span class="typ dec var fun">dest</span><span class="pun">)</span> <span class="kwd">const</span> <span class="pun">&amp;</span><span class="pun">;</span>
-
-    <span class="kwd">virtual</span> <span class="kwd">void</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref___move-system_error2__status_code_domain__string_ref----"><span class="typ dec var fun">_move</span></a><span class="pun">(</span><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span><span class="pun">*</span> <span class="typ dec var fun">dest</span><span class="pun">)</span> <span class="pun">&amp;&amp;</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+    <span class="kwd">constexpr</span> <span class="typ dec var fun">string_ref</span><span class="pun">(</span><span class="typ dec var fun">system_error2::status_code_domain::string_ref::_thunk_spec</span> <span class="typ dec var fun">thunk</span><span class="pun">)</span><span class="pun">;</span>
 
 <span class="kwd">public</span><span class="pun">:</span>
-    <span class="kwd">constexpr</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__string_ref-charconst--"><span class="typ dec var fun">string_ref</span></a><span class="pun">(</span><span class="kwd">char</span> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">str</span><span class="pun">)</span><span class="pun">;</span>
-
-    <span class="kwd">constexpr</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__string_ref-system_error2__status_code_domain__string_ref__pointer-system_error2__status_code_domain__string_ref__pointer-void--void--"><span class="typ dec var fun">string_ref</span></a><span class="pun">(</span><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__pointer"><span class="typ dec var fun">system_error2::status_code_domain::string_ref::pointer</span></a> <span class="typ dec var fun">begin</span><span class="pun">,</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__pointer"><span class="typ dec var fun">system_error2::status_code_domain::string_ref::pointer</span></a> <span class="typ dec var fun">end</span><span class="pun">,</span> <span class="kwd">void</span><span class="pun">*</span> <span class="typ dec var fun">state0</span><span class="pun">,</span> <span class="kwd">void</span><span class="pun">*</span> <span class="typ dec var fun">state1</span><span class="pun">)</span><span class="pun">;</span>
+    <span class="kwd">constexpr</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__string_ref-charconst--system_error2__status_code_domain__string_ref___thunk_spec-"><span class="typ dec var fun">string_ref</span></a><span class="pun">(</span><span class="kwd">char</span> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">str</span><span class="pun">,</span> <span class="typ dec var fun">system_error2::status_code_domain::string_ref::_thunk_spec</span> <span class="typ dec var fun">thunk</span> <span class="pun">=</span> <span class="kwd">_static_string_thunk</span><span class="pun">)</span><span class="pun">;</span>
 
     <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__string_ref-system_error2__status_code_domain__string_refconst--"><span class="typ dec var fun">string_ref</span></a><span class="pun">(</span><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">o</span><span class="pun">)</span><span class="pun">;</span>
 
@@ -137,7 +147,7 @@ doc_status_code_domain
 
     <span class="typ dec var fun">system_error2::status_code_domain::string_ref</span><span class="pun">&amp;</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__operator--system_error2__status_code_domain__string_ref---"><span class="typ dec var fun">operator=</span></a><span class="pun">(</span><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">o</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 
-    <span class="kwd">virtual</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__-string_ref--"><span class="typ dec var fun">~string_ref</span></a><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+    <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__-string_ref--"><span class="typ dec var fun">~string_ref</span></a><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
 
     <span class="kwd">bool</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__empty--const"><span class="typ dec var fun">empty</span></a><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 
@@ -203,33 +213,12 @@ doc_status_code_domain
 
 <p>The const iterator type</p>
 <hr />
-<h3>Function <code>system_error2::status_code_domain::string_ref::_copy</code></h3>
-<p><span id="standardese-system_error2__status_code_domain__string_ref___copy-system_error2__status_code_domain__string_ref--const-"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">virtual</span> <span class="kwd">void</span> <span class="typ dec var fun">_copy</span><span class="pun">(</span><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span></a><span class="pun">*</span> <span class="typ dec var fun">dest</span><span class="pun">)</span> <span class="kwd">const</span> <span class="pun">&amp;</span><span class="pun">;</span>
-</code></pre>
-
-<p>Invoked to perform a copy construction</p>
-<hr />
-<h3>Function <code>system_error2::status_code_domain::string_ref::_move</code></h3>
-<p><span id="standardese-system_error2__status_code_domain__string_ref___move-system_error2__status_code_domain__string_ref----"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">virtual</span> <span class="kwd">void</span> <span class="typ dec var fun">_move</span><span class="pun">(</span><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span></a><span class="pun">*</span> <span class="typ dec var fun">dest</span><span class="pun">)</span> <span class="pun">&amp;&amp;</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-</code></pre>
-
-<p>Invoked to perform a move construction</p>
-<hr />
 <h3>Constructor <code>system_error2::status_code_domain::string_ref::string_ref</code></h3>
-<p><span id="standardese-system_error2__status_code_domain__string_ref__string_ref-charconst--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">constexpr</span> <span class="typ dec var fun">string_ref</span><span class="pun">(</span><span class="kwd">char</span> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">str</span><span class="pun">)</span><span class="pun">;</span>
+<p><span id="standardese-system_error2__status_code_domain__string_ref__string_ref-charconst--system_error2__status_code_domain__string_ref___thunk_spec-"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">constexpr</span> <span class="typ dec var fun">string_ref</span><span class="pun">(</span><span class="kwd">char</span> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">str</span><span class="pun">,</span> <span class="typ dec var fun">system_error2::status_code_domain::string_ref::_thunk_spec</span> <span class="typ dec var fun">thunk</span> <span class="pun">=</span> <span class="kwd">_static_string_thunk</span><span class="pun">)</span><span class="pun">;</span>
 </code></pre>
 
 <p>Construct from a C string literal</p>
-<hr />
-<h3>Constructor <code>system_error2::status_code_domain::string_ref::string_ref</code></h3>
-<p><span id="standardese-system_error2__status_code_domain__string_ref__string_ref-system_error2__status_code_domain__string_ref__pointer-system_error2__status_code_domain__string_ref__pointer-void--void--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">constexpr</span> <span class="typ dec var fun">string_ref</span><span class="pun">(</span><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__pointer"><span class="typ dec var fun">system_error2::status_code_domain::string_ref::pointer</span></a> <span class="typ dec var fun">begin</span><span class="pun">,</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref__pointer"><span class="typ dec var fun">system_error2::status_code_domain::string_ref::pointer</span></a> <span class="typ dec var fun">end</span><span class="pun">,</span> <span class="kwd">void</span><span class="pun">*</span> <span class="typ dec var fun">state0</span><span class="pun">,</span> <span class="kwd">void</span><span class="pun">*</span> <span class="typ dec var fun">state1</span><span class="pun">)</span><span class="pun">;</span>
-</code></pre>
-
-<p>Construct from a set of data</p>
 <hr />
 <h3>Constructor <code>system_error2::status_code_domain::string_ref::string_ref</code></h3>
 <p><span id="standardese-system_error2__status_code_domain__string_ref__string_ref-system_error2__status_code_domain__string_refconst--"></span></p>
@@ -257,14 +246,14 @@ doc_status_code_domain
 <pre><code class="standardese-language-cpp"><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span></a><span class="pun">&amp;</span> <span class="typ dec var fun">operator=</span><span class="pun">(</span><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span></a><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">o</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 </code></pre>
 
-<p>Public moving not permitted.</p>
+<p>Move assignment</p>
 <hr />
 <h3>Destructor <code>system_error2::status_code_domain::string_ref::~string_ref</code></h3>
 <p><span id="standardese-system_error2__status_code_domain__string_ref__-string_ref--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">virtual</span> <span class="typ dec var fun">~string_ref</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+<pre><code class="standardese-language-cpp"><span class="typ dec var fun">~string_ref</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
 </code></pre>
 
-<p>Destruction permitted.</p>
+<p>Destruction</p>
 <hr />
 <h3>Function <code>system_error2::status_code_domain::string_ref::empty</code></h3>
 <p><span id="standardese-system_error2__status_code_domain__string_ref__empty--const"></span></p>

@@ -31,7 +31,7 @@ doc_status_error
 
     <span class="kwd">using</span> <a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-__status_code_type"><span class="typ dec var fun">status_code_type</span></a> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span><span class="pun">;</span>
 
-    <a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-__status_error-status_code-DomainType--"><span class="typ dec var fun">status_error</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span> <span class="typ dec var fun">code</span><span class="pun">)</span><span class="pun">;</span>
+    <span class="kwd">explicit</span> <a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-__status_error-status_code-DomainType--"><span class="typ dec var fun">status_error</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span> <span class="typ dec var fun">code</span><span class="pun">)</span><span class="pun">;</span>
 
     <span class="kwd">virtual</span> <span class="kwd">char</span> <span class="kwd">const</span><span class="pun">*</span> <a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-__what--const"><span class="typ dec var fun">what</span></a><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 
@@ -62,7 +62,7 @@ doc_status_error
 <hr />
 <h3>Constructor <code>system_error2::status_error::status_error</code></h3>
 <p><span id="standardese-system_error2__status_error-DomainType-__status_error-status_code-DomainType--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="typ dec var fun">status_error</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span> <span class="typ dec var fun">code</span><span class="pun">)</span><span class="pun">;</span>
+<pre><code class="standardese-language-cpp"><span class="kwd">explicit</span> <span class="typ dec var fun">status_error</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span> <span class="typ dec var fun">code</span><span class="pun">)</span><span class="pun">;</span>
 </code></pre>
 
 <p>Constructs an instance</p>

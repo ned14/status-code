@@ -15,7 +15,8 @@ Please send feedback to the SG14 study group mailing list at <a href="https://gr
 (reference API docs are at bottom of page) Linux: <a href="https://travis-ci.org/ned14/status-code"><img alt="Build Status" src="https://travis-ci.org/ned14/status-code.svg?branch=master" /></a> Windows: <a href="https://ci.appveyor.com/project/ned14/status-code/branch/master"><img alt="Build status" src="https://ci.appveyor.com/api/projects/status/doyh9rol1gupcwd0/branch/master?svg=true" /></a></p>
 <p>Solves the problems for low latency/large code base users with <code>&lt;system_error&gt;</code>
 as listed by <a href="https://wg21.link/P0824">WG21 P0824</a>. This proposed <code>&lt;system_error2&gt;</code>
-library is EXPERIMENTAL and is subject to change as the committee evolves the design.</p>
+library is EXPERIMENTAL and is subject to change as the committee evolves the design.
+To fetch a drop-in standalone single file implementation:</p>
 <pre><code>wget https://github.com/ned14/status-code/raw/develop/single-header/system_error2.hpp
 </code></pre>
 
@@ -44,13 +45,15 @@ multi-million line codebases.</li>
 <tr>
 <td valign="top">
 <pre><code class="c++">using native_handle_type = int;
-native_handle_type open_file(const char *path, system_error2::system_code &sc) noexcept
+native_handle_type open_file(const char *path,
+  system_error2::system_code &sc) noexcept
 {
   sc.clear();  // clears to empty
   native_handle_type h = ::open(path, O_RDONLY);
   if(-1 == h)
   {
-    sc = system_error2::posix_code(errno);  // posix_code type erases into system_code
+    // posix_code type erases into system_code
+    sc = system_error2::posix_code(errno);
   }
   return h;
 }
@@ -58,7 +61,8 @@ native_handle_type open_file(const char *path, system_error2::system_code &sc) n
 </td>
 <td valign="top">
 <pre><code class="c++">using native_handle_type = HANDLE;
-native_handle_type open_file(const wchar_t *path, system_error2::system_code &sc) noexcept
+native_handle_type open_file(const wchar_t *path,
+  system_error2::system_code &sc) noexcept
 {
   sc.clear();  // clears to empty
   native_handle_type h = CreateFile(path, GENERIC_READ,
@@ -70,7 +74,8 @@ native_handle_type open_file(const wchar_t *path, system_error2::system_code &sc
   );
   if(INVALID_HANDLE_VALUE == h)
   {
-    sc = system_error2::win32_code(GetLastError());  // win32_code type erases into system_code
+    // win32_code type erases into system_code
+    sc = system_error2::win32_code(GetLastError());
   }
   return h;
 }
@@ -271,7 +276,7 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_posix_code.html#standardese-system_error2__posix_code_domain"><code>posix_code_domain</code></a> &mdash; A constexpr source variable for the POSIX code domain, which is that of <code>errno</code>. Returned by <code>_posix_code_domain::get()</code>.</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><code>status_code</code></a> &mdash; The main workhorse of the system_error2 library, can be typed (<code>status_code&lt;DomainType&gt;</code>), erased-immutable (<code>status_code&lt;void&gt;</code>) or erased-mutable (<code>status_code&lt;erased&lt;T&gt;&gt;</code>).</p>
+<p><a href="doc_status_code.html#standardese-system_error2__status_code-"><code>status_code</code></a> &mdash; A type erased lightweight status code reflecting empty, success, or failure.</p>
 </li>
 <li>
 <p><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain"><code>status_code_domain</code></a> &mdash; Abstract base class for a coding domain of a status code.</p>

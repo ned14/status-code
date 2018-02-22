@@ -130,9 +130,9 @@ doc_generic_code
 <span class="kwd">public</span><span class="pun">:</span>
     <span class="kwd">using</span> <a href="doc_generic_code.html#standardese-system_error2___generic_code_domain__value_type"><span class="typ dec var fun">value_type</span></a> <span class="pun">=</span> <a href="doc_generic_code.html#standardese-system_error2__errc"><span class="typ dec var fun">system_error2::errc</span></a><span class="pun">;</span>
 
-    <span class="kwd">class</span> <a href="doc_generic_code.html#standardese-system_error2___generic_code_domain__string_ref"><span class="typ dec var fun">string_ref</span></a><span class="pun">;</span>
+    <span class="kwd">using</span> <span class="typ dec var fun">string_ref</span> <span class="pun">=</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">_base::string_ref</span></a><span class="pun">;</span>
 
-    <span class="kwd">constexpr</span> <span class="typ dec var fun">_generic_code_domain</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+    <span class="kwd">constexpr</span> <span class="typ dec var fun">_generic_code_domain</span><span class="pun">(</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 
     <span class="typ dec var fun">_generic_code_domain</span><span class="pun">(</span><span class="typ dec var fun">system_error2::_generic_code_domain</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
 
@@ -169,30 +169,9 @@ doc_generic_code
 
 <p>The value type of the generic code, which is an <code>errc</code> as per POSIX.</p>
 <hr />
-<h3>Class <code>system_error2::_generic_code_domain::string_ref</code></h3>
-<p><span id="standardese-system_error2___generic_code_domain__string_ref"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">class</span> <span class="typ dec var fun">string_ref</span>
-<span class="pun">:</span> <span class="kwd">public</span> <span class="typ dec var fun">status_code_domain::string_ref</span>
-<span class="pun">{</span>
-<span class="kwd">protected</span><span class="pun">:</span>
-    <span class="kwd">virtual</span> <span class="kwd">void</span> <span class="typ dec var fun">_copy</span><span class="pun">(</span><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">_base::string_ref</span></a><span class="pun">*</span> <span class="typ dec var fun">dest</span><span class="pun">)</span> <span class="kwd">const</span> <span class="pun">&amp;</span><span class="pun">;</span>
-
-    <span class="kwd">virtual</span> <span class="kwd">void</span> <span class="typ dec var fun">_move</span><span class="pun">(</span><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">_base::string_ref</span></a><span class="pun">*</span> <span class="typ dec var fun">dest</span><span class="pun">)</span> <span class="pun">&amp;&amp;</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-
-<span class="kwd">public</span><span class="pun">:</span>
-    <span class="kwd">using</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain"><span class="typ dec var fun">status_code_domain::string_ref::string_ref</span></a><span class="pun">;</span>
-
-    <span class="kwd">explicit</span> <span class="typ dec var fun">string_ref</span><span class="pun">(</span><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">_base::string_ref</span></a> <span class="typ dec var fun">v</span><span class="pun">)</span><span class="pun">;</span>
-
-    <span class="kwd">virtual</span> <span class="typ dec var fun">~string_ref</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-<span class="pun">};</span>
-</code></pre>
-
-<p>Thread safe reference to a message string, reimplemented to implement finality for better codegen</p>
-<hr />
 <h3>Constructor <code>system_error2::_generic_code_domain::_generic_code_domain</code></h3>
 <p><span id="standardese-system_error2___generic_code_domain___generic_code_domain--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">constexpr</span> <span class="typ dec var fun">_generic_code_domain</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+<pre><code class="standardese-language-cpp"><span class="kwd">constexpr</span> <span class="typ dec var fun">_generic_code_domain</span><span class="pun">(</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 </code></pre>
 
 <p>Default constructor</p>
