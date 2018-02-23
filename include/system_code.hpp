@@ -36,7 +36,7 @@ which can be returned on this system.
 
 For Windows, these might be:
 
-    - `com_code` (`HRESULT`)
+    - `com_code` (`HRESULT`)  [you need to include "com_code.hpp" explicitly for this]
     - `nt_code` (`LONG`)
     - `win32_code` (`DWORD`)
 

@@ -53,8 +53,9 @@ using nt_code = status_code<_nt_code_domain>;
 class _nt_code_domain : public status_code_domain
 {
   template <class DomainType> friend class status_code;
+  friend class _com_code_domain;
   using _base = status_code_domain;
-  int _nt_code_to_errno(win32::NTSTATUS c) const
+  static int _nt_code_to_errno(win32::NTSTATUS c)
   {
     if(c >= 0)
     {
@@ -66,7 +67,7 @@ class _nt_code_domain : public status_code_domain
     }
     return -1;
   }
-  win32::DWORD _nt_code_to_win32_code(win32::NTSTATUS c) const  // NOLINT
+  static win32::DWORD _nt_code_to_win32_code(win32::NTSTATUS c)  // NOLINT
   {
     if(c >= 0)
     {

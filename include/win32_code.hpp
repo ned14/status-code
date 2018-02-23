@@ -50,6 +50,7 @@ namespace win32
 }  // namespace win32
 
 class _win32_code_domain;
+class _com_code_domain;
 //! (Windows only) A Win32 error code, those returned by `GetLastError()`.
 using win32_code = status_code<_win32_code_domain>;
 
@@ -58,8 +59,9 @@ using win32_code = status_code<_win32_code_domain>;
 class _win32_code_domain : public status_code_domain
 {
   template <class DomainType> friend class status_code;
+  friend class _com_code_domain;
   using _base = status_code_domain;
-  int _win32_code_to_errno(win32::DWORD c) const
+  static int _win32_code_to_errno(win32::DWORD c)
   {
     switch(c)
     {

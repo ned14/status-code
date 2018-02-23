@@ -22,6 +22,10 @@ Distributed under the Boost Software License, Version 1.0.
 http://www.boost.org/LICENSE_1_0.txt)
 */
 
+#ifdef _WIN32
+#include "com_code.hpp"
+#endif
+
 #include "iostream_support.hpp"
 #include "system_error2.hpp"
 

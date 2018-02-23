@@ -143,15 +143,22 @@ namespace system_error2
 
     //! Implicit construction from any type where an ADL discovered `make_status_code(T &&)` returns a `status_code`.
     template <class T,  //
-              typename std::enable_if<std::is_same<typename std::decay<decltype(make_status_code(std::declval<T>()))>::type, status_code>::value, bool>::type = true>
-    constexpr explicit status_code(T &&v) noexcept(noexcept(make_status_code(std::declval<T>())))  // NOLINT
+              typename std::enable_if<std::is_same<typename std::decay<decltype(make_status_code(std::declval<T>()))>::type, status_code>::value,
+                                      bool>::type = true>
+    constexpr status_code(T &&v) noexcept(noexcept(make_status_code(std::declval<T>())))  // NOLINT
     : status_code(make_status_code(static_cast<T &&>(v)))
     {
     }
-    //! Explicit construction from a `value_type`.
+    //! Explicit copy construction from a `value_type`.
     constexpr explicit status_code(const value_type &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
         : _base(domain_type::get())
         , _value(v)
+    {
+    }
+    //! Explicit move construction from a `value_type`.
+    constexpr explicit status_code(value_type &&v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
+        : _base(domain_type::get())
+        , _value(static_cast<value_type &&>(v))
     {
     }
     /*! Explicit construction from an erased status code. Available only if

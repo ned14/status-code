@@ -795,15 +795,22 @@ namespace system_error2
 
     //! Implicit construction from any type where an ADL discovered `make_status_code(T &&)` returns a `status_code`.
     template <class T, //
-              typename std::enable_if<std::is_same<typename std::decay<decltype(make_status_code(std::declval<T>()))>::type, status_code>::value, bool>::type = true>
-    constexpr explicit status_code(T &&v) noexcept(noexcept(make_status_code(std::declval<T>()))) // NOLINT
+              typename std::enable_if<std::is_same<typename std::decay<decltype(make_status_code(std::declval<T>()))>::type, status_code>::value,
+                                      bool>::type = true>
+    constexpr status_code(T &&v) noexcept(noexcept(make_status_code(std::declval<T>()))) // NOLINT
     : status_code(make_status_code(static_cast<T &&>(v)))
     {
     }
-    //! Explicit construction from a `value_type`.
+    //! Explicit copy construction from a `value_type`.
     constexpr explicit status_code(const value_type &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
         : _base(domain_type::get())
         , _value(v)
+    {
+    }
+    //! Explicit move construction from a `value_type`.
+    constexpr explicit status_code(value_type &&v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
+        : _base(domain_type::get())
+        , _value(static_cast<value_type &&>(v))
     {
     }
     /*! Explicit construction from an erased status code. Available only if
@@ -1235,6 +1242,11 @@ inline constexpr const _generic_code_domain *_generic_code_domain::get()
 {
   return &generic_code_domain;
 }
+// Enable implicit construction of generic_code from errc
+constexpr inline generic_code make_status_code(errc c) noexcept
+{
+  return generic_code(c);
+}
 
 
 /*************************************************************************************************************/
@@ -1253,12 +1265,12 @@ template <class T> inline bool status_code<void>::equivalent(const status_code<T
       return true;
     }
     generic_code c1 = o._domain->_generic_code(o);
-    if(_domain->_equivalent(*this, c1))
+    if(c1.value() != errc::unknown && _domain->_equivalent(*this, c1))
     {
       return true;
     }
     generic_code c2 = _domain->_generic_code(*this);
-    if(o._domain->_equivalent(o, c2))
+    if(c2.value() != errc::unknown && o._domain->_equivalent(o, c2))
     {
       return true;
     }
@@ -1584,6 +1596,7 @@ namespace win32
 } // namespace win32
 
 class _win32_code_domain;
+class _com_code_domain;
 //! (Windows only) A Win32 error code, those returned by `GetLastError()`.
 using win32_code = status_code<_win32_code_domain>;
 
@@ -1593,8 +1606,9 @@ using win32_code = status_code<_win32_code_domain>;
 class _win32_code_domain : public status_code_domain
 {
   template <class DomainType> friend class status_code;
+  friend class _com_code_domain;
   using _base = status_code_domain;
-  int _win32_code_to_errno(win32::DWORD c) const
+  static int _win32_code_to_errno(win32::DWORD c)
   {
     switch(c)
     {
@@ -1850,8 +1864,9 @@ using nt_code = status_code<_nt_code_domain>;
 class _nt_code_domain : public status_code_domain
 {
   template <class DomainType> friend class status_code;
+  friend class _com_code_domain;
   using _base = status_code_domain;
-  int _nt_code_to_errno(win32::NTSTATUS c) const
+  static int _nt_code_to_errno(win32::NTSTATUS c)
   {
     if(c >= 0)
     {
@@ -1960,7 +1975,7 @@ case 0xc000a203: return EACCES;
     }
     return -1;
   }
-  win32::DWORD _nt_code_to_win32_code(win32::NTSTATUS c) const // NOLINT
+  static win32::DWORD _nt_code_to_win32_code(win32::NTSTATUS c) // NOLINT
   {
     if(c >= 0)
     {
@@ -3154,7 +3169,7 @@ which can be returned on this system.
 
 For Windows, these might be:
 
-    - `com_code` (`HRESULT`)
+    - `com_code` (`HRESULT`)  [you need to include "com_code.hpp" explicitly for this]
     - `nt_code` (`LONG`)
     - `win32_code` (`DWORD`)
 
