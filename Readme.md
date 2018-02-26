@@ -105,15 +105,22 @@ if(sc.failure())
 machinery, thus preventing use in freestanding C++ as well as substantially
 impacting compile times which can be a showstopper for very large C++ projects.
 Only includes the following headers:
+    - `<atomic>` to reference count localised strings retrieved from the OS.
     - `<cassert>` to trap when misuse occurs.
     - `<cerrno>` for the generic POSIX error codes (`errno`) which is required to define `errc`.
     - `<cstddef>` for the definition of `size_t` and other types.
+    - `<cstring>` for the system call to fetch a localised string and C string functions.
     - `<exception>` for the basic `std::exception` type so we can optionally throw STL exceptions.
+    - `<initializer_list>` so we can permit in-place construction.
     - `<new>` so we can perform placement new.
     - `<type_traits>` as we need to do some very limited metaprogramming.
+    - `<utility>` if on C++ 17 or later for `std::in_place`.
     
-    Compiling a file including `status_code.hpp` takes less than 150 ms with clang 3.3
-as according to the `-ftime-report` diagnostic (a completely empty file takes 5 ms).
+    These may look like a lot, but in fact just including `<atomic>` on libstdc++ actually
+brings in most of the others in any case, and a total of 200Kb (8,000 lines) of text is including by
+`system_error2.hpp` on libstdc++ 7. Compiling a file including `status_code.hpp` takes
+less than 150 ms with clang 3.3 as according to the `-ftime-report` diagnostic (a completely
+empty file takes 5 ms).
 
 2. Unlike `std::error_code` which was designed before `constexpr`, this proposed
 implementation has all-`constexpr` construction and destruction with as many operations

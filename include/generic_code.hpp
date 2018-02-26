@@ -323,7 +323,7 @@ inline constexpr const _generic_code_domain *_generic_code_domain::get()
 // Enable implicit construction of generic_code from errc
 constexpr inline generic_code make_status_code(errc c) noexcept
 {
-  return generic_code(c);
+  return generic_code(in_place, c);
 }
 
 

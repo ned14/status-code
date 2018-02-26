@@ -32,7 +32,9 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include "nt_code.hpp"
 #include "win32_code.hpp"
 
+#ifndef STANDARDESE_IS_IN_THE_HOUSE
 #include <comdef.h>
+#endif
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
