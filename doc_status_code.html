@@ -14,6 +14,13 @@ doc_status_code
 
 <span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
 <span class="pun">{</span>
+    <span class="kwd">struct</span> <a href="doc_status_code.html#standardese-system_error2__in_place_t"><span class="typ dec var fun">in_place_t</span></a><span class="pun">;</span>
+
+    <span class="kwd">constexpr</span> <a href="doc_status_code.html#standardese-system_error2__in_place_t"><span class="typ dec var fun">system_error2::in_place_t</span></a> <span class="kwd">const</span> <a href="doc_status_code.html#standardese-system_error2__in_place"><span class="typ dec var fun">in_place</span></a><span class="pun">;</span>
+<span class="pun">}</span>
+
+<span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
+<span class="pun">{</span>
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">,</span> typename std::enable_if&lt;std::is_integral&lt;ErasedType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
     <span class="kwd">struct</span> <a href="doc_status_code.html#standardese-system_error2__erased-ErasedType--"><span class="typ dec var fun">erased</span></a><span class="pun">;</span>
 
@@ -28,6 +35,24 @@ doc_status_code
 <span class="pun">}</span>
 </code></pre>
 
+<p><span id="standardese-system_error2"></span></p>
+<h3>Struct <code>system_error2::in_place_t</code></h3>
+<p><span id="standardese-system_error2__in_place_t"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">struct</span> <span class="typ dec var fun">in_place_t</span>
+<span class="pun">{</span>
+    <span class="kwd">explicit</span> <span class="typ dec var fun">in_place_t</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+<span class="pun">};</span>
+</code></pre>
+
+<p>Aliases <code>std::in_place_t</code> if on C++ 17 or later, else defined locally.</p>
+<hr />
+<h3>Variable <code>system_error2::in_place</code></h3>
+<p><span id="standardese-system_error2__in_place"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">constexpr</span> <a href="doc_status_code.html#standardese-system_error2__in_place_t"><span class="typ dec var fun">system_error2::in_place_t</span></a> <span class="kwd">const</span> <span class="typ dec var fun">in_place</span><span class="pun">;</span>
+</code></pre>
+
+<p>Aliases <code>std::in_place</code> if on C++ 17 or later, else defined locally.</p>
+<hr />
 <p><span id="standardese-system_error2"></span></p>
 <h3>Struct <code>system_error2::erased</code></h3>
 <p><span id="standardese-system_error2__erased-ErasedType--"></span></p>
@@ -251,10 +276,18 @@ doc_status_code
 
     <span class="typ dec var fun">~status_code</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
 
-    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> typename std::enable_if&lt;std::is_same&lt;typename std::decay&lt;decltype(make_status_code(std::declval&lt;T&gt;()))&gt;::type, status_code&lt;DomainType&gt; &gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> typename std::enable_if&lt;!std::is_same&lt;typename std::decay&lt;T&gt;::type, status_code&lt;DomainType&gt; &gt;::value &amp;&amp; std::is_same&lt;typename std::decay&lt;decltype(make_status_code(std::declval&lt;T&gt;()))&gt;::type, status_code&lt;DomainType&gt; &gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
     <span class="kwd">constexpr</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-__status_code-T---T---"><span class="typ dec var fun">status_code</span></a><span class="pun">(</span><span class="typ dec var fun">T</span><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="typ dec var fun">noexcept</span><span class="pun">(</span><span class="kwd">make_status_code</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">declval</span><span class="pun">&lt;</span><span class="kwd">T</span><span class="pun">&gt;</span><span class="pun">(</span><span class="pun">)</span><span class="pun">)</span><span class="pun">)</span><span class="pun">)</span><span class="pun">;</span>
 
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="pun">...</span> <span class="typ dec var fun">Args</span><span class="pun">&gt;</span>
+    <span class="kwd">constexpr</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-__status_code-Args--system_error2__in_place_t-Args------"><span class="typ dec var fun">status_code</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__in_place_t"><span class="typ dec var fun">system_error2::in_place_t</span></a><span class="pun">,</span> Args &amp;&amp;... <span class="typ dec var fun">args</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">is_nothrow_constructible</span><span class="pun">&lt;</span><span class="kwd">value_type</span><span class="pun">,</span> <span class="kwd">Args</span> <span class="pun">&amp;&amp;</span> <span class="pun">...</span><span class="pun">&gt;</span><span class="pun">::</span><span class="kwd">value</span><span class="pun">)</span><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> <span class="kwd">class</span> <span class="pun">...</span> <span class="typ dec var fun">Args</span><span class="pun">&gt;</span>
+    <span class="kwd">constexpr</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-__status_code-T-Args--system_error2__in_place_t-std__initializer_list-T--Args------"><span class="typ dec var fun">status_code</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__in_place_t"><span class="typ dec var fun">system_error2::in_place_t</span></a><span class="pun">,</span> <span class="typ dec var fun">std::initializer_list</span><span class="pun">&lt;</span>T<span class="pun">&gt;</span> <span class="typ dec var fun">il</span><span class="pun">,</span> Args &amp;&amp;... <span class="typ dec var fun">args</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">is_nothrow_constructible</span><span class="pun">&lt;</span><span class="kwd">value_type</span><span class="pun">,</span> <span class="kwd">std</span><span class="pun">::</span><span class="kwd">initializer_list</span><span class="pun">&lt;</span><span class="kwd">T</span><span class="pun">&gt;</span><span class="pun">,</span> <span class="kwd">Args</span> <span class="pun">&amp;&amp;</span> <span class="pun">...</span><span class="pun">&gt;</span><span class="pun">::</span><span class="kwd">value</span><span class="pun">)</span><span class="pun">;</span>
+
     <span class="kwd">constexpr</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-__status_code-system_error2__status_code__value_typeconst--"><span class="typ dec var fun">status_code</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-__value_type"><span class="typ dec var fun">system_error2::status_code::value_type</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">is_nothrow_copy_constructible</span><span class="pun">&lt;</span><span class="kwd">value_type</span><span class="pun">&gt;</span><span class="pun">::</span><span class="kwd">value</span><span class="pun">)</span><span class="pun">;</span>
+
+    <span class="kwd">constexpr</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-__status_code-system_error2__status_code__value_type---"><span class="typ dec var fun">status_code</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-__value_type"><span class="typ dec var fun">system_error2::status_code::value_type</span></a><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">is_nothrow_copy_constructible</span><span class="pun">&lt;</span><span class="kwd">value_type</span><span class="pun">&gt;</span><span class="pun">::</span><span class="kwd">value</span><span class="pun">)</span><span class="pun">;</span>
 
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">,</span> typename std::enable_if&lt;detail::type_erasure_is_safe&lt;ErasedType, value_type&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
     <span class="kwd">constexpr</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-__status_code-ErasedType---status_code-erased-ErasedType--const--"><span class="typ dec var fun">status_code</span></a><span class="pun">(</span><span class="typ dec var fun">status_code</span><span class="pun">&lt;</span>erased&lt;ErasedType&gt;<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span><span class="pun">;</span>
@@ -337,18 +370,41 @@ doc_status_code
 <hr />
 <h3>Constructor <code>system_error2::status_code::status_code</code></h3>
 <p><span id="standardese-system_error2__status_code-DomainType-__status_code-T---T---"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> typename std::enable_if&lt;std::is_same&lt;typename std::decay&lt;decltype(make_status_code(std::declval&lt;T&gt;()))&gt;::type, status_code&lt;DomainType&gt; &gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> typename std::enable_if&lt;!std::is_same&lt;typename std::decay&lt;T&gt;::type, status_code&lt;DomainType&gt; &gt;::value &amp;&amp; std::is_same&lt;typename std::decay&lt;decltype(make_status_code(std::declval&lt;T&gt;()))&gt;::type, status_code&lt;DomainType&gt; &gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
 <span class="kwd">constexpr</span> <span class="typ dec var fun">status_code</span><span class="pun">(</span><span class="typ dec var fun">T</span><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="typ dec var fun">noexcept</span><span class="pun">(</span><span class="kwd">make_status_code</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">declval</span><span class="pun">&lt;</span><span class="kwd">T</span><span class="pun">&gt;</span><span class="pun">(</span><span class="pun">)</span><span class="pun">)</span><span class="pun">)</span><span class="pun">)</span><span class="pun">;</span>
 </code></pre>
 
 <p>Implicit construction from any type where an ADL discovered <code>make_status_code(T &amp;&amp;)</code> returns a <code>status_code</code>.</p>
 <hr />
 <h3>Constructor <code>system_error2::status_code::status_code</code></h3>
+<p><span id="standardese-system_error2__status_code-DomainType-__status_code-Args--system_error2__in_place_t-Args------"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="pun">...</span> <span class="typ dec var fun">Args</span><span class="pun">&gt;</span>
+<span class="kwd">constexpr</span> <span class="typ dec var fun">status_code</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__in_place_t"><span class="typ dec var fun">system_error2::in_place_t</span></a><span class="pun">,</span> Args &amp;&amp;... <span class="typ dec var fun">args</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">is_nothrow_constructible</span><span class="pun">&lt;</span><span class="kwd">value_type</span><span class="pun">,</span> <span class="kwd">Args</span> <span class="pun">&amp;&amp;</span> <span class="pun">...</span><span class="pun">&gt;</span><span class="pun">::</span><span class="kwd">value</span><span class="pun">)</span><span class="pun">;</span>
+</code></pre>
+
+<p>Explicit in-place construction.</p>
+<hr />
+<h3>Constructor <code>system_error2::status_code::status_code</code></h3>
+<p><span id="standardese-system_error2__status_code-DomainType-__status_code-T-Args--system_error2__in_place_t-std__initializer_list-T--Args------"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> <span class="kwd">class</span> <span class="pun">...</span> <span class="typ dec var fun">Args</span><span class="pun">&gt;</span>
+<span class="kwd">constexpr</span> <span class="typ dec var fun">status_code</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__in_place_t"><span class="typ dec var fun">system_error2::in_place_t</span></a><span class="pun">,</span> <span class="typ dec var fun">std::initializer_list</span><span class="pun">&lt;</span>T<span class="pun">&gt;</span> <span class="typ dec var fun">il</span><span class="pun">,</span> Args &amp;&amp;... <span class="typ dec var fun">args</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">is_nothrow_constructible</span><span class="pun">&lt;</span><span class="kwd">value_type</span><span class="pun">,</span> <span class="kwd">std</span><span class="pun">::</span><span class="kwd">initializer_list</span><span class="pun">&lt;</span><span class="kwd">T</span><span class="pun">&gt;</span><span class="pun">,</span> <span class="kwd">Args</span> <span class="pun">&amp;&amp;</span> <span class="pun">...</span><span class="pun">&gt;</span><span class="pun">::</span><span class="kwd">value</span><span class="pun">)</span><span class="pun">;</span>
+</code></pre>
+
+<p>Explicit in-place construction from initialiser list.</p>
+<hr />
+<h3>Constructor <code>system_error2::status_code::status_code</code></h3>
 <p><span id="standardese-system_error2__status_code-DomainType-__status_code-system_error2__status_code__value_typeconst--"></span></p>
 <pre><code class="standardese-language-cpp"><span class="kwd">constexpr</span> <span class="typ dec var fun">status_code</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-__value_type"><span class="typ dec var fun">system_error2::status_code::value_type</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">is_nothrow_copy_constructible</span><span class="pun">&lt;</span><span class="kwd">value_type</span><span class="pun">&gt;</span><span class="pun">::</span><span class="kwd">value</span><span class="pun">)</span><span class="pun">;</span>
 </code></pre>
 
-<p>Explicit construction from a <code>value_type</code>.</p>
+<p>Explicit copy construction from a <code>value_type</code>.</p>
+<hr />
+<h3>Constructor <code>system_error2::status_code::status_code</code></h3>
+<p><span id="standardese-system_error2__status_code-DomainType-__status_code-system_error2__status_code__value_type---"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">constexpr</span> <span class="typ dec var fun">status_code</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-__value_type"><span class="typ dec var fun">system_error2::status_code::value_type</span></a><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">is_nothrow_copy_constructible</span><span class="pun">&lt;</span><span class="kwd">value_type</span><span class="pun">&gt;</span><span class="pun">::</span><span class="kwd">value</span><span class="pun">)</span><span class="pun">;</span>
+</code></pre>
+
+<p>Explicit move construction from a <code>value_type</code>.</p>
 <hr />
 <h3>Constructor <code>system_error2::status_code::status_code</code></h3>
 <p><span id="standardese-system_error2__status_code-DomainType-__status_code-ErasedType---status_code-erased-ErasedType--const--"></span></p>

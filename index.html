@@ -112,15 +112,22 @@ machinery, thus preventing use in freestanding C++ as well as substantially
 impacting compile times which can be a showstopper for very large C++ projects.
 Only includes the following headers:</p>
 <ul>
+<li><code>&lt;atomic&gt;</code> to reference count localised strings retrieved from the OS.</li>
 <li><code>&lt;cassert&gt;</code> to trap when misuse occurs.</li>
 <li><code>&lt;cerrno&gt;</code> for the generic POSIX error codes (<code>errno</code>) which is required to define <code>errc</code>.</li>
 <li><code>&lt;cstddef&gt;</code> for the definition of <code>size_t</code> and other types.</li>
+<li><code>&lt;cstring&gt;</code> for the system call to fetch a localised string and C string functions.</li>
 <li><code>&lt;exception&gt;</code> for the basic <code>std::exception</code> type so we can optionally throw STL exceptions.</li>
+<li><code>&lt;initializer_list&gt;</code> so we can permit in-place construction.</li>
 <li><code>&lt;new&gt;</code> so we can perform placement new.</li>
 <li><code>&lt;type_traits&gt;</code> as we need to do some very limited metaprogramming.</li>
+<li><code>&lt;utility&gt;</code> if on C++ 17 or later for <code>std::in_place</code>.</li>
 </ul>
-<p>Compiling a file including <code>status_code.hpp</code> takes less than 150 ms with clang 3.3
-as according to the <code>-ftime-report</code> diagnostic (a completely empty file takes 5 ms).</p>
+<p>These may look like a lot, but in fact just including <code>&lt;atomic&gt;</code> on libstdc++ actually
+brings in most of the others in any case, and a total of 200Kb (8,000 lines) of text is including by
+<code>system_error2.hpp</code> on libstdc++ 7. Compiling a file including <code>status_code.hpp</code> takes
+less than 150 ms with clang 3.3 as according to the <code>-ftime-report</code> diagnostic (a completely
+empty file takes 5 ms).</p>
 </li>
 <li>
 <p>Unlike <code>std::error_code</code> which was designed before <code>constexpr</code>, this proposed
@@ -225,6 +232,9 @@ code with fewer unintended portability problems.</p>
 <p>Namespace for the library</p>
 <ul>
 <li>
+<p><a href="doc_com_code.html#standardese-system_error2___com_code_domain"><code>_com_code_domain</code></a> &mdash; (Windows only) The implementation of the domain for COM error codes and/or <code>IErrorInfo</code>.</p>
+</li>
+<li>
 <p><a href="doc_generic_code.html#standardese-system_error2___generic_code_domain"><code>_generic_code_domain</code></a> &mdash; The implementation of the domain for generic status codes, those mapped by <code>errc</code> (POSIX).</p>
 </li>
 <li>
@@ -235,6 +245,12 @@ code with fewer unintended portability problems.</p>
 </li>
 <li>
 <p><a href="doc_win32_code.html#standardese-system_error2___win32_code_domain"><code>_win32_code_domain</code></a> &mdash; (Windows only) The implementation of the domain for Win32 error codes, those returned by <code>GetLastError()</code>.</p>
+</li>
+<li>
+<p><a href="doc_com_code.html#standardese-system_error2__com_code"><code>com_code</code></a> &mdash; (Windows only) A COM error code. Note semantic equivalence testing is only implemented for <code>FACILITY_WIN32</code> and <code>FACILITY_NT_BIT</code>.</p>
+</li>
+<li>
+<p><a href="doc_com_code.html#standardese-system_error2__com_code_domain"><code>com_code_domain</code></a> &mdash; (Windows only) A constexpr source variable for the COM code domain. Returned by <code>_com_code_domain::get()</code>.</p>
 </li>
 <li>
 <p><a href="doc_generic_code.html#standardese-system_error2"><code>equivalent</code></a></p>
@@ -252,7 +268,16 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_generic_code.html#standardese-system_error2__generic_code_domain"><code>generic_code_domain</code></a> &mdash; A constexpr source variable for the generic code domain, which is that of <code>errc</code> (POSIX). Returned by <code>_generic_code_domain::get()</code>.</p>
 </li>
 <li>
-<p><a href="doc_generic_code.html#standardese-system_error2"><code>get</code></a></p>
+<p><a href="doc_win32_code.html#standardese-system_error2"><code>get</code></a></p>
+</li>
+<li>
+<p><a href="doc_status_code.html#standardese-system_error2__in_place"><code>in_place</code></a> &mdash; Aliases <code>std::in_place</code> if on C++ 17 or later, else defined locally.</p>
+</li>
+<li>
+<p><a href="doc_status_code.html#standardese-system_error2__in_place_t"><code>in_place_t</code></a> &mdash; Aliases <code>std::in_place_t</code> if on C++ 17 or later, else defined locally.</p>
+</li>
+<li>
+<p><a href="doc_generic_code.html#standardese-system_error2"><code>make_status_code</code></a></p>
 </li>
 <li>
 <p><a href="doc_nt_code.html#standardese-system_error2__nt_code"><code>nt_code</code></a> &mdash; (Windows only) A NT error code, those returned by NT kernel functions.</p>
@@ -276,7 +301,7 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_posix_code.html#standardese-system_error2__posix_code_domain"><code>posix_code_domain</code></a> &mdash; A constexpr source variable for the POSIX code domain, which is that of <code>errno</code>. Returned by <code>_posix_code_domain::get()</code>.</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__status_code-"><code>status_code</code></a> &mdash; A type erased lightweight status code reflecting empty, success, or failure.</p>
+<p><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><code>status_code</code></a> &mdash; The main workhorse of the system_error2 library, can be typed (<code>status_code&lt;DomainType&gt;</code>), erased-immutable (<code>status_code&lt;void&gt;</code>) or erased-mutable (<code>status_code&lt;erased&lt;T&gt;&gt;</code>).</p>
 </li>
 <li>
 <p><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain"><code>status_code_domain</code></a> &mdash; Abstract base class for a coding domain of a status code.</p>
