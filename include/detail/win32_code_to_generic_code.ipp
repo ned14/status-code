@@ -22,6 +22,7 @@ case 0x27: return ENOSPC;
 case 0x37: return ENODEV;
 case 0x50: return EEXIST;
 case 0x52: return EACCES;
+case 0x57: return EINVAL;
 case 0x6e: return EIO;
 case 0x6f: return ENAMETOOLONG;
 case 0x70: return ENOSPC;

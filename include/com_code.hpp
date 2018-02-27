@@ -40,7 +40,11 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 class _com_code_domain;
 /*! (Windows only) A COM error code. Note semantic equivalence testing is only implemented for `FACILITY_WIN32`
-and `FACILITY_NT_BIT`.
+and `FACILITY_NT_BIT`. As you can see at [https://blogs.msdn.microsoft.com/eldar/2007/04/03/a-lot-of-hresult-codes/](https://blogs.msdn.microsoft.com/eldar/2007/04/03/a-lot-of-hresult-codes/),
+there are an awful lot of COM error codes, and keeping mapping tables for all of them would be impractical
+(for the Win32 and NT facilities, we actually reuse the mapping tables in `win32_code` and `nt_code`).
+You can, of course, inherit your own COM code domain from this one and override the `_equivalent()` function
+to add semantic equivalence testing for whichever extra COM codes that your application specifically needs.
 */
 using com_code = status_code<_com_code_domain>;
 

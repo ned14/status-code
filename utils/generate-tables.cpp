@@ -218,6 +218,9 @@ int main()
     }
     if(errc[0] != '0')
       win32_generic << "case 0x" << std::hex << win32code << ": return " << errc << ";\n";
+    /* Omissions from the C++ 11 STL mapping */
+    else if(win32code == 0x57 /*ERROR_INVALID_PARAMETER*/)
+      win32_generic << "case 0x" << std::hex << win32code << ": return EINVAL;\n";
   }
 }
 
