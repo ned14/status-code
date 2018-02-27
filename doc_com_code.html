@@ -30,7 +30,8 @@ doc_com_code
 <pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">com_code</span> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>system_error2::_com_code_domain<span class="pun">&gt;</span><span class="pun">;</span>
 </code></pre>
 
-<p>(Windows only) A COM error code. Note semantic equivalence testing is only implemented for <code>FACILITY_WIN32</code> and <code>FACILITY_NT_BIT</code>.</p>
+<p>(Windows only) A COM error code. Note semantic equivalence testing is only implemented for <code>FACILITY_WIN32</code> and <code>FACILITY_NT_BIT</code>. As you can see at <a href="https://blogs.msdn.microsoft.com/eldar/2007/04/03/a-lot-of-hresult-codes/">https://blogs.msdn.microsoft.com/eldar/2007/04/03/a-lot-of-hresult-codes/</a>, there are an awful lot of COM error codes, and keeping mapping tables for all of them would be impractical (for the Win32 and NT facilities, we actually reuse the mapping tables in <code>win32_code</code> and <code>nt_code</code>).</p>
+<p>You can, of course, inherit your own COM code domain from this one and override the <code>_equivalent()</code> function to add semantic equivalence testing for whichever extra COM codes that your application specifically needs.</p>
 <hr />
 <h3>Class <code>system_error2::_com_code_domain</code></h3>
 <p><span id="standardese-system_error2___com_code_domain"></span></p>

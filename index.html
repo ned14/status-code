@@ -247,7 +247,7 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_win32_code.html#standardese-system_error2___win32_code_domain"><code>_win32_code_domain</code></a> &mdash; (Windows only) The implementation of the domain for Win32 error codes, those returned by <code>GetLastError()</code>.</p>
 </li>
 <li>
-<p><a href="doc_com_code.html#standardese-system_error2__com_code"><code>com_code</code></a> &mdash; (Windows only) A COM error code. Note semantic equivalence testing is only implemented for <code>FACILITY_WIN32</code> and <code>FACILITY_NT_BIT</code>.</p>
+<p><a href="doc_com_code.html#standardese-system_error2__com_code"><code>com_code</code></a> &mdash; (Windows only) A COM error code. Note semantic equivalence testing is only implemented for <code>FACILITY_WIN32</code> and <code>FACILITY_NT_BIT</code>. As you can see at <a href="https://blogs.msdn.microsoft.com/eldar/2007/04/03/a-lot-of-hresult-codes/">https://blogs.msdn.microsoft.com/eldar/2007/04/03/a-lot-of-hresult-codes/</a>, there are an awful lot of COM error codes, and keeping mapping tables for all of them would be impractical (for the Win32 and NT facilities, we actually reuse the mapping tables in <code>win32_code</code> and <code>nt_code</code>).</p>
 </li>
 <li>
 <p><a href="doc_com_code.html#standardese-system_error2__com_code_domain"><code>com_code_domain</code></a> &mdash; (Windows only) A constexpr source variable for the COM code domain. Returned by <code>_com_code_domain::get()</code>.</p>
