@@ -319,6 +319,40 @@ int main()
   CHECK(failure8 == failure1);
   CHECK(failure8 == failure2);
   CHECK(failure8 == failure5);
+
+  // Test com_code
+  {
+    // Does com_code correctly handle a wrapped Win32 error code?
+    com_code win32failure(HRESULT_FROM_WIN32(0x5 /*ERROR_ACCESS_DENIED*/));
+    printf("\nCOM code win32 failure has value %ld (%s) is success %d is failure %d\n", win32failure.value(), win32failure.message().c_str(), static_cast<int>(win32failure.success()), static_cast<int>(win32failure.failure()));
+    CHECK(win32failure == errc::permission_denied);
+    CHECK(win32failure == failure5);
+    CHECK(win32failure == failure7);
+
+    // Does com_code correctly handle a wrapped Win32 error code?
+    com_code ntfailure(HRESULT_FROM_NT(0xC0000022 /*STATUS_ACCESS_DENIED*/));
+    printf("COM code nt failure has value %ld (%s) is success %d is failure %d\n", ntfailure.value(), ntfailure.message().c_str(), static_cast<int>(ntfailure.success()), static_cast<int>(ntfailure.failure()));
+    CHECK(ntfailure == errc::permission_denied);
+    CHECK(ntfailure == failure5);
+    CHECK(ntfailure == failure7);
+    CHECK(ntfailure == win32failure);
+
+    // Does com_code correctly handle the common HRESULT codes?
+    const std::pair<com_code, errc> common[] = {
+    //
+    {com_code(S_OK), errc::success},                      //
+    {com_code(E_ACCESSDENIED), errc::permission_denied},  //
+    {com_code(E_INVALIDARG), errc::invalid_argument},     //
+    {com_code(E_OUTOFMEMORY), errc::not_enough_memory}    //
+    };
+    for(auto &i : common)
+    {
+      auto &c = i.first;
+      auto &e = i.second;
+      printf("COM code common has value %ld (%s) is success %d is failure %d\n", c.value(), c.message().c_str(), static_cast<int>(c.success()), static_cast<int>(c.failure()));
+      CHECK(c == e);
+    }
+  }
 #endif
 
   // Test posix_code

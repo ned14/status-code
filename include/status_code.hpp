@@ -138,7 +138,11 @@ public:
   bool success() const noexcept { return (_domain != nullptr) ? !_domain->_failure(*this) : false; }
   //! True if code means failure.
   bool failure() const noexcept { return (_domain != nullptr) ? _domain->_failure(*this) : false; }
-  //! True if code is strictly (and potentially non-transitively) equivalent to another code in another domain.
+  /*! True if code is strictly (and potentially non-transitively) semantically equivalent to another code in another domain.
+  Note that usually non-semantic i.e. pure value comparison is used when the other status code has the same domain.
+  As `equivalent()` will try mapping to generic code, this usually captures when two codes have the same semantic
+  meaning in `equivalent()`.
+  */
   template <class T> bool strictly_equivalent(const status_code<T> &o) const noexcept
   {
     if(_domain && o._domain)
@@ -149,7 +153,10 @@ public:
     // Otherwise not equivalent
     return false;
   }
-  //! True if code is equivalent, by any means, to another code in another domain (guaranteed transitive).
+  /*! True if code is equivalent, by any means, to another code in another domain (guaranteed transitive).
+  Firstly `strictly_equivalent()` is run in both directions. If neither succeeds, each domain is asked
+  for the equivalent generic code and those are compared.
+  */
   template <class T> inline bool equivalent(const status_code<T> &o) const noexcept;
   //! Throw a code as a C++ exception.
   void throw_exception() const { _domain->_throw_exception(*this); }
