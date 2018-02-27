@@ -229,7 +229,8 @@ doc_status_code
 <span class="kwd">bool</span> <span class="typ dec var fun">strictly_equivalent</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>T<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">o</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 </code></pre>
 
-<p>True if code is strictly (and potentially non-transitively) equivalent to another code in another domain.</p>
+<p>True if code is strictly (and potentially non-transitively) semantically equivalent to another code in another domain.</p>
+<p>Note that usually non-semantic i.e. pure value comparison is used when the other status code has the same domain. As <code>equivalent()</code> will try mapping to generic code, this usually captures when two codes have the same semantic meaning in <code>equivalent()</code>.</p>
 <hr />
 <h3>Function <code>system_error2::status_code::equivalent</code></h3>
 <p><span id="standardese-system_error2__status_code-__equivalent-T--status_code-T-const--const"></span></p>
@@ -238,6 +239,7 @@ doc_status_code
 </code></pre>
 
 <p>True if code is equivalent, by any means, to another code in another domain (guaranteed transitive).</p>
+<p>Firstly <code>strictly_equivalent()</code> is run in both directions. If neither succeeds, each domain is asked for the equivalent generic code and those are compared.</p>
 <hr />
 <h3>Function <code>system_error2::status_code::throw_exception</code></h3>
 <p><span id="standardese-system_error2__status_code-__throw_exception--const"></span></p>
