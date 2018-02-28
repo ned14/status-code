@@ -3274,7 +3274,7 @@ i.e. this is the type alias on POSIX, not the above:
 
 
 
-using system_code = status_code<erased<long>>;
+using system_code = status_code<erased<intptr_t>>;
 SYSTEM_ERROR2_NAMESPACE_END
 
 #else
