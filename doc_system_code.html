@@ -18,14 +18,14 @@ doc_system_code
 
 <span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
 <span class="pun">{</span>
-    <span class="kwd">using</span> <a href="doc_system_code.html#standardese-system_error2__system_code"><span class="typ dec var fun">system_code</span></a> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;long&gt;<span class="pun">&gt;</span><span class="pun">;</span>
+    <span class="kwd">using</span> <a href="doc_system_code.html#standardese-system_error2__system_code"><span class="typ dec var fun">system_code</span></a> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;intptr_t&gt;<span class="pun">&gt;</span><span class="pun">;</span>
 <span class="pun">}</span>
 </code></pre>
 
 <p><span id="standardese-system_error2"></span></p>
 <h3>Type alias <code>system_error2::system_code</code></h3>
 <p><span id="standardese-system_error2__system_code"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">system_code</span> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;long&gt;<span class="pun">&gt;</span><span class="pun">;</span>
+<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">system_code</span> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;intptr_t&gt;<span class="pun">&gt;</span><span class="pun">;</span>
 </code></pre>
 
 <p>An erased-mutable status code suitably large for all the system codes which can be returned on this system.</p>
@@ -35,7 +35,7 @@ doc_system_code
 - `win32_code` (`DWORD`)
 </code></pre>
 
-<p>So the erased type is <code>LONG</code> on Windows, as that can represent all of the above.</p>
+<p>So the erased type is <code>intptr_t</code> on Windows, as that can represent all of the above.</p>
 <p>For POSIX, <code>posix_code</code> (<code>int</code>) is possible, so this erased type is <code>int</code> i.e. this is the type alias on POSIX, not the above:</p>
 <p><code>using system_code = status_code&lt;erased&lt;int&gt;&gt;</code></p>
 <hr /></body>
