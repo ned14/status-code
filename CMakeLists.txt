@@ -12,6 +12,7 @@ add_library(status-code INTERFACE)
 target_compile_features(status-code INTERFACE cxx_std_11)
 target_include_directories(status-code INTERFACE "include")
 target_sources(status-code INTERFACE
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/com_code.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/config.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/generic_code.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/iostream_support.hpp"

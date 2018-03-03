@@ -1042,6 +1042,7 @@ enum class errc : int
   argument_out_of_domain = EDOM,
   bad_address = EFAULT,
   bad_file_descriptor = EBADF,
+  bad_message = EBADMSG,
   broken_pipe = EPIPE,
   connection_aborted = ECONNABORTED,
   connection_already_in_progress = EALREADY,
@@ -1057,6 +1058,7 @@ enum class errc : int
   filename_too_long = ENAMETOOLONG,
   function_not_supported = ENOSYS,
   host_unreachable = EHOSTUNREACH,
+  identifier_removed = EIDRM,
   illegal_byte_sequence = EILSEQ,
   inappropriate_io_control_operation = ENOTTY,
   interrupted = EINTR,
@@ -1070,32 +1072,44 @@ enum class errc : int
   network_unreachable = ENETUNREACH,
   no_buffer_space = ENOBUFS,
   no_child_process = ECHILD,
+  no_link = ENOLINK,
   no_lock_available = ENOLCK,
   no_message = ENOMSG,
   no_protocol_option = ENOPROTOOPT,
   no_space_on_device = ENOSPC,
+  no_stream_resources = ENOSR,
   no_such_device_or_address = ENXIO,
   no_such_device = ENODEV,
   no_such_file_or_directory = ENOENT,
   no_such_process = ESRCH,
   not_a_directory = ENOTDIR,
   not_a_socket = ENOTSOCK,
+  not_a_stream = ENOSTR,
   not_connected = ENOTCONN,
   not_enough_memory = ENOMEM,
+  not_supported = ENOTSUP,
+  operation_cancelled = ECANCELED,
   operation_in_progress = EINPROGRESS,
   operation_not_permitted = EPERM,
   operation_not_supported = EOPNOTSUPP,
+  operation_would_block = EWOULDBLOCK,
+  owner_dead = EOWNERDEAD,
   permission_denied = EACCES,
+  protcol_error = EPROTO,
   protocol_not_supported = EPROTONOSUPPORT,
   read_only_file_system = EROFS,
   resource_deadlock_would_occur = EDEADLK,
   resource_unavailable_try_again = EAGAIN,
   result_out_of_range = ERANGE,
+  state_not_recoverable = ENOTRECOVERABLE,
+  stream_timeout = ETIME,
+  text_file_busy = ETXTBSY,
   timed_out = ETIMEDOUT,
   too_many_files_open_in_system = ENFILE,
   too_many_files_open = EMFILE,
   too_many_links = EMLINK,
   too_many_symbolic_link_levels = ELOOP,
+  value_too_large = EOVERFLOW,
   wrong_protocol_type = EPROTOTYPE
 };
 
@@ -1110,142 +1124,84 @@ namespace detail
         : msgs{}
     {
       msgs[0] = "Success";
-      msgs[EPERM] = "Operation not permitted";
+
+      msgs[EAFNOSUPPORT] = "Address family not supported by protocol";
+      msgs[EADDRINUSE] = "Address already in use";
+      msgs[EADDRNOTAVAIL] = "Cannot assign requested address";
+      msgs[EISCONN] = "Transport endpoint is already connected";
+      msgs[E2BIG] = "Argument list too long";
+      msgs[EDOM] = "Numerical argument out of domain";
+      msgs[EFAULT] = "Bad address";
+      msgs[EBADF] = "Bad file descriptor";
+      msgs[EBADMSG] = "Bad message";
+      msgs[EPIPE] = "Broken pipe";
+      msgs[ECONNABORTED] = "Software caused connection abort";
+      msgs[EALREADY] = "Operation already in progress";
+      msgs[ECONNREFUSED] = "Connection refused";
+      msgs[ECONNRESET] = "Connection reset by peer";
+      msgs[EXDEV] = "Invalid cross-device link";
+      msgs[EDESTADDRREQ] = "Destination address required";
+      msgs[EBUSY] = "Device or resource busy";
+      msgs[ENOTEMPTY] = "Directory not empty";
+      msgs[ENOEXEC] = "Exec format error";
+      msgs[EEXIST] = "File exists";
+      msgs[EFBIG] = "File too large";
+      msgs[ENAMETOOLONG] = "File name too long";
+      msgs[ENOSYS] = "Function not implemented";
+      msgs[EHOSTUNREACH] = "No route to host";
+      msgs[EIDRM] = "Identifier removed";
+      msgs[EILSEQ] = "Invalid or incomplete multibyte or wide character";
+      msgs[ENOTTY] = "Inappropriate ioctl for device";
+      msgs[EINTR] = "Interrupted system call";
+      msgs[EINVAL] = "Invalid argument";
+      msgs[ESPIPE] = "Illegal seek";
+      msgs[EIO] = "Input/output error";
+      msgs[EISDIR] = "Is a directory";
+      msgs[EMSGSIZE] = "Message too long";
+      msgs[ENETDOWN] = "Network is down";
+      msgs[ENETRESET] = "Network dropped connection on reset";
+      msgs[ENETUNREACH] = "Network is unreachable";
+      msgs[ENOBUFS] = "No buffer space available";
+      msgs[ECHILD] = "No child processes";
+      msgs[ENOLINK] = "Link has been severed";
+      msgs[ENOLCK] = "No locks available";
+      msgs[ENOMSG] = "No message of desired type";
+      msgs[ENOPROTOOPT] = "Protocol not available";
+      msgs[ENOSPC] = "No space left on device";
+      msgs[ENOSR] = "Out of streams resources";
+      msgs[ENXIO] = "No such device or address";
+      msgs[ENODEV] = "No such device";
       msgs[ENOENT] = "No such file or directory";
       msgs[ESRCH] = "No such process";
-      msgs[EINTR] = "Interrupted system call";
-      msgs[EIO] = "Input/output error";
-      msgs[ENXIO] = "No such device or address";
-      msgs[E2BIG] = "Argument list too long";
-      msgs[ENOEXEC] = "Exec format error";
-      msgs[EBADF] = "Bad file descriptor";
-      msgs[ECHILD] = "No child processes";
-      msgs[EAGAIN] = "Resource temporarily unavailable";
-      msgs[ENOMEM] = "Cannot allocate memory";
-      msgs[EACCES] = "Permission denied";
-      msgs[EFAULT] = "Bad address";
-      // msgs[ENOTBLK] = "Block device required";
-      msgs[EBUSY] = "Device or resource busy";
-      msgs[EEXIST] = "File exists";
-      msgs[EXDEV] = "Invalid cross-device link";
-      msgs[ENODEV] = "No such device";
       msgs[ENOTDIR] = "Not a directory";
-      msgs[EISDIR] = "Is a directory";
-      msgs[EINVAL] = "Invalid argument";
+      msgs[ENOTSOCK] = "Socket operation on non-socket";
+      msgs[ENOSTR] = "Device not a stream";
+      msgs[ENOTCONN] = "Transport endpoint is not connected";
+      msgs[ENOMEM] = "Cannot allocate memory";
+      msgs[ENOTSUP] = "Operation not supported";
+      msgs[ECANCELED] = "Operation canceled";
+      msgs[EINPROGRESS] = "Operation now in progress";
+      msgs[EPERM] = "Operation not permitted";
+      msgs[EOPNOTSUPP] = "Operation not supported";
+      msgs[EWOULDBLOCK] = "Resource temporarily unavailable";
+      msgs[EOWNERDEAD] = "Owner died";
+      msgs[EACCES] = "Permission denied";
+      msgs[EPROTO] = "Protocol error";
+      msgs[EPROTONOSUPPORT] = "Protocol not supported";
+      msgs[EROFS] = "Read-only file system";
+      msgs[EDEADLK] = "Resource deadlock avoided";
+      msgs[EAGAIN] = "Resource temporarily unavailable";
+      msgs[ERANGE] = "Numerical result out of range";
+      msgs[ENOTRECOVERABLE] = "State not recoverable";
+      msgs[ETIME] = "Timer expired";
+      msgs[ETXTBSY] = "Text file busy";
+      msgs[ETIMEDOUT] = "Connection timed out";
       msgs[ENFILE] = "Too many open files in system";
       msgs[EMFILE] = "Too many open files";
-      msgs[ENOTTY] = "Inappropriate ioctl for device";
-      msgs[ETXTBSY] = "Text file busy";
-      msgs[EFBIG] = "File too large";
-      msgs[ENOSPC] = "No space left on device";
-      msgs[ESPIPE] = "Illegal seek";
-      msgs[EROFS] = "Read-only file system";
       msgs[EMLINK] = "Too many links";
-      msgs[EPIPE] = "Broken pipe";
-      msgs[EDOM] = "Numerical argument out of domain";
-      msgs[ERANGE] = "Numerical result out of range";
-      msgs[EDEADLK] = "Resource deadlock avoided";
-      msgs[ENAMETOOLONG] = "File name too long";
-      msgs[ENOLCK] = "No locks available";
-      msgs[ENOSYS] = "Function not implemented";
-      msgs[ENOTEMPTY] = "Directory not empty";
       msgs[ELOOP] = "Too many levels of symbolic links";
-      // msgs[41] = "(null)";
-      msgs[ENOMSG] = "No message of desired type";
-      msgs[EIDRM] = "Identifier removed";
-// msgs[ECHRNG] = "Channel number out of range";
-// msgs[EL2NSYNC] = "Level 2 not synchronized";
-// msgs[EL3HLT] = "Level 3 halted";
-// msgs[EL3RST] = "Level 3 reset";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      msgs[EOVERFLOW] = "Value too large for defined data type";
+      msgs[EPROTOTYPE] = "Protocol wrong type for socket";
     }
   };
 } // namespace detail
@@ -3250,7 +3206,7 @@ For Windows, these might be:
     - `nt_code` (`LONG`)
     - `win32_code` (`DWORD`)
 
-So the erased type is `LONG` on Windows, as that can represent all of
+So the erased type is `intptr_t` on Windows, as that can represent all of
 the above.
 
 For POSIX, `posix_code` (`int`) is possible, so this erased type is `int`

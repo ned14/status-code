@@ -5,6 +5,7 @@ cd doc/html
 cp ../../Readme.md index.md
 cat standardese_entities.md >> index.md
 rm standardese_*.md
+cat ../custom_domain_worked_example.md >> index.md
 for f in *.md
 do
   echo "Rendering $f to html ..."
