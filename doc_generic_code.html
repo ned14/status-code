@@ -64,6 +64,7 @@ doc_generic_code
     <span class="typ dec var fun">argument_out_of_domain</span> <span class="pun">=</span> <span class="lit">33</span><span class="pun">,</span>
     <span class="typ dec var fun">bad_address</span> <span class="pun">=</span> <span class="lit">14</span><span class="pun">,</span>
     <span class="typ dec var fun">bad_file_descriptor</span> <span class="pun">=</span> <span class="lit">9</span><span class="pun">,</span>
+    <span class="typ dec var fun">bad_message</span> <span class="pun">=</span> <span class="lit">74</span><span class="pun">,</span>
     <span class="typ dec var fun">broken_pipe</span> <span class="pun">=</span> <span class="lit">32</span><span class="pun">,</span>
     <span class="typ dec var fun">connection_aborted</span> <span class="pun">=</span> <span class="lit">103</span><span class="pun">,</span>
     <span class="typ dec var fun">connection_already_in_progress</span> <span class="pun">=</span> <span class="lit">114</span><span class="pun">,</span>
@@ -79,6 +80,7 @@ doc_generic_code
     <span class="typ dec var fun">filename_too_long</span> <span class="pun">=</span> <span class="lit">36</span><span class="pun">,</span>
     <span class="typ dec var fun">function_not_supported</span> <span class="pun">=</span> <span class="lit">38</span><span class="pun">,</span>
     <span class="typ dec var fun">host_unreachable</span> <span class="pun">=</span> <span class="lit">113</span><span class="pun">,</span>
+    <span class="typ dec var fun">identifier_removed</span> <span class="pun">=</span> <span class="lit">43</span><span class="pun">,</span>
     <span class="typ dec var fun">illegal_byte_sequence</span> <span class="pun">=</span> <span class="lit">84</span><span class="pun">,</span>
     <span class="typ dec var fun">inappropriate_io_control_operation</span> <span class="pun">=</span> <span class="lit">25</span><span class="pun">,</span>
     <span class="typ dec var fun">interrupted</span> <span class="pun">=</span> <span class="lit">4</span><span class="pun">,</span>
@@ -92,32 +94,44 @@ doc_generic_code
     <span class="typ dec var fun">network_unreachable</span> <span class="pun">=</span> <span class="lit">101</span><span class="pun">,</span>
     <span class="typ dec var fun">no_buffer_space</span> <span class="pun">=</span> <span class="lit">105</span><span class="pun">,</span>
     <span class="typ dec var fun">no_child_process</span> <span class="pun">=</span> <span class="lit">10</span><span class="pun">,</span>
+    <span class="typ dec var fun">no_link</span> <span class="pun">=</span> <span class="lit">67</span><span class="pun">,</span>
     <span class="typ dec var fun">no_lock_available</span> <span class="pun">=</span> <span class="lit">37</span><span class="pun">,</span>
     <span class="typ dec var fun">no_message</span> <span class="pun">=</span> <span class="lit">42</span><span class="pun">,</span>
     <span class="typ dec var fun">no_protocol_option</span> <span class="pun">=</span> <span class="lit">92</span><span class="pun">,</span>
     <span class="typ dec var fun">no_space_on_device</span> <span class="pun">=</span> <span class="lit">28</span><span class="pun">,</span>
+    <span class="typ dec var fun">no_stream_resources</span> <span class="pun">=</span> <span class="lit">63</span><span class="pun">,</span>
     <span class="typ dec var fun">no_such_device_or_address</span> <span class="pun">=</span> <span class="lit">6</span><span class="pun">,</span>
     <span class="typ dec var fun">no_such_device</span> <span class="pun">=</span> <span class="lit">19</span><span class="pun">,</span>
     <span class="typ dec var fun">no_such_file_or_directory</span> <span class="pun">=</span> <span class="lit">2</span><span class="pun">,</span>
     <span class="typ dec var fun">no_such_process</span> <span class="pun">=</span> <span class="lit">3</span><span class="pun">,</span>
     <span class="typ dec var fun">not_a_directory</span> <span class="pun">=</span> <span class="lit">20</span><span class="pun">,</span>
     <span class="typ dec var fun">not_a_socket</span> <span class="pun">=</span> <span class="lit">88</span><span class="pun">,</span>
+    <span class="typ dec var fun">not_a_stream</span> <span class="pun">=</span> <span class="lit">60</span><span class="pun">,</span>
     <span class="typ dec var fun">not_connected</span> <span class="pun">=</span> <span class="lit">107</span><span class="pun">,</span>
     <span class="typ dec var fun">not_enough_memory</span> <span class="pun">=</span> <span class="lit">12</span><span class="pun">,</span>
+    <span class="typ dec var fun">not_supported</span> <span class="pun">=</span> <span class="lit">95</span><span class="pun">,</span>
+    <span class="typ dec var fun">operation_cancelled</span> <span class="pun">=</span> <span class="lit">125</span><span class="pun">,</span>
     <span class="typ dec var fun">operation_in_progress</span> <span class="pun">=</span> <span class="lit">115</span><span class="pun">,</span>
     <span class="typ dec var fun">operation_not_permitted</span> <span class="pun">=</span> <span class="lit">1</span><span class="pun">,</span>
     <span class="typ dec var fun">operation_not_supported</span> <span class="pun">=</span> <span class="lit">95</span><span class="pun">,</span>
+    <span class="typ dec var fun">operation_would_block</span> <span class="pun">=</span> <span class="lit">11</span><span class="pun">,</span>
+    <span class="typ dec var fun">owner_dead</span> <span class="pun">=</span> <span class="lit">130</span><span class="pun">,</span>
     <span class="typ dec var fun">permission_denied</span> <span class="pun">=</span> <span class="lit">13</span><span class="pun">,</span>
+    <span class="typ dec var fun">protcol_error</span> <span class="pun">=</span> <span class="lit">71</span><span class="pun">,</span>
     <span class="typ dec var fun">protocol_not_supported</span> <span class="pun">=</span> <span class="lit">93</span><span class="pun">,</span>
     <span class="typ dec var fun">read_only_file_system</span> <span class="pun">=</span> <span class="lit">30</span><span class="pun">,</span>
     <span class="typ dec var fun">resource_deadlock_would_occur</span> <span class="pun">=</span> <span class="lit">35</span><span class="pun">,</span>
     <span class="typ dec var fun">resource_unavailable_try_again</span> <span class="pun">=</span> <span class="lit">11</span><span class="pun">,</span>
     <span class="typ dec var fun">result_out_of_range</span> <span class="pun">=</span> <span class="lit">34</span><span class="pun">,</span>
+    <span class="typ dec var fun">state_not_recoverable</span> <span class="pun">=</span> <span class="lit">131</span><span class="pun">,</span>
+    <span class="typ dec var fun">stream_timeout</span> <span class="pun">=</span> <span class="lit">62</span><span class="pun">,</span>
+    <span class="typ dec var fun">text_file_busy</span> <span class="pun">=</span> <span class="lit">26</span><span class="pun">,</span>
     <span class="typ dec var fun">timed_out</span> <span class="pun">=</span> <span class="lit">110</span><span class="pun">,</span>
     <span class="typ dec var fun">too_many_files_open_in_system</span> <span class="pun">=</span> <span class="lit">23</span><span class="pun">,</span>
     <span class="typ dec var fun">too_many_files_open</span> <span class="pun">=</span> <span class="lit">24</span><span class="pun">,</span>
     <span class="typ dec var fun">too_many_links</span> <span class="pun">=</span> <span class="lit">31</span><span class="pun">,</span>
     <span class="typ dec var fun">too_many_symbolic_link_levels</span> <span class="pun">=</span> <span class="lit">40</span><span class="pun">,</span>
+    <span class="typ dec var fun">value_too_large</span> <span class="pun">=</span> <span class="lit">75</span><span class="pun">,</span>
     <span class="typ dec var fun">wrong_protocol_type</span> <span class="pun">=</span> <span class="lit">91</span>
 <span class="pun">};</span>
 </code></pre>
