@@ -75,7 +75,7 @@ namespace detail
         : b(v)
     {
     }
-    constexpr T value() const { return a; }
+    constexpr T value() const { return a; }  // NOLINT
   };
 
 #if 0
@@ -105,7 +105,7 @@ namespace detail
   {
     static constexpr bool value = true;
   };
-}
+}  // namespace detail
 
 //! Trait returning true if the type is a status code.
 template <class T> struct is_status_code

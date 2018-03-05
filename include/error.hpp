@@ -90,7 +90,7 @@ public:
   */
   template <class DomainType,  //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
-  error(const status_code<DomainType> &v) noexcept : system_code(v)
+  error(const status_code<DomainType> &v) noexcept : system_code(v)  // NOLINT
   {
     if(!v.failure())
     {
@@ -103,10 +103,10 @@ public:
   The input is checked to ensure it is a failure, if not then `SYSTEM_ERROR2_FATAL()` is called which by default calls `std::terminate()`.
   */
   template <class T,                                                                           //
-            class IfMakeStatusCode = decltype(make_status_code(std::declval<T>())),            //
+            class _IfMakeStatusCode = decltype(make_status_code(std::declval<T>())),           //
             typename std::enable_if<!std::is_same<typename std::decay<T>::type, error>::value  //
-                                    && is_status_code<IfMakeStatusCode>::value                 //
-                                    && detail::type_erasure_is_safe<value_type, typename IfMakeStatusCode::value_type>::value,
+                                    && is_status_code<_IfMakeStatusCode>::value                //
+                                    && detail::type_erasure_is_safe<value_type, typename _IfMakeStatusCode::value_type>::value,
                                     bool>::type = true>
   error(T &&v) noexcept(noexcept(make_status_code(std::declval<T>())))  // NOLINT
   : error(make_status_code(static_cast<T &&>(v)))

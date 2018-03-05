@@ -62,21 +62,22 @@ namespace detail
 SYSTEM_ERROR2_NAMESPACE_END
 
 #ifndef SYSTEM_ERROR2_FATAL
+#include <cstdlib>  // for abort
+
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 namespace detail
 {
   namespace avoid_stdio_include
   {
     extern "C" int write(int, const char *, size_t);
-    extern "C" void abort();
   }
   inline void do_fatal_exit(const char *msg)
   {
     avoid_stdio_include::write(2 /*stderr*/, msg, cstrlen(msg));
     avoid_stdio_include::write(2 /*stderr*/, "\n", 1);
-    avoid_stdio_include::abort();
+    abort();
   }
-}
+}  // namespace detail
 SYSTEM_ERROR2_NAMESPACE_END
 //! Prints msg to stderr, and calls `std::terminate()`. Can be overriden via predefinition.
 #define SYSTEM_ERROR2_FATAL(msg) ::SYSTEM_ERROR2_NAMESPACE::detail::do_fatal_exit(msg)

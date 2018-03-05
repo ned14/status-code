@@ -309,13 +309,8 @@ template <class T> inline bool status_code<void>::equivalent(const status_code<T
       return true;
     }
   }
-  // If we are both empty, we are equivalent
-  if(!_domain && !o._domain)
-  {
-    return true;
-  }
-  // Otherwise not equivalent
-  return false;
+  // If we are both empty, we are equivalent, otherwise not equivalent
+  return (!_domain && !o._domain);
 }
 //! True if the status code's are semantically equal via `equivalent()`.
 template <class DomainType1, class DomainType2> inline bool operator==(const status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept

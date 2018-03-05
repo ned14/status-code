@@ -124,7 +124,7 @@ public:
         goto failure;
       }
 #else
-      win32::DWORD wlen = (win32::DWORD) strlen(ce.ErrorMessage());
+      auto wlen = static_cast<win32::DWORD>(strlen(ce.ErrorMessage()));
       auto *p = static_cast<char *>(malloc(wlen + 1));  // NOLINT
       if(p == nullptr)
       {
@@ -132,7 +132,7 @@ public:
       }
       memcpy(p, ce.ErrorMessage(), wlen + 1);
       this->_begin = p;
-      this->_end = p + wlen;
+      this->_end = p + wlen;  // NOLINT
       while(this->_end[-1] == 10 || this->_end[-1] == 13)
       {
         --this->_end;
@@ -229,12 +229,14 @@ protected:
     assert(code.domain() == *this);
     const auto &c1 = static_cast<const com_code &>(code);  // NOLINT
     if(c1.value() == S_OK)
+    {
       return errc::success;
+    }
     if((c1.value() & FACILITY_NT_BIT) != 0)
     {
       return generic_code(static_cast<errc>(_nt_code_domain::_nt_code_to_errno(c1.value() & ~FACILITY_NT_BIT)));
     }
-    else if(HRESULT_FACILITY(c1.value()) == FACILITY_WIN32)
+    if(HRESULT_FACILITY(c1.value()) == FACILITY_WIN32)
     {
       return generic_code(static_cast<errc>(_win32_code_domain::_win32_code_to_errno(HRESULT_CODE(c1.value()))));
     }
