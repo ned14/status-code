@@ -262,7 +262,7 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_generic_code.html#standardese-system_error2__errc"><code>errc</code></a> &mdash; The generic error coding (POSIX)</p>
 </li>
 <li>
-<p><a href="doc_error.html#standardese-system_error2__error"><code>error</code></a> &mdash; An erased status code which is always a failure. This refines system_code into an object meeting the requirements of https://wg21.link/P0709 <em>Just throw (or, Zero-overhead deterministic exceptions)</em> with the following differences:</p>
+<p><a href="doc_error.html#standardese-system_error2__error"><code>error</code></a> &mdash; An erased status code which is always a failure. The closest equivalent to <code>std::error_code</code>, except it cannot be null and cannot be modified.</p>
 </li>
 <li>
 <p><a href="doc_status_code_domain.html#standardese-system_error2__generic_code"><code>generic_code</code></a> &mdash; The generic code is a status code with the generic code domain, which is that of <code>errc</code> (POSIX).</p>
@@ -271,13 +271,16 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_generic_code.html#standardese-system_error2__generic_code_domain"><code>generic_code_domain</code></a> &mdash; A constexpr source variable for the generic code domain, which is that of <code>errc</code> (POSIX). Returned by <code>_generic_code_domain::get()</code>.</p>
 </li>
 <li>
-<p><a href="doc_generic_code.html#standardese-system_error2"><code>get</code></a></p>
+<p><a href="doc_posix_code.html#standardese-system_error2"><code>get</code></a></p>
 </li>
 <li>
 <p><a href="doc_status_code.html#standardese-system_error2__in_place"><code>in_place</code></a> &mdash; Aliases <code>std::in_place</code> if on C++ 17 or later, else defined locally.</p>
 </li>
 <li>
 <p><a href="doc_status_code.html#standardese-system_error2__in_place_t"><code>in_place_t</code></a> &mdash; Aliases <code>std::in_place_t</code> if on C++ 17 or later, else defined locally.</p>
+</li>
+<li>
+<p><a href="doc_status_code.html#standardese-system_error2__is_status_code-T-"><code>is_status_code</code></a> &mdash; Trait returning true if the type is a status code.</p>
 </li>
 <li>
 <p><a href="doc_generic_code.html#standardese-system_error2"><code>make_status_code</code></a></p>
