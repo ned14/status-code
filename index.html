@@ -215,6 +215,9 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_config.html#standardese-SYSTEM_ERROR2_CONSTEXPR14"><code>SYSTEM_ERROR2_CONSTEXPR14</code></a> &mdash; Defined to be <code>constexpr</code> when on C++ 14 or better compilers. Usually automatic, can be overriden.</p>
 </li>
 <li>
+<p><a href="doc_config.html#standardese-SYSTEM_ERROR2_FATAL"><code>SYSTEM_ERROR2_FATAL</code></a> &mdash; Prints msg to stderr, and calls <code>std::terminate()</code>. Can be overriden via predefinition.</p>
+</li>
+<li>
 <p><a href="doc_config.html#standardese-SYSTEM_ERROR2_NAMESPACE"><code>SYSTEM_ERROR2_NAMESPACE</code></a> &mdash; The system_error2 namespace name.</p>
 </li>
 <li>
@@ -222,9 +225,6 @@ code with fewer unintended portability problems.</p>
 </li>
 <li>
 <p><a href="doc_config.html#standardese-SYSTEM_ERROR2_NAMESPACE_END"><code>SYSTEM_ERROR2_NAMESPACE_END</code></a> &mdash; Ends the system_error2 namespace.</p>
-</li>
-<li>
-<p><a href="doc_system_code.html#standardese-system_code-hpp"><code>SYSTEM_ERROR2_SYSTEM_ERROR_HPP</code></a></p>
 </li>
 <li>
 <h2>Namespace <code>system_error2</code></h2>
@@ -260,6 +260,9 @@ code with fewer unintended portability problems.</p>
 </li>
 <li>
 <p><a href="doc_generic_code.html#standardese-system_error2__errc"><code>errc</code></a> &mdash; The generic error coding (POSIX)</p>
+</li>
+<li>
+<p><a href="doc_error.html#standardese-system_error2__error"><code>error</code></a> &mdash; An erased status code which is always a failure. This refines system_code into an object meeting the requirements of https://wg21.link/P0709 <em>Just throw (or, Zero-overhead deterministic exceptions)</em> with the following differences:</p>
 </li>
 <li>
 <p><a href="doc_status_code_domain.html#standardese-system_error2__generic_code"><code>generic_code</code></a> &mdash; The generic code is a status code with the generic code domain, which is that of <code>errc</code> (POSIX).</p>
@@ -301,7 +304,7 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_posix_code.html#standardese-system_error2__posix_code_domain"><code>posix_code_domain</code></a> &mdash; A constexpr source variable for the POSIX code domain, which is that of <code>errno</code>. Returned by <code>_posix_code_domain::get()</code>.</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__status_code-"><code>status_code</code></a> &mdash; A type erased lightweight status code reflecting empty, success, or failure.</p>
+<p><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><code>status_code</code></a> &mdash; The main workhorse of the system_error2 library, can be typed (<code>status_code&lt;DomainType&gt;</code>), erased-immutable (<code>status_code&lt;void&gt;</code>) or erased-mutable (<code>status_code&lt;erased&lt;T&gt;&gt;</code>).</p>
 </li>
 <li>
 <p><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain"><code>status_code_domain</code></a> &mdash; Abstract base class for a coding domain of a status code.</p>
