@@ -49,4 +49,23 @@ http://www.boost.org/LICENSE_1_0.txt)
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 SYSTEM_ERROR2_NAMESPACE_END
 
+#ifndef SYSTEM_ERROR2_FATAL
+SYSTEM_ERROR2_NAMESPACE_BEGIN
+namespace detail
+{
+  namespace avoid_stdio_include
+  {
+    extern "C" void *stderr;
+    extern "C" void fprintf(void *, const char *, ...);
+  }
+}
+SYSTEM_ERROR2_NAMESPACE_END
+//! Prints msg to stderr, and calls `std::terminate()`. Can be overriden via predefinition.
+#define SYSTEM_ERROR2_FATAL(msg)                                                                                                                                                                                                                                                                                               \
+  {                                                                                                                                                                                                                                                                                                                            \
+    SYSTEM_ERROR2_NAMESPACE::detail::avoid_stdio_include::fprintf(SYSTEM_ERROR2_NAMESPACE::detail::avoid_stdio_include::stderr, "%s\n", msg);                                                                                                                                                                                  \
+    std::terminate();                                                                                                                                                                                                                                                                                                          \
+  }
+#endif
+
 #endif

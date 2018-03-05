@@ -22,13 +22,16 @@ Distributed under the Boost Software License, Version 1.0.
 http://www.boost.org/LICENSE_1_0.txt)
 */
 
-#ifndef SYSTEM_ERROR2_SYSTEM_ERROR_HPP
-#define SYSTEM_ERROR2_SYSTEM_ERROR_HPP
+#ifndef SYSTEM_ERROR2_SYSTEM_CODE_HPP
+#define SYSTEM_ERROR2_SYSTEM_CODE_HPP
 
 #include "posix_code.hpp"
 
 #if defined(_WIN32) || defined(STANDARDESE_IS_IN_THE_HOUSE)
 #include "nt_code.hpp"
+#include "win32_code.hpp"
+// NOT "com_code.hpp"
+#endif
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 /*! An erased-mutable status code suitably large for all the system codes
@@ -40,23 +43,18 @@ For Windows, these might be:
     - `nt_code` (`LONG`)
     - `win32_code` (`DWORD`)
 
-So the erased type is `intptr_t` on Windows, as that can represent all of
-the above.
+For POSIX, `posix_code` is possible.
 
-For POSIX, `posix_code` (`int`) is possible, so this erased type is `int`
-i.e. this is the type alias on POSIX, not the above:
-
-`using system_code = status_code<erased<int>>`
+You are guaranteed that `system_code` can be transported by the compiler
+in exactly two CPU registers.
 */
 using system_code = status_code<erased<intptr_t>>;
-SYSTEM_ERROR2_NAMESPACE_END
 
-#else
-
-SYSTEM_ERROR2_NAMESPACE_BEGIN
-using system_code = status_code<erased<int>>;
-SYSTEM_ERROR2_NAMESPACE_END
-
+#ifndef NDEBUG
+static_assert(sizeof(system_code) == 2 * sizeof(void *), "system_code is not exactly two pointers in size!");
+static_assert(std::is_trivially_copyable<system_code>::value, "system_code is not trivially copyable!");
 #endif
+
+SYSTEM_ERROR2_NAMESPACE_END
 
 #endif
