@@ -102,10 +102,11 @@ public:
 
   The input is checked to ensure it is a failure, if not then `SYSTEM_ERROR2_FATAL()` is called which by default calls `std::terminate()`.
   */
-  template <class T,                                                                                         //
-            typename std::enable_if<!std::is_same<typename std::decay<T>::type, error>::value                //
-                                    && is_status_code<decltype(make_status_code(std::declval<T>()))>::value  //
-                                    && detail::type_erasure_is_safe<value_type, typename decltype(make_status_code(std::declval<T>()))::value_type>::value,
+  template <class T,                                                                           //
+            class IfMakeStatusCode = decltype(make_status_code(std::declval<T>())),            //
+            typename std::enable_if<!std::is_same<typename std::decay<T>::type, error>::value  //
+                                    && is_status_code<IfMakeStatusCode>::value                 //
+                                    && detail::type_erasure_is_safe<value_type, typename IfMakeStatusCode::value_type>::value,
                                     bool>::type = true>
   error(T &&v) noexcept(noexcept(make_status_code(std::declval<T>())))  // NOLINT
   : error(make_status_code(static_cast<T &&>(v)))

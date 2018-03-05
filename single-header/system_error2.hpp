@@ -1070,7 +1070,7 @@ public:
   status_code &operator=(status_code &&) = default; // NOLINT
   ~status_code() = default;
 
-  //! Implicit copy construction from any other status code if its type is trivially copyable and it would fit into our storage
+  //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
   template <class DomainType, //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
   constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(detail::safe_reinterpret_cast<value_type, typename DomainType::value_type>(v.value()).value()) // NOLINT
@@ -3418,9 +3418,11 @@ public:
 
   using system_code::value;
 
-  /*! Implicit copy construction from any other status code if its type is trivially copyable and it would fit into our storage.
+  /*! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage.
+
   The input is checked to ensure it is a failure, if not then `SYSTEM_ERROR2_FATAL()` is called which by default calls `std::terminate()`.
   */
+
 
 
   template <class DomainType, //
@@ -3432,10 +3434,20 @@ public:
       SYSTEM_ERROR2_FATAL("error constructed from a status code which is not a failure");
     }
   }
-  //! Implicit construction from any type where an ADL discovered `make_status_code(T &&)` returns a `status_code`.
+  /*! Implicit construction from any type where an ADL discovered `make_status_code(T &&)` returns a `status_code`
+  whose value type is trivially copyable and it would fit into our storage.
+
+  The input is checked to ensure it is a failure, if not then `SYSTEM_ERROR2_FATAL()` is called which by default calls `std::terminate()`.
+  */
+
+
+
+
   template <class T, //
+            class IfMakeStatusCode = decltype(make_status_code(std::declval<T>())), //
             typename std::enable_if<!std::is_same<typename std::decay<T>::type, error>::value //
-                                    && is_status_code<decltype(make_status_code(std::declval<T>()))>::value,
+                                    && is_status_code<IfMakeStatusCode>::value //
+                                    && detail::type_erasure_is_safe<value_type, typename IfMakeStatusCode::value_type>::value,
                                     bool>::type = true>
   error(T &&v) noexcept(noexcept(make_status_code(std::declval<T>()))) // NOLINT
   : error(make_status_code(static_cast<T &&>(v)))
