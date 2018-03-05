@@ -271,7 +271,7 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_generic_code.html#standardese-system_error2__generic_code_domain"><code>generic_code_domain</code></a> &mdash; A constexpr source variable for the generic code domain, which is that of <code>errc</code> (POSIX). Returned by <code>_generic_code_domain::get()</code>.</p>
 </li>
 <li>
-<p><a href="doc_posix_code.html#standardese-system_error2"><code>get</code></a></p>
+<p><a href="doc_generic_code.html#standardese-system_error2"><code>get</code></a></p>
 </li>
 <li>
 <p><a href="doc_status_code.html#standardese-system_error2__in_place"><code>in_place</code></a> &mdash; Aliases <code>std::in_place</code> if on C++ 17 or later, else defined locally.</p>
@@ -292,13 +292,13 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_nt_code.html#standardese-system_error2__nt_code_domain"><code>nt_code_domain</code></a> &mdash; (Windows only) A constexpr source variable for the NT code domain, which is that of NT kernel functions. Returned by <code>_nt_code_domain::get()</code>.</p>
 </li>
 <li>
-<p><a href="doc_generic_code.html#standardese-system_error2__operator---DomainType1-DomainType2--status_code-DomainType1-const--status_code-DomainType2-const--"><code>operator!=</code></a> &mdash; True if the status code’s are not semantically equal via <code>equivalent()</code>.</p>
+<p><a href="doc_error.html#standardese-system_error2__operator---DomainType--status_code-DomainType-const--system_error2__errorconst--"><code>operator!=</code></a> &mdash; True if the status code’s are not semantically equal via <code>equivalent()</code>.</p>
 </li>
 <li>
 <p><a href="doc_iostream_support.html#standardese-system_error2__operator---DomainType---std__ostream--status_code-DomainType-const--"><code>operator&lt;&lt;</code></a> &mdash; Print the status code to a <code>std::ostream &amp;</code>.</p>
 </li>
 <li>
-<p><a href="doc_generic_code.html#standardese-system_error2__operator---DomainType1-DomainType2--status_code-DomainType1-const--status_code-DomainType2-const--"><code>operator==</code></a> &mdash; True if the status code’s are semantically equal via <code>equivalent()</code>.</p>
+<p><a href="doc_error.html#standardese-system_error2__operator---DomainType--status_code-DomainType-const--system_error2__errorconst--"><code>operator==</code></a> &mdash; True if the status code’s are semantically equal via <code>equivalent()</code>.</p>
 </li>
 <li>
 <p><a href="doc_posix_code.html#standardese-system_error2__posix_code"><code>posix_code</code></a> &mdash; A POSIX error code, those returned by <code>errno</code>.</p>
