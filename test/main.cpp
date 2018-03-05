@@ -371,5 +371,14 @@ int main()
   CHECK(failure10 == failure1);
   CHECK(failure10 == failure2);
 
+  // Test error
+  error errors[] = {errc::permission_denied, failure1, failure2, failure3, failure4, failure9, failure10};
+  printf("\n");
+  for(size_t n = 0; n < sizeof(errors) / sizeof(errors[0]); n++)
+  {
+    printf("error[%zu] has domain %s value %zd (%s) and errc::permission_denied == error = %d\n", n, errors[n].domain().name().c_str(), errors[n].value(), errors[n].message().c_str(), static_cast<int>(errc::permission_denied == errors[n]));
+    CHECK(errors[n] == errc::permission_denied);
+  }
+
   return retcode;
 }

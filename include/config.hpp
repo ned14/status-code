@@ -25,6 +25,8 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_CONFIG_HPP
 #define SYSTEM_ERROR2_CONFIG_HPP
 
+#include <cstddef>  // for size_t
+
 #ifndef SYSTEM_ERROR2_CONSTEXPR14
 #if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
 //! Defined to be `constexpr` when on C++ 14 or better compilers. Usually automatic, can be overriden.
@@ -47,6 +49,16 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 //! Namespace for the library
 SYSTEM_ERROR2_NAMESPACE_BEGIN
+namespace detail
+{
+  inline SYSTEM_ERROR2_CONSTEXPR14 size_t cstrlen(const char *str)
+  {
+    const char *end = nullptr;
+    for(end = str; *end != 0; ++end)  // NOLINT
+      ;
+    return end - str;
+  }
+}
 SYSTEM_ERROR2_NAMESPACE_END
 
 #ifndef SYSTEM_ERROR2_FATAL
@@ -55,17 +67,19 @@ namespace detail
 {
   namespace avoid_stdio_include
   {
-    extern "C" void *stderr;
-    extern "C" void fprintf(void *, const char *, ...);
+    extern "C" int write(int, const char *, size_t);
+    extern "C" void abort();
+  }
+  inline void do_fatal_exit(const char *msg)
+  {
+    avoid_stdio_include::write(2 /*stderr*/, msg, cstrlen(msg));
+    avoid_stdio_include::write(2 /*stderr*/, "\n", 1);
+    avoid_stdio_include::abort();
   }
 }
 SYSTEM_ERROR2_NAMESPACE_END
 //! Prints msg to stderr, and calls `std::terminate()`. Can be overriden via predefinition.
-#define SYSTEM_ERROR2_FATAL(msg)                                                                                                                                                                                                                                                                                               \
-  {                                                                                                                                                                                                                                                                                                                            \
-    SYSTEM_ERROR2_NAMESPACE::detail::avoid_stdio_include::fprintf(SYSTEM_ERROR2_NAMESPACE::detail::avoid_stdio_include::stderr, "%s\n", msg);                                                                                                                                                                                  \
-    std::terminate();                                                                                                                                                                                                                                                                                                          \
-  }
+#define SYSTEM_ERROR2_FATAL(msg) ::SYSTEM_ERROR2_NAMESPACE::detail::do_fatal_exit(msg)
 #endif
 
 #endif

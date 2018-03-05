@@ -29,8 +29,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include <atomic>
 #include <cassert>
-#include <cstddef>  // for size_t
-#include <cstdlib>  // for malloc
+#include <cstdlib>  // for free
 #include <new>
 #include <type_traits>
 
@@ -51,14 +50,6 @@ using generic_code = status_code<_generic_code_domain>;
 
 namespace detail
 {
-  inline SYSTEM_ERROR2_CONSTEXPR14 size_t cstrlen(const char *str)
-  {
-    const char *end = nullptr;
-    for(end = str; *end != 0; ++end)  // NOLINT
-      ;
-    return end - str;
-  }
-
   template <class T> struct status_code_sizer
   {
     void *a;

@@ -65,6 +65,19 @@ struct erased
 
 namespace detail
 {
+  template <class T, class U> struct safe_reinterpret_cast
+  {
+    union {
+      T a{};
+      U b;
+    };
+    constexpr explicit safe_reinterpret_cast(const U &v)
+        : b(v)
+    {
+    }
+    constexpr T value() const { return a; }
+  };
+
 #if 0
   template <class T, class U,  //
             typename std::enable_if<std::is_same<typename std::decay<decltype(make_status_code(std::declval<U>()))>::type, T>::value, bool>::type = true>
@@ -76,6 +89,14 @@ namespace detail
   };
 #endif
 
+  template <class T> struct is_status_code
+  {
+    static constexpr bool value = false;
+  };
+  template <class T> struct is_status_code<status_code<T>>
+  {
+    static constexpr bool value = true;
+  };
   template <class T> struct is_erased_status_code
   {
     static constexpr bool value = false;
@@ -85,6 +106,12 @@ namespace detail
     static constexpr bool value = true;
   };
 }
+
+//! Trait returning true if the type is a status code.
+template <class T> struct is_status_code
+{
+  static constexpr bool value = detail::is_status_code<typename std::decay<T>::type>::value;
+};
 
 /*! A type erased lightweight status code reflecting empty, success, or failure.
 Differs from `status_code<erased<>>` by being always available irrespective of
@@ -197,7 +224,7 @@ public:
   //! Implicit construction from any type where an ADL discovered `make_status_code(T &&)` returns a `status_code`.
   template <class T,                                                                                 //
             typename std::enable_if<!std::is_same<typename std::decay<T>::type, status_code>::value  //
-                                    && std::is_same<typename std::decay<decltype(make_status_code(std::declval<T>()))>::type, status_code>::value,
+                                    && is_status_code<decltype(make_status_code(std::declval<T>()))>::value,
                                     bool>::type = true>
   constexpr status_code(T &&v) noexcept(noexcept(make_status_code(std::declval<T>())))  // NOLINT
   : status_code(make_status_code(static_cast<T &&>(v)))
@@ -305,10 +332,10 @@ public:
   status_code &operator=(status_code &&) = default;  // NOLINT
   ~status_code() = default;
 
-  //! Implicit copy construction from any other status code if its type is trivially copyable and it would fit into our storage
+  //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
   template <class DomainType,  //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
-  constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(reinterpret_cast<const value_type &>(v.value()))  // NOLINT
+  constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(detail::safe_reinterpret_cast<value_type, typename DomainType::value_type>(v.value()).value())  // NOLINT
   {
   }
   //! Return the erased `value_type` by value.
