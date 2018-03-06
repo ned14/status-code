@@ -10,7 +10,7 @@ doc_iostream_support
 
 <h1>Header file <code>iostream_support.hpp</code></h1>
 <p><span id="standardese-iostream_support-hpp"></span></p>
-<pre><code class="standardese-language-cpp"><span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_generic_code.html#standardese-generic_code-hpp"><span class="typ dec var fun">generic_code.hpp</span></a><span class="pre">&quot;</span>
+<pre><code class="standardese-language-cpp"><span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_error.html#standardese-error-hpp"><span class="typ dec var fun">error.hpp</span></a><span class="pre">&quot;</span>
 
 <span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
 <span class="pun">{</span>
@@ -18,6 +18,8 @@ doc_iostream_support
     <span class="typ dec var fun">std::ostream</span><span class="pun">&amp;</span> <a href="doc_iostream_support.html#standardese-system_error2__operator---DomainType---std__ostream--status_code-DomainType-const--"><span class="typ dec var fun">operator&lt;&lt;</span></a><span class="pun">(</span><span class="typ dec var fun">std::ostream</span><span class="pun">&amp;</span> <span class="typ dec var fun">s</span><span class="pun">,</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span><span class="pun">;</span>
 
     <span class="typ dec var fun">std::ostream</span><span class="pun">&amp;</span> <a href="doc_iostream_support.html#standardese-system_error2__operator---std__ostream--system_error2__generic_codeconst--"><span class="typ dec var fun">operator&lt;&lt;</span></a><span class="pun">(</span><span class="typ dec var fun">std::ostream</span><span class="pun">&amp;</span> <span class="typ dec var fun">s</span><span class="pun">,</span> <a href="doc_status_code_domain.html#standardese-system_error2__generic_code"><span class="typ dec var fun">system_error2::generic_code</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span><span class="pun">;</span>
+
+    <span class="typ dec var fun">std::ostream</span><span class="pun">&amp;</span> <a href="doc_iostream_support.html#standardese-system_error2__operator---std__ostream--system_error2__errorconst--"><span class="typ dec var fun">operator&lt;&lt;</span></a><span class="pun">(</span><span class="typ dec var fun">std::ostream</span><span class="pun">&amp;</span> <span class="typ dec var fun">s</span><span class="pun">,</span> <a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span><span class="pun">;</span>
 <span class="pun">}</span>
 </code></pre>
 
@@ -37,5 +39,12 @@ doc_iostream_support
 </code></pre>
 
 <p>Print the generic code to a <code>std::ostream &amp;</code>.</p>
+<hr />
+<h3>Function <code>system_error2::operator&lt;&lt;</code></h3>
+<p><span id="standardese-system_error2__operator---std__ostream--system_error2__errorconst--"></span></p>
+<pre><code class="standardese-language-cpp"><span class="typ dec var fun">std::ostream</span><span class="pun">&amp;</span> <span class="typ dec var fun">operator&lt;&lt;</span><span class="pun">(</span><span class="typ dec var fun">std::ostream</span><span class="pun">&amp;</span> <span class="typ dec var fun">s</span><span class="pun">,</span> <a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span><span class="pun">;</span>
+</code></pre>
+
+<p>Print the error to a <code>std::ostream &amp;</code>.</p>
 <hr /></body>
 </html>
