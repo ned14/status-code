@@ -25,7 +25,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_IOSTREAM_SUPPORT_HPP
 #define SYSTEM_ERROR2_IOSTREAM_SUPPORT_HPP
 
-#include "generic_code.hpp"
+#include "error.hpp"
 
 #include <iostream>
 
@@ -56,6 +56,13 @@ inline std::ostream &operator<<(std::ostream &s, const generic_code &v)
   return s << v.domain().name().c_str() << ": " << v.message().c_str();
 }
 
+
+/*! Print the error to a `std::ostream &`.
+*/
+inline std::ostream &operator<<(std::ostream &s, const error &v)
+{
+  return s << v.domain().name().c_str() << ": " << v.message().c_str();
+}
 SYSTEM_ERROR2_NAMESPACE_END
 
 #endif
