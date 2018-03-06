@@ -54,7 +54,7 @@ public:
     {
     }
     explicit string_ref(_base::string_ref &&o)
-        : _base::string_ref(std::move(o))
+        : _base::string_ref(static_cast<_base::string_ref &&>(o))
     {
     }
     constexpr string_ref()
