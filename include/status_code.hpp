@@ -27,10 +27,8 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include "status_code_domain.hpp"
 
-#include <exception>  // for std::exception
-#include <initializer_list>
-
 #if __cplusplus >= 201700 || _HAS_CXX17
+// 0.26
 #include <utility>  // for in_place
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN

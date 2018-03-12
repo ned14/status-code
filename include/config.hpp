@@ -25,7 +25,24 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_CONFIG_HPP
 #define SYSTEM_ERROR2_CONFIG_HPP
 
+// < 0.1 each
+#include <cassert>
 #include <cstddef>  // for size_t
+#include <cstdlib>  // for free
+
+// 0.22
+#include <type_traits>
+
+// 0.29
+#include <atomic>
+
+// 0.28 (0.15 of which is exception_ptr)
+#include <exception>  // for std::exception
+// <new> includes <exception>, <exception> includes <new>
+#include <new>
+
+// 0.01
+#include <initializer_list>
 
 #ifndef SYSTEM_ERROR2_CONSTEXPR14
 #if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */

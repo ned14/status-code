@@ -27,12 +27,6 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include "config.hpp"
 
-#include <atomic>
-#include <cassert>
-#include <cstdlib>  // for free
-#include <new>
-#include <type_traits>
-
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 /*! The main workhorse of the system_error2 library, can be typed (`status_code<DomainType>`), erased-immutable (`status_code<void>`) or erased-mutable (`status_code<erased<T>>`).

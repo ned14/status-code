@@ -116,6 +116,8 @@ Only includes the following headers:
     - `<type_traits>` as we need to do some very limited metaprogramming.
     - `<utility>` if on C++ 17 or later for `std::in_place`.
     
+	All of the above headers are on the "fast parse" list at https://github.com/ned14/stl-header-heft.
+
     These may look like a lot, but in fact just including `<atomic>` on libstdc++ actually
 brings in most of the others in any case, and a total of 200Kb (8,000 lines) of text is including by
 `system_error2.hpp` on libstdc++ 7. Compiling a file including `status_code.hpp` takes
