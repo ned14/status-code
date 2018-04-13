@@ -119,7 +119,7 @@ public:
         {
           goto failure;
         }
-        bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, wlen + 1, p, allocation, nullptr, nullptr);
+        bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, (int) (wlen + 1), p, (int) allocation, nullptr, nullptr);
         if(bytes != 0)
         {
           this->_begin = p;

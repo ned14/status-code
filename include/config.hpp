@@ -86,7 +86,7 @@ namespace detail
 {
   namespace avoid_stdio_include
   {
-    extern "C" int write(int, const char *, size_t);
+    extern "C" ptrdiff_t write(int, const void *, size_t);
   }
   inline void do_fatal_exit(const char *msg)
   {

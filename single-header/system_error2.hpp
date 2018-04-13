@@ -431,7 +431,24 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_CONFIG_HPP
 #define SYSTEM_ERROR2_CONFIG_HPP
 
+// < 0.1 each
+#include <cassert>
 #include <cstddef> // for size_t
+#include <cstdlib> // for free
+
+// 0.22
+#include <type_traits>
+
+// 0.29
+#include <atomic>
+
+// 0.28 (0.15 of which is exception_ptr)
+#include <exception> // for std::exception
+// <new> includes <exception>, <exception> includes <new>
+#include <new>
+
+// 0.01
+#include <initializer_list>
 
 #ifndef SYSTEM_ERROR2_CONSTEXPR14
 #if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
@@ -490,12 +507,6 @@ SYSTEM_ERROR2_NAMESPACE_END
 #endif
 
 #endif
-#include <atomic>
-#include <cassert>
-#include <cstdlib> // for free
-#include <new>
-#include <type_traits>
-
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 /*! The main workhorse of the system_error2 library, can be typed (`status_code<DomainType>`), erased-immutable (`status_code<void>`) or erased-mutable (`status_code<erased<T>>`).
@@ -744,10 +755,8 @@ protected:
 SYSTEM_ERROR2_NAMESPACE_END
 
 #endif
-#include <exception> // for std::exception
-#include <initializer_list>
-
 #if __cplusplus >= 201700 || _HAS_CXX17
+// 0.26
 #include <utility> // for in_place
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
@@ -1089,9 +1098,30 @@ SYSTEM_ERROR2_NAMESPACE_END
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 /*! Exception type representing a thrown status_code
-  */
+*/
 
-template <class DomainType> class status_error : public std::exception
+template <class DomainType> class status_error;
+
+/*! The erased type edition of status_error.
+*/
+
+template <> class status_error<void> : public std::exception
+{
+protected:
+  //! Constructs an instance. Not publicly available.
+  status_error() = default;
+
+public:
+  //! The type of the status domain
+  using domain_type = void;
+  //! The type of the status code
+  using status_code_type = status_code<void>;
+};
+
+/*! Exception type representing a thrown status_code
+*/
+
+template <class DomainType> class status_error : public status_error<void>
 {
   status_code<DomainType> _code;
   typename DomainType::string_ref _msgref;
@@ -1111,6 +1141,7 @@ public:
 
   //! Return an explanatory string
   virtual const char *what() const noexcept override { return _msgref.c_str(); } // NOLINT
+
   //! Returns a reference to the code
   const status_code_type &code() const & { return _code; }
   //! Returns a reference to the code
@@ -1867,7 +1898,7 @@ public:
         {
           goto failure;
         }
-        bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, wlen + 1, p, allocation, nullptr, nullptr);
+        bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, (int) (wlen + 1), p, (int) allocation, nullptr, nullptr);
         if(bytes != 0)
         {
           this->_begin = p;
@@ -3181,7 +3212,7 @@ public:
         {
           goto failure;
         }
-        bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, wlen + 1, p, allocation, nullptr, nullptr);
+        bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, (int) (wlen + 1), p, (int) allocation, nullptr, nullptr);
         if(bytes != 0)
         {
           this->_begin = p;

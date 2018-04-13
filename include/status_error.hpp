@@ -32,8 +32,37 @@ http://www.boost.org/LICENSE_1_0.txt)
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 /*! Exception type representing a thrown status_code
-  */
-template <class DomainType> class status_error : public std::exception
+*/
+template <class DomainType> class status_error;
+
+/*! The erased type edition of status_error.
+*/
+template <> class status_error<void> : public std::exception
+{
+protected:
+  //! Constructs an instance. Not publicly available.
+  status_error() = default;
+  //! Copy constructor. Not publicly available
+  status_error(const status_error &) = default;
+  //! Move constructor. Not publicly available
+  status_error(status_error &&) = default;
+  //! Copy assignment. Not publicly available
+  status_error &operator=(const status_error &) = default;
+  //! Move assignment. Not publicly available
+  status_error &operator=(status_error &&) = default;
+  //! Destructor. Not publicly available.
+  ~status_error() = default;
+
+public:
+  //! The type of the status domain
+  using domain_type = void;
+  //! The type of the status code
+  using status_code_type = status_code<void>;
+};
+
+/*! Exception type representing a thrown status_code
+*/
+template <class DomainType> class status_error : public status_error<void>
 {
   status_code<DomainType> _code;
   typename DomainType::string_ref _msgref;
@@ -53,6 +82,7 @@ public:
 
   //! Return an explanatory string
   virtual const char *what() const noexcept override { return _msgref.c_str(); }  // NOLINT
+
   //! Returns a reference to the code
   const status_code_type &code() const & { return _code; }
   //! Returns a reference to the code
