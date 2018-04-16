@@ -16,6 +16,8 @@ doc_posix_code
 <span class="pun">{</span>
     <span class="kwd">using</span> <a href="doc_posix_code.html#standardese-system_error2__posix_code"><span class="typ dec var fun">posix_code</span></a> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>system_error2::_posix_code_domain<span class="pun">&gt;</span><span class="pun">;</span>
 
+    <span class="kwd">using</span> <a href="doc_posix_code.html#standardese-system_error2__posix_error"><span class="typ dec var fun">posix_error</span></a> <span class="pun">=</span> <a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-"><span class="typ dec var fun">status_error</span></a><span class="pun">&lt;</span>system_error2::_posix_code_domain<span class="pun">&gt;</span><span class="pun">;</span>
+
     <span class="kwd">class</span> <a href="doc_posix_code.html#standardese-system_error2___posix_code_domain"><span class="typ dec var fun">_posix_code_domain</span></a><span class="pun">;</span>
 
     <span class="kwd">constexpr</span> <a href="doc_posix_code.html#standardese-system_error2___posix_code_domain"><span class="typ dec var fun">system_error2::_posix_code_domain</span></a> <span class="kwd">const</span> <a href="doc_posix_code.html#standardese-system_error2__posix_code_domain"><span class="typ dec var fun">posix_code_domain</span></a><span class="pun">;</span>
@@ -31,6 +33,13 @@ doc_posix_code
 </code></pre>
 
 <p>A POSIX error code, those returned by <code>errno</code>.</p>
+<hr />
+<h3>Type alias <code>system_error2::posix_error</code></h3>
+<p><span id="standardese-system_error2__posix_error"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">posix_error</span> <span class="pun">=</span> <a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-"><span class="typ dec var fun">status_error</span></a><span class="pun">&lt;</span>system_error2::_posix_code_domain<span class="pun">&gt;</span><span class="pun">;</span>
+</code></pre>
+
+<p>A specialisation of <code>status_error</code> for the POSIX error code domain.</p>
 <hr />
 <h3>Class <code>system_error2::_posix_code_domain</code></h3>
 <p><span id="standardese-system_error2___posix_code_domain"></span></p>

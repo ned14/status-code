@@ -16,6 +16,12 @@ doc_status_error
 <span class="pun">{</span>
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">&gt;</span>
     <span class="kwd">class</span> <a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-"><span class="typ dec var fun">status_error</span></a><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="pun">&gt;</span>
+    <span class="kwd">class</span> <a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-"><span class="typ dec var fun">status_error</span></a><span class="pun">&lt;</span><span class="typ dec var fun">void</span><span class="pun">&gt;</span><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">&gt;</span>
+    <span class="kwd">class</span> <a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-"><span class="typ dec var fun">status_error</span></a><span class="pun">;</span>
 <span class="pun">}</span>
 </code></pre>
 
@@ -23,8 +29,100 @@ doc_status_error
 <h3>Class <code>system_error2::status_error</code></h3>
 <p><span id="standardese-system_error2__status_error-DomainType-"></span></p>
 <pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">&gt;</span>
-<span class="kwd">class</span> <span class="typ dec var fun">status_error</span>
+<span class="kwd">class</span> <span class="typ dec var fun">status_error</span><span class="pun">;</span>
+</code></pre>
+
+<p>Exception type representing a thrown status_code</p>
+<hr />
+<h3>Class <code>system_error2::status_error</code></h3>
+<p><span id="standardese-system_error2__status_error-"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="pun">&gt;</span>
+<span class="kwd">class</span> <a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-"><span class="typ dec var fun">status_error</span></a><span class="pun">&lt;</span><span class="typ dec var fun">void</span><span class="pun">&gt;</span>
 <span class="pun">:</span> <span class="kwd">public</span> <span class="typ dec var fun">std::exception</span>
+<span class="pun">{</span>
+<span class="kwd">protected</span><span class="pun">:</span>
+    <a href="doc_status_error.html#standardese-system_error2__status_error-__status_error--"><span class="typ dec var fun">status_error</span></a><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    <a href="doc_status_error.html#standardese-system_error2__status_error-__status_error-system_error2__status_error-void-const--"><span class="typ dec var fun">status_error</span></a><span class="pun">(</span><span class="typ dec var fun">system_error2::status_error&lt;void&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    <a href="doc_status_error.html#standardese-system_error2__status_error-__status_error-system_error2__status_error-void----"><span class="typ dec var fun">status_error</span></a><span class="pun">(</span><span class="typ dec var fun">system_error2::status_error&lt;void&gt;</span><span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    <span class="typ dec var fun">system_error2::status_error&lt;void&gt;</span><span class="pun">&amp;</span> <a href="doc_status_error.html#standardese-system_error2__status_error-__operator--system_error2__status_error-void-const--"><span class="typ dec var fun">operator=</span></a><span class="pun">(</span><span class="typ dec var fun">system_error2::status_error&lt;void&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    <span class="typ dec var fun">system_error2::status_error&lt;void&gt;</span><span class="pun">&amp;</span> <a href="doc_status_error.html#standardese-system_error2__status_error-__operator--system_error2__status_error-void----"><span class="typ dec var fun">operator=</span></a><span class="pun">(</span><span class="typ dec var fun">system_error2::status_error&lt;void&gt;</span><span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    <span class="kwd">virtual</span> <a href="doc_status_error.html#standardese-system_error2__status_error-__-status_error--"><span class="typ dec var fun">~status_error</span></a><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+<span class="kwd">public</span><span class="pun">:</span>
+    <span class="kwd">using</span> <a href="doc_status_error.html#standardese-system_error2__status_error-__domain_type"><span class="typ dec var fun">domain_type</span></a> <span class="pun">=</span> <span class="kwd">void</span><span class="pun">;</span>
+
+    <span class="kwd">using</span> <a href="doc_status_error.html#standardese-system_error2__status_error-__status_code_type"><span class="typ dec var fun">status_code_type</span></a> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span><span class="pun">;</span>
+<span class="pun">};</span>
+</code></pre>
+
+<p>The erased type edition of status_error.</p>
+<h3>Constructor <code>system_error2::status_error::status_error</code></h3>
+<p><span id="standardese-system_error2__status_error-__status_error--"></span></p>
+<pre><code class="standardese-language-cpp"><span class="typ dec var fun">status_error</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+</code></pre>
+
+<p>Constructs an instance. Not publicly available.</p>
+<hr />
+<h3>Constructor <code>system_error2::status_error::status_error</code></h3>
+<p><span id="standardese-system_error2__status_error-__status_error-system_error2__status_error-void-const--"></span></p>
+<pre><code class="standardese-language-cpp"><span class="typ dec var fun">status_error</span><span class="pun">(</span><a href="doc_status_error.html#standardese-system_error2__status_error-"><span class="typ dec var fun">system_error2::status_error&lt;void&gt;</span></a> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+</code></pre>
+
+<p>Copy constructor. Not publicly available</p>
+<hr />
+<h3>Constructor <code>system_error2::status_error::status_error</code></h3>
+<p><span id="standardese-system_error2__status_error-__status_error-system_error2__status_error-void----"></span></p>
+<pre><code class="standardese-language-cpp"><span class="typ dec var fun">status_error</span><span class="pun">(</span><a href="doc_status_error.html#standardese-system_error2__status_error-"><span class="typ dec var fun">system_error2::status_error&lt;void&gt;</span></a><span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+</code></pre>
+
+<p>Move constructor. Not publicly available</p>
+<hr />
+<h3>Function <code>system_error2::status_error::operator=</code></h3>
+<p><span id="standardese-system_error2__status_error-__operator--system_error2__status_error-void-const--"></span></p>
+<pre><code class="standardese-language-cpp"><a href="doc_status_error.html#standardese-system_error2__status_error-"><span class="typ dec var fun">system_error2::status_error&lt;void&gt;</span></a><span class="pun">&amp;</span> <span class="typ dec var fun">operator=</span><span class="pun">(</span><a href="doc_status_error.html#standardese-system_error2__status_error-"><span class="typ dec var fun">system_error2::status_error&lt;void&gt;</span></a> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+</code></pre>
+
+<p>Copy assignment. Not publicly available</p>
+<hr />
+<h3>Function <code>system_error2::status_error::operator=</code></h3>
+<p><span id="standardese-system_error2__status_error-__operator--system_error2__status_error-void----"></span></p>
+<pre><code class="standardese-language-cpp"><a href="doc_status_error.html#standardese-system_error2__status_error-"><span class="typ dec var fun">system_error2::status_error&lt;void&gt;</span></a><span class="pun">&amp;</span> <span class="typ dec var fun">operator=</span><span class="pun">(</span><a href="doc_status_error.html#standardese-system_error2__status_error-"><span class="typ dec var fun">system_error2::status_error&lt;void&gt;</span></a><span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+</code></pre>
+
+<p>Move assignment. Not publicly available</p>
+<hr />
+<h3>Destructor <code>system_error2::status_error::~status_error</code></h3>
+<p><span id="standardese-system_error2__status_error-__-status_error--"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">virtual</span> <span class="typ dec var fun">~status_error</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+</code></pre>
+
+<p>Destructor. Not publicly available.</p>
+<hr />
+<h3>Type alias <code>system_error2::status_error::domain_type</code></h3>
+<p><span id="standardese-system_error2__status_error-__domain_type"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">domain_type</span> <span class="pun">=</span> <span class="kwd">void</span><span class="pun">;</span>
+</code></pre>
+
+<p>The type of the status domain</p>
+<hr />
+<h3>Type alias <code>system_error2::status_error::status_code_type</code></h3>
+<p><span id="standardese-system_error2__status_error-__status_code_type"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">status_code_type</span> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span><span class="pun">;</span>
+</code></pre>
+
+<p>The type of the status code</p>
+<hr />
+<hr />
+<h3>Class <code>system_error2::status_error</code></h3>
+<p><span id="standardese-system_error2__status_error-DomainType-"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">&gt;</span>
+<span class="kwd">class</span> <span class="typ dec var fun">status_error</span>
+<span class="pun">:</span> <span class="kwd">public</span> <span class="typ dec var fun">status_error&lt;void&gt;</span>
 <span class="pun">{</span>
 <span class="kwd">public</span><span class="pun">:</span>
     <span class="kwd">using</span> <a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-__domain_type"><span class="typ dec var fun">domain_type</span></a> <span class="pun">=</span> <span class="typ dec var fun">DomainType</span><span class="pun">;</span>
