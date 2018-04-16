@@ -492,7 +492,7 @@ namespace detail
 {
   namespace avoid_stdio_include
   {
-    extern "C" int write(int, const char *, size_t);
+    extern "C" ptrdiff_t write(int, const void *, size_t);
   }
   inline void do_fatal_exit(const char *msg)
   {
@@ -1086,6 +1086,8 @@ public:
   constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(detail::safe_reinterpret_cast<value_type, typename DomainType::value_type>(v.value()).value()) // NOLINT
   {
   }
+  //! Reset the code to empty.
+  SYSTEM_ERROR2_CONSTEXPR14 void clear() { *this = status_code(); }
   //! Return the erased `value_type` by value.
   constexpr value_type value() const noexcept { return _value; }
 };
@@ -1110,6 +1112,16 @@ template <> class status_error<void> : public std::exception
 protected:
   //! Constructs an instance. Not publicly available.
   status_error() = default;
+  //! Copy constructor. Not publicly available
+  status_error(const status_error &) = default;
+  //! Move constructor. Not publicly available
+  status_error(status_error &&) = default;
+  //! Copy assignment. Not publicly available
+  status_error &operator=(const status_error &) = default;
+  //! Move assignment. Not publicly available
+  status_error &operator=(status_error &&) = default;
+  //! Destructor. Not publicly available.
+  ~status_error() = default;
 
 public:
   //! The type of the status domain
@@ -3398,14 +3410,21 @@ and trivially copyable.
 
 
 
-class error : protected system_code
+class error : public system_code
 {
+  using system_code::clear;
+  using system_code::empty;
+  using system_code::success;
+  using system_code::failure;
+
 public:
   //! The type of the erased error code.
   using system_code::value_type;
   //! The type of a reference to a message string.
   using system_code::string_ref;
 
+  //! Default construction not permitted.
+  error() = delete;
   //! Copy constructor.
   error(const error &) = default;
   //! Move constructor.
@@ -3416,33 +3435,10 @@ public:
   error &operator=(error &&) = default;
   ~error() = default;
 
-  //! Return the status code domain.
   using system_code::domain;
-  //! Return a reference to a string textually representing a code.
   using system_code::message;
-  /*! True if code is strictly (and potentially non-transitively) semantically equivalent to another code in another domain.
-  Note that usually non-semantic i.e. pure value comparison is used when the other status code has the same domain.
-  As `equivalent()` will try mapping to generic code, this usually captures when two codes have the same semantic
-  meaning in `equivalent()`.
-  */
-
-
-
-
   using system_code::strictly_equivalent;
-  /*! True if code is equivalent, by any means, to another code in another domain (guaranteed transitive).
-  Firstly `strictly_equivalent()` is run in both directions. If neither succeeds, each domain is asked
-  for the equivalent generic code and those are compared.
-  */
-
-
-
   using system_code::equivalent;
-  /*! The type erased value type, which is a `reinterpret_cast<value_type>` of the non-erased value type.
-  You should therefore only use this for literal comparisons and debug printing, it has no other useful meaning.
-  */
-
-
   using system_code::value;
 
   /*! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage.

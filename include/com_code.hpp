@@ -47,6 +47,8 @@ You can, of course, inherit your own COM code domain from this one and override 
 to add semantic equivalence testing for whichever extra COM codes that your application specifically needs.
 */
 using com_code = status_code<_com_code_domain>;
+//! (Windows only) A specialisation of `status_error` for the COM error code domain.
+using com_error = status_error<_com_code_domain>;
 
 /*! (Windows only) The implementation of the domain for COM error codes and/or `IErrorInfo`.
 */

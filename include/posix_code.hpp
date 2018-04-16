@@ -34,6 +34,8 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 class _posix_code_domain;
 //! A POSIX error code, those returned by `errno`.
 using posix_code = status_code<_posix_code_domain>;
+//! A specialisation of `status_error` for the POSIX error code domain.
+using posix_error = status_error<_posix_code_domain>;
 
 /*! The implementation of the domain for POSIX error codes, those returned by `errno`.
 */

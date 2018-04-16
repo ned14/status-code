@@ -47,6 +47,8 @@ namespace win32
 class _nt_code_domain;
 //! (Windows only) A NT error code, those returned by NT kernel functions.
 using nt_code = status_code<_nt_code_domain>;
+//! (Windows only) A specialisation of `status_error` for the NT error code domain.
+using nt_error = status_error<_nt_code_domain>;
 
 /*! (Windows only) The implementation of the domain for NT error codes, those returned by NT kernel functions.
 */

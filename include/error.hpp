@@ -29,11 +29,11 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
-/*! An erased status code which is always a failure. The closest equivalent to
+/*! An erased `system_code` which is always a failure. The closest equivalent to
 `std::error_code`, except it cannot be null and cannot be modified.
 
 This refines `system_code` into an `error` object meeting the requirements of
-[https://wg21.link/P0709](https://wg21.link/P0709).
+[P0709 Zero-overhead deterministic exceptions](https://wg21.link/P0709).
 
 Differences from `system_code`:
 
@@ -46,14 +46,21 @@ the program is terminated as this is a logic error)
 As with `system_code`, it remains guaranteed to be two CPU registers in size,
 and trivially copyable.
 */
-class error : protected system_code
+class error : public system_code
 {
+  using system_code::clear;
+  using system_code::empty;
+  using system_code::success;
+  using system_code::failure;
+
 public:
   //! The type of the erased error code.
   using system_code::value_type;
   //! The type of a reference to a message string.
   using system_code::string_ref;
 
+  //! Default construction not permitted.
+  error() = delete;
   //! Copy constructor.
   error(const error &) = default;
   //! Move constructor.
@@ -63,26 +70,6 @@ public:
   //! Move assignment.
   error &operator=(error &&) = default;
   ~error() = default;
-
-  //! Return the status code domain.
-  using system_code::domain;
-  //! Return a reference to a string textually representing a code.
-  using system_code::message;
-  /*! True if code is strictly (and potentially non-transitively) semantically equivalent to another code in another domain.
-  Note that usually non-semantic i.e. pure value comparison is used when the other status code has the same domain.
-  As `equivalent()` will try mapping to generic code, this usually captures when two codes have the same semantic
-  meaning in `equivalent()`.
-  */
-  using system_code::strictly_equivalent;
-  /*! True if code is equivalent, by any means, to another code in another domain (guaranteed transitive).
-  Firstly `strictly_equivalent()` is run in both directions. If neither succeeds, each domain is asked
-  for the equivalent generic code and those are compared.
-  */
-  using system_code::equivalent;
-  /*! The type erased value type, which is a `reinterpret_cast<value_type>` of the non-erased value type.
-  You should therefore only use this for literal comparisons and debug printing, it has no other useful meaning.
-  */
-  using system_code::value;
 
   /*! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage.
 
@@ -122,12 +109,12 @@ static_assert(std::is_trivially_copyable<error>::value, "error is not trivially 
 //! True if the status code's are semantically equal via `equivalent()`.
 template <class DomainType> inline bool operator==(const status_code<DomainType> &a, const error &b) noexcept
 {
-  return a.equivalent(b);
+  return a.equivalent(static_cast<const system_code &>(b));
 }
 //! True if the status code's are not semantically equal via `equivalent()`.
 template <class DomainType> inline bool operator!=(const status_code<DomainType> &a, const error &b) noexcept
 {
-  return !a.equivalent(b);
+  return !a.equivalent(static_cast<const system_code &>(b));
 }
 //! True if the status code's are semantically equal via `equivalent()` to the generic code.
 inline bool operator==(const error &a, errc b) noexcept
@@ -149,7 +136,6 @@ inline bool operator!=(errc a, const error &b) noexcept
 {
   return !b.equivalent(generic_code(a));
 }
-
 
 SYSTEM_ERROR2_NAMESPACE_END
 

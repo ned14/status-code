@@ -53,6 +53,8 @@ class _win32_code_domain;
 class _com_code_domain;
 //! (Windows only) A Win32 error code, those returned by `GetLastError()`.
 using win32_code = status_code<_win32_code_domain>;
+//! (Windows only) A specialisation of `status_error` for the Win32 error code domain.
+using win32_error = status_error<_win32_code_domain>;
 
 /*! (Windows only) The implementation of the domain for Win32 error codes, those returned by `GetLastError()`.
 */

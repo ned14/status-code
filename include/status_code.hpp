@@ -336,6 +336,8 @@ public:
   constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(detail::safe_reinterpret_cast<value_type, typename DomainType::value_type>(v.value()).value())  // NOLINT
   {
   }
+  //! Reset the code to empty.
+  SYSTEM_ERROR2_CONSTEXPR14 void clear() { *this = status_code(); }
   //! Return the erased `value_type` by value.
   constexpr value_type value() const noexcept { return _value; }
 };

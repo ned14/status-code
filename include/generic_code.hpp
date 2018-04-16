@@ -270,6 +270,8 @@ protected:
     throw status_error<_generic_code_domain>(c);
   }
 };
+//! A specialisation of `status_error` for the generic code domain.
+using generic_error = status_error<_generic_code_domain>;
 //! A constexpr source variable for the generic code domain, which is that of `errc` (POSIX). Returned by `_generic_code_domain::get()`.
 constexpr _generic_code_domain generic_code_domain;
 inline constexpr const _generic_code_domain *_generic_code_domain::get()
