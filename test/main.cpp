@@ -226,6 +226,21 @@ inline constexpr const Code_domain_impl *Code_domain_impl::get()
 {
   return &Code_domain;
 }
+// Test make_status_code ADL helper
+struct ADLHelper1
+{
+};
+inline StatusCode make_status_code(ADLHelper1)
+{
+  return StatusCode(Code::success1);
+}
+struct ADLHelper2
+{
+};
+inline StatusCode make_status_code(ADLHelper1, ADLHelper2)
+{
+  return StatusCode(Code::goaway);
+}
 
 
 int main()
@@ -379,6 +394,17 @@ int main()
     printf("error[%zu] has domain %s value %zd (%s) and errc::permission_denied == error = %d\n", n, errors[n].domain().name().c_str(), errors[n].value(), errors[n].message().c_str(), static_cast<int>(errc::permission_denied == errors[n]));
     CHECK(errors[n] == errc::permission_denied);
   }
+
+  // Test ADL implicit construction
+  StatusCode sc1(make_status_code(ADLHelper1{})), sc2(make_status_code(ADLHelper1{}, ADLHelper2{}));
+  CHECK(sc1.value() == Code::success1);
+  CHECK(sc2.value() == Code::goaway);
+  StatusCode adl1(ADLHelper1{}), adl2(ADLHelper1{}, ADLHelper2{});
+  CHECK(adl1.value() == Code::success1);
+  CHECK(adl2.value() == Code::goaway);
+  status_code<erased<int>> adl3(ADLHelper1{}), adl4(ADLHelper1{}, ADLHelper2{});
+  CHECK(adl3.value() == static_cast<int>(Code::success1));
+  CHECK(adl4.value() == static_cast<int>(Code::goaway));
 
   return retcode;
 }

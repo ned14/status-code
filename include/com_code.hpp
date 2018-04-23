@@ -232,7 +232,7 @@ protected:
     const auto &c1 = static_cast<const com_code &>(code);  // NOLINT
     if(c1.value() == S_OK)
     {
-      return errc::success;
+      return generic_code(errc::success);
     }
     if((c1.value() & FACILITY_NT_BIT) != 0)
     {
@@ -242,7 +242,7 @@ protected:
     {
       return generic_code(static_cast<errc>(_win32_code_domain::_win32_code_to_errno(HRESULT_CODE(c1.value()))));
     }
-    return errc::unknown;
+    return generic_code(errc::unknown);
   }
   virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final  // NOLINT
   {

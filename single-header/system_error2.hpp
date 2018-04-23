@@ -962,13 +962,16 @@ public:
   status_code &operator=(status_code &&) = default; // NOLINT
   ~status_code() = default;
 
-  //! Implicit construction from any type where an ADL discovered `make_status_code(T &&)` returns a `status_code`.
-  template <class T, //
-            typename std::enable_if<!std::is_same<typename std::decay<T>::type, status_code>::value //
-                                    && is_status_code<decltype(make_status_code(std::declval<T>()))>::value,
+  //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
+  template <class T, class... Args, //
+            class MakeStatusCodeOutType = decltype(make_status_code(std::declval<T>(), std::declval<Args>()...)), // ADL enable
+            typename std::enable_if<!std::is_same<typename std::decay<T>::type, status_code>::value // not copy/move of self
+                                    && !std::is_same<typename std::decay<T>::type, value_type>::value // not copy/move of value type
+                                    && is_status_code<MakeStatusCodeOutType>::value // ADL makes a status code
+                                    && std::is_constructible<status_code, MakeStatusCodeOutType>::value, // ADLed status code is compatible
                                     bool>::type = true>
-  constexpr status_code(T &&v) noexcept(noexcept(make_status_code(std::declval<T>()))) // NOLINT
-  : status_code(make_status_code(static_cast<T &&>(v)))
+  constexpr status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...))) // NOLINT
+  : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
   }
   //! Explicit in-place construction.
@@ -1084,6 +1087,18 @@ public:
   template <class DomainType, //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
   constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(detail::safe_reinterpret_cast<value_type, typename DomainType::value_type>(v.value()).value()) // NOLINT
+  {
+  }
+  //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
+  template <class T, class... Args, //
+            class MakeStatusCodeOutType = decltype(make_status_code(std::declval<T>(), std::declval<Args>()...)), // ADL enable
+            typename std::enable_if<!std::is_same<typename std::decay<T>::type, status_code>::value // not copy/move of self
+                                    && !std::is_same<typename std::decay<T>::type, value_type>::value // not copy/move of value type
+                                    && is_status_code<MakeStatusCodeOutType>::value // ADL makes a status code
+                                    && std::is_constructible<status_code, MakeStatusCodeOutType>::value, // ADLed status code is compatible
+                                    bool>::type = true>
+  constexpr status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...))) // NOLINT
+  : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
   }
   //! Reset the code to empty.
@@ -1411,6 +1426,8 @@ protected:
     throw status_error<_generic_code_domain>(c);
   }
 };
+//! A specialisation of `status_error` for the generic code domain.
+using generic_error = status_error<_generic_code_domain>;
 //! A constexpr source variable for the generic code domain, which is that of `errc` (POSIX). Returned by `_generic_code_domain::get()`.
 constexpr _generic_code_domain generic_code_domain;
 inline constexpr const _generic_code_domain *_generic_code_domain::get()
@@ -1494,6 +1511,8 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 class _posix_code_domain;
 //! A POSIX error code, those returned by `errno`.
 using posix_code = status_code<_posix_code_domain>;
+//! A specialisation of `status_error` for the POSIX error code domain.
+using posix_error = status_error<_posix_code_domain>;
 
 /*! The implementation of the domain for POSIX error codes, those returned by `errno`.
 */
@@ -1769,6 +1788,8 @@ class _win32_code_domain;
 class _com_code_domain;
 //! (Windows only) A Win32 error code, those returned by `GetLastError()`.
 using win32_code = status_code<_win32_code_domain>;
+//! (Windows only) A specialisation of `status_error` for the Win32 error code domain.
+using win32_error = status_error<_win32_code_domain>;
 
 /*! (Windows only) The implementation of the domain for Win32 error codes, those returned by `GetLastError()`.
 */
@@ -2028,6 +2049,8 @@ namespace win32
 class _nt_code_domain;
 //! (Windows only) A NT error code, those returned by NT kernel functions.
 using nt_code = status_code<_nt_code_domain>;
+//! (Windows only) A specialisation of `status_error` for the NT error code domain.
+using nt_error = status_error<_nt_code_domain>;
 
 /*! (Windows only) The implementation of the domain for NT error codes, those returned by NT kernel functions.
 */
@@ -3377,11 +3400,11 @@ SYSTEM_ERROR2_NAMESPACE_END
 #endif
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
-/*! An erased status code which is always a failure. The closest equivalent to
+/*! An erased `system_code` which is always a failure. The closest equivalent to
 `std::error_code`, except it cannot be null and cannot be modified.
 
 This refines `system_code` into an `error` object meeting the requirements of
-[https://wg21.link/P0709](https://wg21.link/P0709).
+[P0709 Zero-overhead deterministic exceptions](https://wg21.link/P0709).
 
 Differences from `system_code`:
 
@@ -3435,12 +3458,6 @@ public:
   error &operator=(error &&) = default;
   ~error() = default;
 
-  using system_code::domain;
-  using system_code::message;
-  using system_code::strictly_equivalent;
-  using system_code::equivalent;
-  using system_code::value;
-
   /*! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage.
 
   The input is checked to ensure it is a failure, if not then `SYSTEM_ERROR2_FATAL()` is called which by default calls `std::terminate()`.
@@ -3486,12 +3503,12 @@ static_assert(std::is_trivially_copyable<error>::value, "error is not trivially 
 //! True if the status code's are semantically equal via `equivalent()`.
 template <class DomainType> inline bool operator==(const status_code<DomainType> &a, const error &b) noexcept
 {
-  return a.equivalent(b);
+  return a.equivalent(static_cast<const system_code &>(b));
 }
 //! True if the status code's are not semantically equal via `equivalent()`.
 template <class DomainType> inline bool operator!=(const status_code<DomainType> &a, const error &b) noexcept
 {
-  return !a.equivalent(b);
+  return !a.equivalent(static_cast<const system_code &>(b));
 }
 //! True if the status code's are semantically equal via `equivalent()` to the generic code.
 inline bool operator==(const error &a, errc b) noexcept
@@ -3513,7 +3530,6 @@ inline bool operator!=(errc a, const error &b) noexcept
 {
   return !b.equivalent(generic_code(a));
 }
-
 
 SYSTEM_ERROR2_NAMESPACE_END
 
