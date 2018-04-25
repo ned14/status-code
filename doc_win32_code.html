@@ -49,8 +49,6 @@ doc_win32_code
 <span class="kwd">public</span><span class="pun">:</span>
     <span class="kwd">using</span> <a href="doc_win32_code.html#standardese-system_error2___win32_code_domain__value_type"><span class="typ dec var fun">value_type</span></a> <span class="pun">=</span> <span class="typ dec var fun">&#x27;hidden&#x27;</span><span class="pun">;</span>
 
-    <span class="kwd">class</span> <a href="doc_win32_code.html#standardese-system_error2___win32_code_domain__string_ref"><span class="typ dec var fun">string_ref</span></a><span class="pun">;</span>
-
     <span class="kwd">constexpr</span> <span class="typ dec var fun">_win32_code_domain</span><span class="pun">(</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 
     <span class="typ dec var fun">_win32_code_domain</span><span class="pun">(</span><span class="typ dec var fun">system_error2::_win32_code_domain</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
@@ -65,7 +63,7 @@ doc_win32_code
 
     <span class="kwd">static</span> <span class="kwd">constexpr</span> <span class="typ dec var fun">system_error2::_win32_code_domain</span> <span class="kwd">const</span><span class="pun">*</span> <a href="doc_win32_code.html#standardese-system_error2___win32_code_domain__get--"><span class="typ dec var fun">get</span></a><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
 
-    <span class="kwd">virtual</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">_base::string_ref</span></a> <span class="typ dec var fun">name</span><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+    <span class="kwd">virtual</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span></a> <span class="typ dec var fun">name</span><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 
 <span class="kwd">protected</span><span class="pun">:</span>
     <span class="kwd">virtual</span> <span class="kwd">bool</span> <span class="typ dec var fun">_failure</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
@@ -74,7 +72,7 @@ doc_win32_code
 
     <span class="kwd">virtual</span> <a href="doc_status_code_domain.html#standardese-system_error2__generic_code"><span class="typ dec var fun">system_error2::generic_code</span></a> <span class="typ dec var fun">_generic_code</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 
-    <span class="kwd">virtual</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">_base::string_ref</span></a> <span class="typ dec var fun">_message</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+    <span class="kwd">virtual</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span></a> <span class="typ dec var fun">_message</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 
     <span class="kwd">virtual</span> <span class="kwd">void</span> <span class="typ dec var fun">_throw_exception</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code</span><span class="pun">)</span> <span class="kwd">const</span><span class="pun">;</span>
 <span class="pun">};</span>
@@ -87,43 +85,6 @@ doc_win32_code
 </code></pre>
 
 <p>The value type of the win32 code, which is a <code>win32::DWORD</code></p>
-<hr />
-<h3>Class <code>system_error2::_win32_code_domain::string_ref</code></h3>
-<p><span id="standardese-system_error2___win32_code_domain__string_ref"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">class</span> <span class="typ dec var fun">string_ref</span>
-<span class="pun">:</span> <span class="kwd">public</span> <span class="typ dec var fun">_base::string_ref</span>
-<span class="pun">{</span>
-<span class="kwd">public</span><span class="pun">:</span>
-    <span class="kwd">explicit</span> <span class="typ dec var fun">string_ref</span><span class="pun">(</span><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">_base::string_ref</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">o</span><span class="pun">)</span><span class="pun">;</span>
-
-    <span class="kwd">explicit</span> <span class="typ dec var fun">string_ref</span><span class="pun">(</span><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">_base::string_ref</span></a><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">o</span><span class="pun">)</span><span class="pun">;</span>
-
-    <span class="kwd">constexpr</span> <span class="typ dec var fun">string_ref</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
-
-    <span class="kwd">constexpr</span> <span class="typ dec var fun">string_ref</span><span class="pun">(</span><span class="kwd">char</span> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">str</span><span class="pun">)</span><span class="pun">;</span>
-
-    <span class="typ dec var fun">string_ref</span><span class="pun">(</span><span class="typ dec var fun">system_error2::_win32_code_domain::string_ref</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-
-    <span class="typ dec var fun">string_ref</span><span class="pun">(</span><span class="typ dec var fun">system_error2::_win32_code_domain::string_ref</span><span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-
-    <span class="typ dec var fun">system_error2::_win32_code_domain::string_ref</span><span class="pun">&amp;</span> <span class="typ dec var fun">operator=</span><span class="pun">(</span><span class="typ dec var fun">system_error2::_win32_code_domain::string_ref</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-
-    <span class="typ dec var fun">system_error2::_win32_code_domain::string_ref</span><span class="pun">&amp;</span> <span class="typ dec var fun">operator=</span><span class="pun">(</span><span class="typ dec var fun">system_error2::_win32_code_domain::string_ref</span><span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-
-    <span class="typ dec var fun">~string_ref</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-
-    <span class="kwd">explicit</span> <a href="doc_win32_code.html#standardese-system_error2___win32_code_domain__string_ref__string_ref-win32__DWORD-"><span class="typ dec var fun">string_ref</span></a><span class="pun">(</span><span class="typ dec var fun">&#x27;hidden&#x27;</span> <span class="typ dec var fun">c</span><span class="pun">)</span><span class="pun">;</span>
-<span class="pun">};</span>
-</code></pre>
-
-<p>Thread safe reference to a message string fetched by <code>FormatMessage()</code></p>
-<h3>Constructor <code>system_error2::_win32_code_domain::string_ref::string_ref</code></h3>
-<p><span id="standardese-system_error2___win32_code_domain__string_ref__string_ref-win32__DWORD-"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">explicit</span> <span class="typ dec var fun">string_ref</span><span class="pun">(</span><span class="typ dec var fun">&#x27;hidden&#x27;</span> <span class="typ dec var fun">c</span><span class="pun">)</span><span class="pun">;</span>
-</code></pre>
-
-<p>Construct from a Win32 error code</p>
-<hr />
 <hr />
 <h3>Constructor <code>system_error2::_win32_code_domain::_win32_code_domain</code></h3>
 <p><span id="standardese-system_error2___win32_code_domain___win32_code_domain--"></span></p>
