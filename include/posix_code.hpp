@@ -44,76 +44,36 @@ class _posix_code_domain : public status_code_domain
   template <class DomainType> friend class status_code;
   using _base = status_code_domain;
 
+  static _base::string_ref _make_string_ref(int c) noexcept
+  {
+    char buffer[1024] = "";
+#ifdef _WIN32
+    strerror_s(buffer, sizeof(buffer), c);
+#elif defined(__linux__)
+    char *s = strerror_r(c, buffer, sizeof(buffer));
+    if(s != nullptr)
+    {
+      strncpy(buffer, s, sizeof(buffer));
+      buffer[1023] = 0;
+    }
+#else
+    strerror_r(c, buffer, sizeof(buffer));
+#endif
+    size_t length = strlen(buffer);
+    auto *p = static_cast<char *>(malloc(length + 1));  // NOLINT
+    if(p == nullptr)
+    {
+      return _base::string_ref("failed to get message from system");
+    }
+    memcpy(p, buffer, length + 1);
+    return _base::atomic_refcounted_string_ref(p, length);
+  }
+
 public:
   //! The value type of the POSIX code, which is an `int`
   using value_type = int;
-  //! Thread safe reference to a message string fetched by `strerror_r()`
-  class string_ref : public _base::string_ref
-  {
-  public:
-    explicit string_ref(const _base::string_ref &o)
-        : _base::string_ref(o)
-    {
-    }
-    explicit string_ref(_base::string_ref &&o)
-        : _base::string_ref(static_cast<_base::string_ref &&>(o))
-    {
-    }
-    constexpr string_ref()
-        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
-    {
-    }
-    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str)
-        : _base::string_ref(str, _base::string_ref::_refcounted_string_thunk)
-    {
-    }
-    string_ref(const string_ref &) = default;
-    string_ref(string_ref &&) = default;
-    string_ref &operator=(const string_ref &) = default;
-    string_ref &operator=(string_ref &&) = default;
-    ~string_ref() = default;
-    //! Construct from a POSIX error code
-    explicit string_ref(int c)
-        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
-    {
-      char buffer[1024] = "";
-#ifdef _WIN32
-      strerror_s(buffer, sizeof(buffer), c);
-#elif defined(__linux__)
-      char *s = strerror_r(c, buffer, sizeof(buffer));
-      if(s != nullptr)
-      {
-        strncpy(buffer, s, sizeof(buffer));
-        buffer[1023] = 0;
-      }
-#else
-      strerror_r(c, buffer, sizeof(buffer));
-#endif
-      size_t length = strlen(buffer);
-      auto *p = static_cast<char *>(malloc(length + 1));  // NOLINT
-      if(p == nullptr)
-      {
-        goto failure;
-      }
-      memcpy(p, buffer, length + 1);
-      this->_begin = p;
-      this->_end = p + length;                                                    // NOLINT
-      _msg() = static_cast<_allocated_msg *>(calloc(1, sizeof(_allocated_msg)));  // NOLINT
-      if(_msg() == nullptr)
-      {
-        free((void *) this->_begin);  // NOLINT
-        goto failure;
-      }
-      ++_msg()->count;
-      return;
-    failure:
-      _msg() = nullptr;  // disabled
-      this->_begin = "failed to get message from system";
-      this->_end = strchr(this->_begin, 0);
-    }
-  };
+  using _base::string_ref;
 
-public:
   //! Default constructor
   constexpr _posix_code_domain() noexcept : _base(0xa59a56fe5f310933) {}
   _posix_code_domain(const _posix_code_domain &) = default;
@@ -125,7 +85,7 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr posix_code_domain variable.
   static inline constexpr const _posix_code_domain *get();
 
-  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("posix domain"); }  // NOLINT
+  virtual string_ref name() const noexcept override final { return string_ref("posix domain"); }  // NOLINT
 protected:
   virtual bool _failure(const status_code<void> &code) const noexcept override final  // NOLINT
   {
@@ -157,11 +117,11 @@ protected:
     const auto &c = static_cast<const posix_code &>(code);  // NOLINT
     return generic_code(static_cast<errc>(c.value()));
   }
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final  // NOLINT
+  virtual string_ref _message(const status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const posix_code &>(code);  // NOLINT
-    return string_ref(c.value());
+    return _make_string_ref(c.value());
   }
   virtual void _throw_exception(const status_code<void> &code) const override final  // NOLINT
   {

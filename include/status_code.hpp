@@ -146,10 +146,7 @@ protected:
   ~status_code() = default;
 
   //! Used to construct a non-empty type erased status code
-  constexpr explicit status_code(const status_code_domain *v)
-      : _domain(v)
-  {
-  }
+  constexpr explicit status_code(const status_code_domain *v) noexcept : _domain(v) {}
 
 public:
   //! Return the status code domain.
@@ -207,6 +204,12 @@ public:
   //! The type of a reference to a message string.
   using string_ref = typename domain_type::string_ref;
 
+#ifndef NDEBUG
+  static_assert(!std::is_default_constructible<value_type>::value || std::is_nothrow_default_constructible<value_type>::value, "DomainType::value_type is not nothrow default constructible!");
+  static_assert(!std::is_move_constructible<value_type>::value || std::is_nothrow_move_constructible<value_type>::value, "DomainType::value_type is not nothrow move constructible!");
+  static_assert(std::is_nothrow_destructible<value_type>::value, "DomainType::value_type is not nothrow destructible!");
+#endif
+
 protected:
   value_type _value{};
 
@@ -256,7 +259,7 @@ public:
   {
   }
   //! Explicit move construction from a `value_type`.
-  constexpr explicit status_code(value_type &&v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
+  constexpr explicit status_code(value_type &&v) noexcept(std::is_nothrow_move_constructible<value_type>::value)
       : _base(domain_type::get())
       , _value(static_cast<value_type &&>(v))
   {
@@ -267,7 +270,7 @@ public:
   */
   template <class ErasedType,  //
             typename std::enable_if<detail::type_erasure_is_safe<ErasedType, value_type>::value, bool>::type = true>
-  constexpr explicit status_code(const status_code<erased<ErasedType>> &v)
+  constexpr explicit status_code(const status_code<erased<ErasedType>> &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
       : status_code(reinterpret_cast<const value_type &>(v._value))  // NOLINT
   {
 #if __cplusplus >= 201400
@@ -289,7 +292,12 @@ public:
   string_ref message() const noexcept { return this->_domain ? string_ref(domain()._message(*this)) : string_ref("(empty)"); }
 
   //! Reset the code to empty.
-  SYSTEM_ERROR2_CONSTEXPR14 void clear() { *this = status_code(); }
+  SYSTEM_ERROR2_CONSTEXPR14 void clear() noexcept
+  {
+    _value.~value_type();
+    this->_domain = nullptr;
+    new(&_value) value_type();
+  }
 
 #if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
   //! Return a reference to the `value_type`.
@@ -360,7 +368,7 @@ public:
   {
   }
   //! Reset the code to empty.
-  SYSTEM_ERROR2_CONSTEXPR14 void clear() { *this = status_code(); }
+  SYSTEM_ERROR2_CONSTEXPR14 void clear() noexcept { *this = status_code(); }
   //! Return the erased `value_type` by value.
   constexpr value_type value() const noexcept { return _value; }
 };

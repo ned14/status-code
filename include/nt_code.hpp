@@ -81,89 +81,50 @@ class _nt_code_domain : public status_code_domain
     }
     return static_cast<win32::DWORD>(-1);
   }
+  //! Construct from a NT error code
+  static _base::string_ref _make_string_ref(win32::NTSTATUS c) noexcept
+  {
+    wchar_t buffer[32768];
+    static win32::HMODULE ntdll = win32::GetModuleHandleW(L"NTDLL.DLL");
+    win32::DWORD wlen = win32::FormatMessageW(0x00000800 /*FORMAT_MESSAGE_FROM_HMODULE*/ | 0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, ntdll, c, (1 << 10) /*MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT)*/, buffer, 32768, nullptr);
+    size_t allocation = wlen + (wlen >> 1);
+    win32::DWORD bytes;
+    if(wlen == 0)
+    {
+      return _base::string_ref("failed to get message from system");
+    }
+    for(;;)
+    {
+      auto *p = static_cast<char *>(malloc(allocation));  // NOLINT
+      if(p == nullptr)
+      {
+        return _base::string_ref("failed to get message from system");
+      }
+      bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, (int) (wlen + 1), p, (int) allocation, nullptr, nullptr);
+      if(bytes != 0)
+      {
+        char *end = strchr(p, 0);
+        while(end[-1] == 10 || end[-1] == 13)
+        {
+          --end;
+        }
+        *end = 0;  // NOLINT
+        return _base::atomic_refcounted_string_ref(p, end - p);
+      }
+      free(p);  // NOLINT
+      if(win32::GetLastError() == 0x7a /*ERROR_INSUFFICIENT_BUFFER*/)
+      {
+        allocation += allocation >> 2;
+        continue;
+      }
+      return _base::string_ref("failed to get message from system");
+    }
+  }
 
 public:
   //! The value type of the NT code, which is a `win32::NTSTATUS`
   using value_type = win32::NTSTATUS;
-  //! Thread safe reference to a message string fetched by `FormatMessage()`
-  class string_ref : public _base::string_ref
-  {
-  public:
-    explicit string_ref(const _base::string_ref &o)
-        : _base::string_ref(o)
-    {
-    }
-    explicit string_ref(_base::string_ref &&o)
-        : _base::string_ref(static_cast<_base::string_ref &&>(o))
-    {
-    }
-    constexpr string_ref()
-        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
-    {
-    }
-    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str)
-        : _base::string_ref(str, _base::string_ref::_refcounted_string_thunk)
-    {
-    }
-    string_ref(const string_ref &) = default;
-    string_ref(string_ref &&) = default;
-    string_ref &operator=(const string_ref &) = default;
-    string_ref &operator=(string_ref &&) = default;
-    ~string_ref() = default;
-    //! Construct from a NT error code
-    explicit string_ref(win32::NTSTATUS c)
-        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
-    {
-      wchar_t buffer[32768];
-      static win32::HMODULE ntdll = win32::GetModuleHandleW(L"NTDLL.DLL");
-      win32::DWORD wlen = win32::FormatMessageW(0x00000800 /*FORMAT_MESSAGE_FROM_HMODULE*/ | 0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, ntdll, c, (1 << 10) /*MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT)*/, buffer, 32768, nullptr);
-      size_t allocation = wlen + (wlen >> 1);
-      win32::DWORD bytes;
-      if(wlen == 0)
-      {
-        goto failure;
-      }
-      for(;;)
-      {
-        auto *p = static_cast<char *>(malloc(allocation));  // NOLINT
-        if(p == nullptr)
-        {
-          goto failure;
-        }
-        bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, (int) (wlen + 1), p, (int) allocation, nullptr, nullptr);
-        if(bytes != 0)
-        {
-          this->_begin = p;
-          this->_end = strchr(p, 0);
-          while(this->_end[-1] == 10 || this->_end[-1] == 13)
-          {
-            --this->_end;
-          }
-          *const_cast<char *>(this->_end) = 0;  // NOLINT
-          break;
-        }
-        free(p);  // NOLINT
-        if(win32::GetLastError() == 0x7a /*ERROR_INSUFFICIENT_BUFFER*/)
-        {
-          allocation += allocation >> 2;
-          continue;
-        }
-        goto failure;
-      }
-      _msg() = static_cast<_allocated_msg *>(calloc(1, sizeof(_allocated_msg)));  // NOLINT
-      if(_msg() == nullptr)
-      {
-        free((void *) this->_begin);  // NOLINT
-        goto failure;
-      }
-      ++_msg()->count;
-      return;
-    failure:
-      _msg() = nullptr;  // disabled
-      this->_begin = "failed to get message from system";
-      this->_end = strchr(this->_begin, 0);
-    }
-  };
+  using _base::string_ref;
 
 public:
   //! Default constructor
@@ -177,7 +138,7 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr nt_code_domain variable.
   static inline constexpr const _nt_code_domain *get();
 
-  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("NT domain"); }  // NOLINT
+  virtual string_ref name() const noexcept override final { return string_ref("NT domain"); }  // NOLINT
 protected:
   virtual bool _failure(const status_code<void> &code) const noexcept override final  // NOLINT
   {
@@ -217,11 +178,11 @@ protected:
     const auto &c = static_cast<const nt_code &>(code);  // NOLINT
     return generic_code(static_cast<errc>(_nt_code_to_errno(c.value())));
   }
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final  // NOLINT
+  virtual string_ref _message(const status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const nt_code &>(code);  // NOLINT
-    return string_ref(c.value());
+    return _make_string_ref(c.value());
   }
   virtual void _throw_exception(const status_code<void> &code) const override final  // NOLINT
   {

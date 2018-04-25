@@ -27,6 +27,8 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include "config.hpp"
 
+#include <cstring>  // for strchr
+
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 /*! The main workhorse of the system_error2 library, can be typed (`status_code<DomainType>`), erased-immutable (`status_code<void>`) or erased-mutable (`status_code<erased<T>>`).
@@ -65,11 +67,14 @@ class status_code_domain
 public:
   //! Type of the unique id for this domain.
   using unique_id_type = unsigned long long;
-  /*! Thread safe reference to a message string.
+  /*! (Potentially thread safe) Reference to a message string.
 
   Be aware that you cannot add payload to implementations of this class.
   You get exactly the `void *[2]` array to keep state, this is usually
   sufficient for a `std::shared_ptr<>` or a `std::string`.
+
+  You can install a handler to be called when this object is copied,
+  moved and destructed. This takes the form of a C function pointer.
   */
   class string_ref
   {
@@ -88,29 +93,130 @@ public:
     using const_iterator = const char *;
 
   protected:
+    //! The operation occurring
     enum class _thunk_op
     {
       copy,
       move,
       destruct
     };
+    //! The prototype of the handler function. Copies can throw, moves and destructs cannot.
     using _thunk_spec = void (*)(string_ref *dest, const string_ref *src, _thunk_op op);
-    static void _static_string_thunk(string_ref *dest, const string_ref *src, _thunk_op /*unused*/)
+#ifndef NDEBUG
+  private:
+    static void _checking_string_thunk(string_ref *dest, const string_ref *src, _thunk_op /*unused*/) noexcept
     {
       (void) dest;
       (void) src;
-      assert(dest->_thunk == _static_string_thunk);
-      assert(src == nullptr || src->_thunk == _static_string_thunk);
+      assert(dest->_thunk == _checking_string_thunk);
+      assert(src == nullptr || src->_thunk == _checking_string_thunk);
       // do nothing
     }
+
+  protected:
+#endif
+    //! Pointers to beginning and end of character range
+    pointer _begin{}, _end{};
+    //! Three `void*` of state
+    void *_state[3]{};  // at least the size of a shared_ptr
+    //! Handler for when operations occur
+    const _thunk_spec _thunk{nullptr};
+
+    constexpr explicit string_ref(_thunk_spec thunk) noexcept : _thunk(thunk) {}
+
+  public:
+    //! Construct from a C string literal
+    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str, size_type len = static_cast<size_type>(-1), void *state0 = nullptr, void *state1 = nullptr, void *state2 = nullptr,
+#ifndef NDEBUG
+                                                  _thunk_spec thunk = _checking_string_thunk
+#else
+                                                  _thunk_spec thunk = nullptr
+#endif
+                                                  ) noexcept : _begin(str),
+                                                               _end((len == static_cast<size_type>(-1)) ? (str + detail::cstrlen(str)) : (str + len)),  // NOLINT
+                                                               _state{state0, state1, state2},
+                                                               _thunk(thunk)
+    {
+    }
+    //! Copy construct the derived implementation.
+    string_ref(const string_ref &o)
+        : _begin(o._begin)
+        , _end(o._end)
+        , _state{o._state[0], o._state[1], o._state[2]}
+        , _thunk(o._thunk)
+    {
+      if(_thunk != nullptr)
+      {
+        _thunk(this, &o, _thunk_op::copy);
+      }
+    }
+    //! Move construct the derived implementation.
+    string_ref(string_ref &&o) noexcept : _begin(o._begin), _end(o._end), _state{o._state[0], o._state[1], o._state[2]}, _thunk(o._thunk)
+    {
+      if(_thunk != nullptr)
+      {
+        _thunk(this, &o, _thunk_op::move);
+      }
+    }
+    //! Copy assignment
+    string_ref &operator=(const string_ref &o)
+    {
+      this->~string_ref();
+      new(this) string_ref(o);
+      return *this;
+    }
+    //! Move assignment
+    string_ref &operator=(string_ref &&o) noexcept
+    {
+      this->~string_ref();
+      new(this) string_ref(static_cast<string_ref &&>(o));
+      return *this;
+    }
+    //! Destruction
+    ~string_ref()
+    {
+      if(_thunk != nullptr)
+      {
+        _thunk(this, nullptr, _thunk_op::destruct);
+      }
+      _begin = _end = nullptr;
+    }
+
+    //! Returns whether the reference is empty or not
+    bool empty() const noexcept { return _begin == _end; }
+    //! Returns the size of the string
+    size_type size() const noexcept { return _end - _begin; }
+    //! Returns a null terminated C string
+    value_type *c_str() const noexcept { return _begin; }
+    //! Returns the beginning of the string
+    iterator begin() noexcept { return _begin; }
+    //! Returns the beginning of the string
+    const_iterator begin() const noexcept { return _begin; }
+    //! Returns the beginning of the string
+    const_iterator cbegin() const noexcept { return _begin; }
+    //! Returns the end of the string
+    iterator end() noexcept { return _end; }
+    //! Returns the end of the string
+    const_iterator end() const noexcept { return _end; }
+    //! Returns the end of the string
+    const_iterator cend() const noexcept { return _end; }
+  };
+
+  /*! A reference counted, threadsafe reference to a message string.
+  */
+  class atomic_refcounted_string_ref : public string_ref
+  {
     struct _allocated_msg
     {
       mutable std::atomic<unsigned> count;
     };
-    _allocated_msg *&_msg() { return reinterpret_cast<_allocated_msg *&>(this->_state[0]); }                  // NOLINT
-    const _allocated_msg *_msg() const { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); }  // NOLINT
-    static void _refcounted_string_thunk(string_ref *dest, const string_ref *src, _thunk_op op)
+    _allocated_msg *&_msg() noexcept { return reinterpret_cast<_allocated_msg *&>(this->_state[0]); }                  // NOLINT
+    const _allocated_msg *_msg() const noexcept { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); }  // NOLINT
+
+    static void _refcounted_string_thunk(string_ref *_dest, const string_ref *_src, _thunk_op op) noexcept
     {
+      atomic_refcounted_string_ref *dest = static_cast<atomic_refcounted_string_ref *>(_dest);
+      const atomic_refcounted_string_ref *src = static_cast<const atomic_refcounted_string_ref *>(_src);
       (void) src;
       assert(dest->_thunk == _refcounted_string_thunk);
       assert(src == nullptr || src->_thunk == _refcounted_string_thunk);
@@ -141,73 +247,21 @@ public:
       }
     }
 
-    pointer _begin{}, _end{};
-    void *_state[3]{};  // at least the size of a shared_ptr
-    _thunk_spec _thunk;
-
-    constexpr explicit string_ref(_thunk_spec thunk)
-        : _thunk(thunk)
-    {
-    }
-
   public:
     //! Construct from a C string literal
-    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str, _thunk_spec thunk = _static_string_thunk)
-        : _begin(str)
-        , _end(str + detail::cstrlen(str))  // NOLINT
-        , _thunk(thunk)
+    explicit atomic_refcounted_string_ref(const char *str, size_type len = static_cast<size_type>(-1), void *state1 = nullptr, void *state2 = nullptr) noexcept : string_ref(str, len, nullptr, state1, state2)
     {
+      _msg() = static_cast<_allocated_msg *>(calloc(1, sizeof(_allocated_msg)));  // NOLINT
+      if(_msg() == nullptr)
+      {
+        free((void *) this->_begin);  // NOLINT
+        _msg() = nullptr;             // disabled
+        this->_begin = "failed to get message from system";
+        this->_end = strchr(this->_begin, 0);
+        return;
+      }
+      ++_msg()->count;
     }
-    //! Copy construct the derived implementation.
-    string_ref(const string_ref &o)
-        : _begin(o._begin)
-        , _end(o._end)
-        , _state{o._state[0], o._state[1], o._state[2]}
-        , _thunk(o._thunk)
-    {
-      _thunk(this, &o, _thunk_op::copy);
-    }
-    //! Move construct the derived implementation.
-    string_ref(string_ref &&o) noexcept : _begin(o._begin), _end(o._end), _state{o._state[0], o._state[1], o._state[2]}, _thunk(o._thunk) { _thunk(this, &o, _thunk_op::move); }
-    //! Copy assignment
-    string_ref &operator=(const string_ref &o)
-    {
-      this->~string_ref();
-      new(this) string_ref(o);
-      return *this;
-    }
-    //! Move assignment
-    string_ref &operator=(string_ref &&o) noexcept
-    {
-      this->~string_ref();
-      new(this) string_ref(static_cast<string_ref &&>(o));
-      return *this;
-    }
-    //! Destruction
-    ~string_ref()
-    {
-      _thunk(this, nullptr, _thunk_op::destruct);
-      _begin = _end = nullptr;
-    }
-
-    //! Returns whether the reference is empty or not
-    bool empty() const noexcept { return _begin == _end; }
-    //! Returns the size of the string
-    size_type size() const { return _end - _begin; }
-    //! Returns a null terminated C string
-    value_type *c_str() const { return _begin; }
-    //! Returns the beginning of the string
-    iterator begin() { return _begin; }
-    //! Returns the beginning of the string
-    const_iterator begin() const { return _begin; }
-    //! Returns the beginning of the string
-    const_iterator cbegin() const { return _begin; }
-    //! Returns the end of the string
-    iterator end() { return _end; }
-    //! Returns the end of the string
-    const_iterator end() const { return _end; }
-    //! Returns the end of the string
-    const_iterator cend() const { return _end; }
   };
 
 private:

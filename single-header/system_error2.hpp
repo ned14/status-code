@@ -507,6 +507,8 @@ SYSTEM_ERROR2_NAMESPACE_END
 #endif
 
 #endif
+#include <cstring> // for strchr
+
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 /*! The main workhorse of the system_error2 library, can be typed (`status_code<DomainType>`), erased-immutable (`status_code<void>`) or erased-mutable (`status_code<erased<T>>`).
@@ -553,12 +555,18 @@ class status_code_domain
 public:
   //! Type of the unique id for this domain.
   using unique_id_type = unsigned long long;
-  /*! Thread safe reference to a message string.
+  /*! (Potentially thread safe) Reference to a message string.
 
   Be aware that you cannot add payload to implementations of this class.
   You get exactly the `void *[2]` array to keep state, this is usually
   sufficient for a `std::shared_ptr<>` or a `std::string`.
+
+  You can install a handler to be called when this object is copied,
+  moved and destructed. This takes the form of a C function pointer.
   */
+
+
+
 
 
 
@@ -581,29 +589,131 @@ public:
     using const_iterator = const char *;
 
   protected:
+    //! The operation occurring
     enum class _thunk_op
     {
       copy,
       move,
       destruct
     };
+    //! The prototype of the handler function. Copies can throw, moves and destructs cannot.
     using _thunk_spec = void (*)(string_ref *dest, const string_ref *src, _thunk_op op);
-    static void _static_string_thunk(string_ref *dest, const string_ref *src, _thunk_op /*unused*/)
+#ifndef NDEBUG
+  private:
+    static void _checking_string_thunk(string_ref *dest, const string_ref *src, _thunk_op /*unused*/) noexcept
     {
       (void) dest;
       (void) src;
-      assert(dest->_thunk == _static_string_thunk);
-      assert(src == nullptr || src->_thunk == _static_string_thunk);
+      assert(dest->_thunk == _checking_string_thunk);
+      assert(src == nullptr || src->_thunk == _checking_string_thunk);
       // do nothing
     }
+
+  protected:
+#endif
+    //! Pointers to beginning and end of character range
+    pointer _begin{}, _end{};
+    //! Three `void*` of state
+    void *_state[3]{}; // at least the size of a shared_ptr
+    //! Handler for when operations occur
+    const _thunk_spec _thunk{nullptr};
+
+    constexpr explicit string_ref(_thunk_spec thunk) noexcept : _thunk(thunk) {}
+
+  public:
+    //! Construct from a C string literal
+    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str, size_type len = static_cast<size_type>(-1), void *state0 = nullptr, void *state1 = nullptr, void *state2 = nullptr,
+#ifndef NDEBUG
+                                                  _thunk_spec thunk = _checking_string_thunk
+#else
+                                                  _thunk_spec thunk = nullptr
+#endif
+                                                  ) noexcept : _begin(str),
+                                                               _end((len == static_cast<size_type>(-1)) ? (str + detail::cstrlen(str)) : (str + len)), // NOLINT
+                                                               _state{state0, state1, state2},
+                                                               _thunk(thunk)
+    {
+    }
+    //! Copy construct the derived implementation.
+    string_ref(const string_ref &o)
+        : _begin(o._begin)
+        , _end(o._end)
+        , _state{o._state[0], o._state[1], o._state[2]}
+        , _thunk(o._thunk)
+    {
+      if(_thunk != nullptr)
+      {
+        _thunk(this, &o, _thunk_op::copy);
+      }
+    }
+    //! Move construct the derived implementation.
+    string_ref(string_ref &&o) noexcept : _begin(o._begin), _end(o._end), _state{o._state[0], o._state[1], o._state[2]}, _thunk(o._thunk)
+    {
+      if(_thunk != nullptr)
+      {
+        _thunk(this, &o, _thunk_op::move);
+      }
+    }
+    //! Copy assignment
+    string_ref &operator=(const string_ref &o)
+    {
+      this->~string_ref();
+      new(this) string_ref(o);
+      return *this;
+    }
+    //! Move assignment
+    string_ref &operator=(string_ref &&o) noexcept
+    {
+      this->~string_ref();
+      new(this) string_ref(static_cast<string_ref &&>(o));
+      return *this;
+    }
+    //! Destruction
+    ~string_ref()
+    {
+      if(_thunk != nullptr)
+      {
+        _thunk(this, nullptr, _thunk_op::destruct);
+      }
+      _begin = _end = nullptr;
+    }
+
+    //! Returns whether the reference is empty or not
+    bool empty() const noexcept { return _begin == _end; }
+    //! Returns the size of the string
+    size_type size() const noexcept { return _end - _begin; }
+    //! Returns a null terminated C string
+    value_type *c_str() const noexcept { return _begin; }
+    //! Returns the beginning of the string
+    iterator begin() noexcept { return _begin; }
+    //! Returns the beginning of the string
+    const_iterator begin() const noexcept { return _begin; }
+    //! Returns the beginning of the string
+    const_iterator cbegin() const noexcept { return _begin; }
+    //! Returns the end of the string
+    iterator end() noexcept { return _end; }
+    //! Returns the end of the string
+    const_iterator end() const noexcept { return _end; }
+    //! Returns the end of the string
+    const_iterator cend() const noexcept { return _end; }
+  };
+
+  /*! A reference counted, threadsafe reference to a message string.
+  */
+
+  class atomic_refcounted_string_ref : public string_ref
+  {
     struct _allocated_msg
     {
       mutable std::atomic<unsigned> count;
     };
-    _allocated_msg *&_msg() { return reinterpret_cast<_allocated_msg *&>(this->_state[0]); } // NOLINT
-    const _allocated_msg *_msg() const { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); } // NOLINT
-    static void _refcounted_string_thunk(string_ref *dest, const string_ref *src, _thunk_op op)
+    _allocated_msg *&_msg() noexcept { return reinterpret_cast<_allocated_msg *&>(this->_state[0]); } // NOLINT
+    const _allocated_msg *_msg() const noexcept { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); } // NOLINT
+
+    static void _refcounted_string_thunk(string_ref *_dest, const string_ref *_src, _thunk_op op) noexcept
     {
+      atomic_refcounted_string_ref *dest = static_cast<atomic_refcounted_string_ref *>(_dest);
+      const atomic_refcounted_string_ref *src = static_cast<const atomic_refcounted_string_ref *>(_src);
       (void) src;
       assert(dest->_thunk == _refcounted_string_thunk);
       assert(src == nullptr || src->_thunk == _refcounted_string_thunk);
@@ -634,73 +744,21 @@ public:
       }
     }
 
-    pointer _begin{}, _end{};
-    void *_state[3]{}; // at least the size of a shared_ptr
-    _thunk_spec _thunk;
-
-    constexpr explicit string_ref(_thunk_spec thunk)
-        : _thunk(thunk)
-    {
-    }
-
   public:
     //! Construct from a C string literal
-    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str, _thunk_spec thunk = _static_string_thunk)
-        : _begin(str)
-        , _end(str + detail::cstrlen(str)) // NOLINT
-        , _thunk(thunk)
+    explicit atomic_refcounted_string_ref(const char *str, size_type len = static_cast<size_type>(-1), void *state1 = nullptr, void *state2 = nullptr) noexcept : string_ref(str, len, nullptr, state1, state2)
     {
+      _msg() = static_cast<_allocated_msg *>(calloc(1, sizeof(_allocated_msg))); // NOLINT
+      if(_msg() == nullptr)
+      {
+        free((void *) this->_begin); // NOLINT
+        _msg() = nullptr; // disabled
+        this->_begin = "failed to get message from system";
+        this->_end = strchr(this->_begin, 0);
+        return;
+      }
+      ++_msg()->count;
     }
-    //! Copy construct the derived implementation.
-    string_ref(const string_ref &o)
-        : _begin(o._begin)
-        , _end(o._end)
-        , _state{o._state[0], o._state[1], o._state[2]}
-        , _thunk(o._thunk)
-    {
-      _thunk(this, &o, _thunk_op::copy);
-    }
-    //! Move construct the derived implementation.
-    string_ref(string_ref &&o) noexcept : _begin(o._begin), _end(o._end), _state{o._state[0], o._state[1], o._state[2]}, _thunk(o._thunk) { _thunk(this, &o, _thunk_op::move); }
-    //! Copy assignment
-    string_ref &operator=(const string_ref &o)
-    {
-      this->~string_ref();
-      new(this) string_ref(o);
-      return *this;
-    }
-    //! Move assignment
-    string_ref &operator=(string_ref &&o) noexcept
-    {
-      this->~string_ref();
-      new(this) string_ref(static_cast<string_ref &&>(o));
-      return *this;
-    }
-    //! Destruction
-    ~string_ref()
-    {
-      _thunk(this, nullptr, _thunk_op::destruct);
-      _begin = _end = nullptr;
-    }
-
-    //! Returns whether the reference is empty or not
-    bool empty() const noexcept { return _begin == _end; }
-    //! Returns the size of the string
-    size_type size() const { return _end - _begin; }
-    //! Returns a null terminated C string
-    value_type *c_str() const { return _begin; }
-    //! Returns the beginning of the string
-    iterator begin() { return _begin; }
-    //! Returns the beginning of the string
-    const_iterator begin() const { return _begin; }
-    //! Returns the beginning of the string
-    const_iterator cbegin() const { return _begin; }
-    //! Returns the end of the string
-    iterator end() { return _end; }
-    //! Returns the end of the string
-    const_iterator end() const { return _end; }
-    //! Returns the end of the string
-    const_iterator cend() const { return _end; }
   };
 
 private:
@@ -880,10 +938,7 @@ protected:
   ~status_code() = default;
 
   //! Used to construct a non-empty type erased status code
-  constexpr explicit status_code(const status_code_domain *v)
-      : _domain(v)
-  {
-  }
+  constexpr explicit status_code(const status_code_domain *v) noexcept : _domain(v) {}
 
 public:
   //! Return the status code domain.
@@ -930,7 +985,15 @@ public:
 
 /*! A lightweight, typed, status code reflecting empty, success, or failure.
 This is the main workhorse of the system_error2 library.
+
+An ADL discovered helper function `make_status_code(T, Args...)` is looked up by one of the constructors.
+If it is found, and it generates a status code compatible with this status code, implicit construction
+is made available.
 */
+
+
+
+
 
 
 template <class DomainType> class status_code : public status_code<void>
@@ -945,6 +1008,12 @@ public:
   using value_type = typename domain_type::value_type;
   //! The type of a reference to a message string.
   using string_ref = typename domain_type::string_ref;
+
+#ifndef NDEBUG
+  static_assert(!std::is_default_constructible<value_type>::value || std::is_nothrow_default_constructible<value_type>::value, "DomainType::value_type is not nothrow default constructible!");
+  static_assert(!std::is_move_constructible<value_type>::value || std::is_nothrow_move_constructible<value_type>::value, "DomainType::value_type is not nothrow move constructible!");
+  static_assert(std::is_nothrow_destructible<value_type>::value, "DomainType::value_type is not nothrow destructible!");
+#endif
 
 protected:
   value_type _value{};
@@ -995,7 +1064,7 @@ public:
   {
   }
   //! Explicit move construction from a `value_type`.
-  constexpr explicit status_code(value_type &&v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
+  constexpr explicit status_code(value_type &&v) noexcept(std::is_nothrow_move_constructible<value_type>::value)
       : _base(domain_type::get())
       , _value(static_cast<value_type &&>(v))
   {
@@ -1009,7 +1078,7 @@ public:
 
   template <class ErasedType, //
             typename std::enable_if<detail::type_erasure_is_safe<ErasedType, value_type>::value, bool>::type = true>
-  constexpr explicit status_code(const status_code<erased<ErasedType>> &v)
+  constexpr explicit status_code(const status_code<erased<ErasedType>> &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
       : status_code(reinterpret_cast<const value_type &>(v._value)) // NOLINT
   {
 #if __cplusplus >= 201400
@@ -1031,7 +1100,12 @@ public:
   string_ref message() const noexcept { return this->_domain ? string_ref(domain()._message(*this)) : string_ref("(empty)"); }
 
   //! Reset the code to empty.
-  SYSTEM_ERROR2_CONSTEXPR14 void clear() { *this = status_code(); }
+  SYSTEM_ERROR2_CONSTEXPR14 void clear() noexcept
+  {
+    _value.~value_type();
+    this->_domain = nullptr;
+    new(&_value) value_type();
+  }
 
 #if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
   //! Return a reference to the `value_type`.
@@ -1049,7 +1123,15 @@ public:
 only if `erased<>` is available, which is when the domain's type is trivially
 copyable, and if the size of the domain's typed error code is less than or equal to
 this erased error code.
+
+An ADL discovered helper function `make_status_code(T, Args...)` is looked up by one of the constructors.
+If it is found, and it generates a status code compatible with this status code, implicit construction
+is made available.
 */
+
+
+
+
 
 
 
@@ -1102,7 +1184,7 @@ public:
   {
   }
   //! Reset the code to empty.
-  SYSTEM_ERROR2_CONSTEXPR14 void clear() { *this = status_code(); }
+  SYSTEM_ERROR2_CONSTEXPR14 void clear() noexcept { *this = status_code(); }
   //! Return the erased `value_type` by value.
   constexpr value_type value() const noexcept { return _value; }
 };
@@ -1522,76 +1604,36 @@ class _posix_code_domain : public status_code_domain
   template <class DomainType> friend class status_code;
   using _base = status_code_domain;
 
+  static _base::string_ref _make_string_ref(int c) noexcept
+  {
+    char buffer[1024] = "";
+#ifdef _WIN32
+    strerror_s(buffer, sizeof(buffer), c);
+#elif defined(__linux__)
+    char *s = strerror_r(c, buffer, sizeof(buffer));
+    if(s != nullptr)
+    {
+      strncpy(buffer, s, sizeof(buffer));
+      buffer[1023] = 0;
+    }
+#else
+    strerror_r(c, buffer, sizeof(buffer));
+#endif
+    size_t length = strlen(buffer);
+    auto *p = static_cast<char *>(malloc(length + 1)); // NOLINT
+    if(p == nullptr)
+    {
+      return _base::string_ref("failed to get message from system");
+    }
+    memcpy(p, buffer, length + 1);
+    return _base::atomic_refcounted_string_ref(p, length);
+  }
+
 public:
   //! The value type of the POSIX code, which is an `int`
   using value_type = int;
-  //! Thread safe reference to a message string fetched by `strerror_r()`
-  class string_ref : public _base::string_ref
-  {
-  public:
-    explicit string_ref(const _base::string_ref &o)
-        : _base::string_ref(o)
-    {
-    }
-    explicit string_ref(_base::string_ref &&o)
-        : _base::string_ref(static_cast<_base::string_ref &&>(o))
-    {
-    }
-    constexpr string_ref()
-        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
-    {
-    }
-    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str)
-        : _base::string_ref(str, _base::string_ref::_refcounted_string_thunk)
-    {
-    }
-    string_ref(const string_ref &) = default;
-    string_ref(string_ref &&) = default;
-    string_ref &operator=(const string_ref &) = default;
-    string_ref &operator=(string_ref &&) = default;
-    ~string_ref() = default;
-    //! Construct from a POSIX error code
-    explicit string_ref(int c)
-        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
-    {
-      char buffer[1024] = "";
-#ifdef _WIN32
-      strerror_s(buffer, sizeof(buffer), c);
-#elif defined(__linux__)
-      char *s = strerror_r(c, buffer, sizeof(buffer));
-      if(s != nullptr)
-      {
-        strncpy(buffer, s, sizeof(buffer));
-        buffer[1023] = 0;
-      }
-#else
-      strerror_r(c, buffer, sizeof(buffer));
-#endif
-      size_t length = strlen(buffer);
-      auto *p = static_cast<char *>(malloc(length + 1)); // NOLINT
-      if(p == nullptr)
-      {
-        goto failure;
-      }
-      memcpy(p, buffer, length + 1);
-      this->_begin = p;
-      this->_end = p + length; // NOLINT
-      _msg() = static_cast<_allocated_msg *>(calloc(1, sizeof(_allocated_msg))); // NOLINT
-      if(_msg() == nullptr)
-      {
-        free((void *) this->_begin); // NOLINT
-        goto failure;
-      }
-      ++_msg()->count;
-      return;
-    failure:
-      _msg() = nullptr; // disabled
-      this->_begin = "failed to get message from system";
-      this->_end = strchr(this->_begin, 0);
-    }
-  };
+  using _base::string_ref;
 
-public:
   //! Default constructor
   constexpr _posix_code_domain() noexcept : _base(0xa59a56fe5f310933) {}
   _posix_code_domain(const _posix_code_domain &) = default;
@@ -1603,7 +1645,7 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr posix_code_domain variable.
   static inline constexpr const _posix_code_domain *get();
 
-  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("posix domain"); } // NOLINT
+  virtual string_ref name() const noexcept override final { return string_ref("posix domain"); } // NOLINT
 protected:
   virtual bool _failure(const status_code<void> &code) const noexcept override final // NOLINT
   {
@@ -1635,11 +1677,11 @@ protected:
     const auto &c = static_cast<const posix_code &>(code); // NOLINT
     return generic_code(static_cast<errc>(c.value()));
   }
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final // NOLINT
+  virtual string_ref _message(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const posix_code &>(code); // NOLINT
-    return string_ref(c.value());
+    return _make_string_ref(c.value());
   }
   virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
   {
@@ -1766,8 +1808,6 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 
 
-#include <cstring> // for strchr
-
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 //! \exclude
@@ -1883,88 +1923,49 @@ case 0x2751: return EHOSTUNREACH;
     }
     return -1;
   }
+  //! Construct from a Win32 error code
+  static _base::string_ref _make_string_ref(win32::DWORD c) noexcept
+  {
+    wchar_t buffer[32768];
+    win32::DWORD wlen = win32::FormatMessageW(0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, nullptr, c, 0, buffer, 32768, nullptr);
+    size_t allocation = wlen + (wlen >> 1);
+    win32::DWORD bytes;
+    if(wlen == 0)
+    {
+      return _base::string_ref("failed to get message from system");
+    }
+    for(;;)
+    {
+      auto *p = static_cast<char *>(malloc(allocation)); // NOLINT
+      if(p == nullptr)
+      {
+        return _base::string_ref("failed to get message from system");
+      }
+      bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, (int) (wlen + 1), p, (int) allocation, nullptr, nullptr);
+      if(bytes != 0)
+      {
+        char *end = strchr(p, 0);
+        while(end[-1] == 10 || end[-1] == 13)
+        {
+          --end;
+        }
+        *end = 0; // NOLINT
+        return _base::atomic_refcounted_string_ref(p, end - p);
+      }
+      free(p); // NOLINT
+      if(win32::GetLastError() == 0x7a /*ERROR_INSUFFICIENT_BUFFER*/)
+      {
+        allocation += allocation >> 2;
+        continue;
+      }
+      return _base::string_ref("failed to get message from system");
+    }
+  }
 
 public:
   //! The value type of the win32 code, which is a `win32::DWORD`
   using value_type = win32::DWORD;
-  //! Thread safe reference to a message string fetched by `FormatMessage()`
-  class string_ref : public _base::string_ref
-  {
-  public:
-    explicit string_ref(const _base::string_ref &o)
-        : _base::string_ref(o)
-    {
-    }
-    explicit string_ref(_base::string_ref &&o)
-        : _base::string_ref(static_cast<_base::string_ref &&>(o))
-    {
-    }
-    constexpr string_ref()
-        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
-    {
-    }
-    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str)
-        : _base::string_ref(str, _base::string_ref::_refcounted_string_thunk)
-    {
-    }
-    string_ref(const string_ref &) = default;
-    string_ref(string_ref &&) = default;
-    string_ref &operator=(const string_ref &) = default;
-    string_ref &operator=(string_ref &&) = default;
-    ~string_ref() = default;
-    //! Construct from a Win32 error code
-    explicit string_ref(win32::DWORD c)
-        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
-    {
-      wchar_t buffer[32768];
-      win32::DWORD wlen = win32::FormatMessageW(0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, nullptr, c, 0, buffer, 32768, nullptr);
-      size_t allocation = wlen + (wlen >> 1);
-      win32::DWORD bytes;
-      if(wlen == 0)
-      {
-        goto failure;
-      }
-      for(;;)
-      {
-        auto *p = static_cast<char *>(malloc(allocation)); // NOLINT
-        if(p == nullptr)
-        {
-          goto failure;
-        }
-        bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, (int) (wlen + 1), p, (int) allocation, nullptr, nullptr);
-        if(bytes != 0)
-        {
-          this->_begin = p;
-          this->_end = strchr(p, 0);
-          while(this->_end[-1] == 10 || this->_end[-1] == 13)
-          {
-            --this->_end;
-          }
-          *const_cast<char *>(this->_end) = 0; // NOLINT
-          break;
-        }
-        free(p); // NOLINT
-        if(win32::GetLastError() == 0x7a /*ERROR_INSUFFICIENT_BUFFER*/)
-        {
-          allocation += allocation >> 2;
-          continue;
-        }
-        goto failure;
-      }
-      _msg() = (_allocated_msg *) calloc(1, sizeof(_allocated_msg)); // NOLINT
-      if(_msg() == nullptr)
-      {
-        free((void *) this->_begin); // NOLINT
-        goto failure;
-      }
-      ++_msg()->count;
-      return;
-    failure:
-      _msg() = nullptr; // disabled
-      this->_begin = "failed to get message from system";
-      this->_end = strchr(this->_begin, 0);
-    }
-  };
+  using _base::string_ref;
 
 public:
   //! Default constructor
@@ -1978,7 +1979,7 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr win32_code_domain variable.
   static inline constexpr const _win32_code_domain *get();
 
-  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("win32 domain"); } // NOLINT
+  virtual string_ref name() const noexcept override final { return string_ref("win32 domain"); } // NOLINT
 protected:
   virtual bool _failure(const status_code<void> &code) const noexcept override final // NOLINT
   {
@@ -2010,11 +2011,11 @@ protected:
     const auto &c = static_cast<const win32_code &>(code); // NOLINT
     return generic_code(static_cast<errc>(_win32_code_to_errno(c.value())));
   }
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final // NOLINT
+  virtual string_ref _message(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const win32_code &>(code); // NOLINT
-    return string_ref(c.value());
+    return _make_string_ref(c.value());
   }
   virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
   {
@@ -3198,89 +3199,50 @@ case 0xc000cf1b: return 0x18e;
     }
     return static_cast<win32::DWORD>(-1);
   }
+  //! Construct from a NT error code
+  static _base::string_ref _make_string_ref(win32::NTSTATUS c) noexcept
+  {
+    wchar_t buffer[32768];
+    static win32::HMODULE ntdll = win32::GetModuleHandleW(L"NTDLL.DLL");
+    win32::DWORD wlen = win32::FormatMessageW(0x00000800 /*FORMAT_MESSAGE_FROM_HMODULE*/ | 0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, ntdll, c, (1 << 10) /*MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT)*/, buffer, 32768, nullptr);
+    size_t allocation = wlen + (wlen >> 1);
+    win32::DWORD bytes;
+    if(wlen == 0)
+    {
+      return _base::string_ref("failed to get message from system");
+    }
+    for(;;)
+    {
+      auto *p = static_cast<char *>(malloc(allocation)); // NOLINT
+      if(p == nullptr)
+      {
+        return _base::string_ref("failed to get message from system");
+      }
+      bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, (int) (wlen + 1), p, (int) allocation, nullptr, nullptr);
+      if(bytes != 0)
+      {
+        char *end = strchr(p, 0);
+        while(end[-1] == 10 || end[-1] == 13)
+        {
+          --end;
+        }
+        *end = 0; // NOLINT
+        return _base::atomic_refcounted_string_ref(p, end - p);
+      }
+      free(p); // NOLINT
+      if(win32::GetLastError() == 0x7a /*ERROR_INSUFFICIENT_BUFFER*/)
+      {
+        allocation += allocation >> 2;
+        continue;
+      }
+      return _base::string_ref("failed to get message from system");
+    }
+  }
 
 public:
   //! The value type of the NT code, which is a `win32::NTSTATUS`
   using value_type = win32::NTSTATUS;
-  //! Thread safe reference to a message string fetched by `FormatMessage()`
-  class string_ref : public _base::string_ref
-  {
-  public:
-    explicit string_ref(const _base::string_ref &o)
-        : _base::string_ref(o)
-    {
-    }
-    explicit string_ref(_base::string_ref &&o)
-        : _base::string_ref(static_cast<_base::string_ref &&>(o))
-    {
-    }
-    constexpr string_ref()
-        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
-    {
-    }
-    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str)
-        : _base::string_ref(str, _base::string_ref::_refcounted_string_thunk)
-    {
-    }
-    string_ref(const string_ref &) = default;
-    string_ref(string_ref &&) = default;
-    string_ref &operator=(const string_ref &) = default;
-    string_ref &operator=(string_ref &&) = default;
-    ~string_ref() = default;
-    //! Construct from a NT error code
-    explicit string_ref(win32::NTSTATUS c)
-        : _base::string_ref(_base::string_ref::_refcounted_string_thunk)
-    {
-      wchar_t buffer[32768];
-      static win32::HMODULE ntdll = win32::GetModuleHandleW(L"NTDLL.DLL");
-      win32::DWORD wlen = win32::FormatMessageW(0x00000800 /*FORMAT_MESSAGE_FROM_HMODULE*/ | 0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, ntdll, c, (1 << 10) /*MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT)*/, buffer, 32768, nullptr);
-      size_t allocation = wlen + (wlen >> 1);
-      win32::DWORD bytes;
-      if(wlen == 0)
-      {
-        goto failure;
-      }
-      for(;;)
-      {
-        auto *p = static_cast<char *>(malloc(allocation)); // NOLINT
-        if(p == nullptr)
-        {
-          goto failure;
-        }
-        bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, buffer, (int) (wlen + 1), p, (int) allocation, nullptr, nullptr);
-        if(bytes != 0)
-        {
-          this->_begin = p;
-          this->_end = strchr(p, 0);
-          while(this->_end[-1] == 10 || this->_end[-1] == 13)
-          {
-            --this->_end;
-          }
-          *const_cast<char *>(this->_end) = 0; // NOLINT
-          break;
-        }
-        free(p); // NOLINT
-        if(win32::GetLastError() == 0x7a /*ERROR_INSUFFICIENT_BUFFER*/)
-        {
-          allocation += allocation >> 2;
-          continue;
-        }
-        goto failure;
-      }
-      _msg() = static_cast<_allocated_msg *>(calloc(1, sizeof(_allocated_msg))); // NOLINT
-      if(_msg() == nullptr)
-      {
-        free((void *) this->_begin); // NOLINT
-        goto failure;
-      }
-      ++_msg()->count;
-      return;
-    failure:
-      _msg() = nullptr; // disabled
-      this->_begin = "failed to get message from system";
-      this->_end = strchr(this->_begin, 0);
-    }
-  };
+  using _base::string_ref;
 
 public:
   //! Default constructor
@@ -3294,7 +3256,7 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr nt_code_domain variable.
   static inline constexpr const _nt_code_domain *get();
 
-  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("NT domain"); } // NOLINT
+  virtual string_ref name() const noexcept override final { return string_ref("NT domain"); } // NOLINT
 protected:
   virtual bool _failure(const status_code<void> &code) const noexcept override final // NOLINT
   {
@@ -3334,11 +3296,11 @@ protected:
     const auto &c = static_cast<const nt_code &>(code); // NOLINT
     return generic_code(static_cast<errc>(_nt_code_to_errno(c.value())));
   }
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final // NOLINT
+  virtual string_ref _message(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const nt_code &>(code); // NOLINT
-    return string_ref(c.value());
+    return _make_string_ref(c.value());
   }
   virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
   {
