@@ -184,12 +184,14 @@ protected:
     const auto &c = static_cast<const nt_code &>(code);  // NOLINT
     return _make_string_ref(c.value());
   }
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   virtual void _throw_exception(const status_code<void> &code) const override final  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const nt_code &>(code);  // NOLINT
     throw status_error<_nt_code_domain>(c);
   }
+#endif
 };
 //! (Windows only) A constexpr source variable for the NT code domain, which is that of NT kernel functions. Returned by `_nt_code_domain::get()`.
 constexpr _nt_code_domain nt_code_domain;

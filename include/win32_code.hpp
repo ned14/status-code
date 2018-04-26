@@ -165,12 +165,14 @@ protected:
     const auto &c = static_cast<const win32_code &>(code);  // NOLINT
     return _make_string_ref(c.value());
   }
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   virtual void _throw_exception(const status_code<void> &code) const override final  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const win32_code &>(code);  // NOLINT
     throw status_error<_win32_code_domain>(c);
   }
+#endif
 };
 //! (Windows only) A constexpr source variable for the win32 code domain, which is that of `GetLastError()` (Windows). Returned by `_win32_code_domain::get()`.
 constexpr _win32_code_domain win32_code_domain;

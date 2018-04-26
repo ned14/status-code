@@ -212,12 +212,14 @@ protected:
     const auto &c = static_cast<const com_code &>(code);  // NOLINT
     return _make_string_ref(c.value());
   }
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   virtual void _throw_exception(const status_code<void> &code) const override final  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const com_code &>(code);  // NOLINT
     throw status_error<_com_code_domain>(c);
   }
+#endif
 };
 //! (Windows only) A constexpr source variable for the COM code domain. Returned by `_com_code_domain::get()`.
 constexpr _com_code_domain com_code_domain;

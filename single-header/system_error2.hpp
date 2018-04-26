@@ -806,8 +806,13 @@ protected:
   virtual generic_code _generic_code(const status_code<void> &code) const noexcept = 0;
   //! Return a reference to a string textually representing a code.
   virtual string_ref _message(const status_code<void> &code) const noexcept = 0;
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
   //! Throw a code as a C++ exception.
   virtual void _throw_exception(const status_code<void> &code) const = 0;
+#else
+  // Keep a vtable slot for binary compatibility
+  virtual void _throw_exception(const status_code<void> &code) const { abort(); }
+#endif
 };
 
 SYSTEM_ERROR2_NAMESPACE_END
@@ -979,8 +984,10 @@ public:
 
 
   template <class T> inline bool equivalent(const status_code<T> &o) const noexcept;
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
   //! Throw a code as a C++ exception.
   void throw_exception() const { _domain->_throw_exception(*this); }
+#endif
 };
 
 /*! A lightweight, typed, status code reflecting empty, success, or failure.
@@ -1500,12 +1507,14 @@ protected:
     static SYSTEM_ERROR2_CONSTEXPR14 detail::generic_code_messages msgs;
     return string_ref(msgs[static_cast<int>(c.value())]);
   }
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
   virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const generic_code &>(code); // NOLINT
     throw status_error<_generic_code_domain>(c);
   }
+#endif
 };
 //! A specialisation of `status_error` for the generic code domain.
 using generic_error = status_error<_generic_code_domain>;
@@ -1682,12 +1691,14 @@ protected:
     const auto &c = static_cast<const posix_code &>(code); // NOLINT
     return _make_string_ref(c.value());
   }
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
   virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const posix_code &>(code); // NOLINT
     throw status_error<_posix_code_domain>(c);
   }
+#endif
 };
 //! A constexpr source variable for the POSIX code domain, which is that of `errno`. Returned by `_posix_code_domain::get()`.
 constexpr _posix_code_domain posix_code_domain;
@@ -2016,12 +2027,14 @@ protected:
     const auto &c = static_cast<const win32_code &>(code); // NOLINT
     return _make_string_ref(c.value());
   }
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
   virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const win32_code &>(code); // NOLINT
     throw status_error<_win32_code_domain>(c);
   }
+#endif
 };
 //! (Windows only) A constexpr source variable for the win32 code domain, which is that of `GetLastError()` (Windows). Returned by `_win32_code_domain::get()`.
 constexpr _win32_code_domain win32_code_domain;
@@ -3301,12 +3314,14 @@ protected:
     const auto &c = static_cast<const nt_code &>(code); // NOLINT
     return _make_string_ref(c.value());
   }
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
   virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const nt_code &>(code); // NOLINT
     throw status_error<_nt_code_domain>(c);
   }
+#endif
 };
 //! (Windows only) A constexpr source variable for the NT code domain, which is that of NT kernel functions. Returned by `_nt_code_domain::get()`.
 constexpr _nt_code_domain nt_code_domain;

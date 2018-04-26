@@ -263,12 +263,14 @@ protected:
     static SYSTEM_ERROR2_CONSTEXPR14 detail::generic_code_messages msgs;
     return string_ref(msgs[static_cast<int>(c.value())]);
   }
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   virtual void _throw_exception(const status_code<void> &code) const override final  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const generic_code &>(code);  // NOLINT
     throw status_error<_generic_code_domain>(c);
   }
+#endif
 };
 //! A specialisation of `status_error` for the generic code domain.
 using generic_error = status_error<_generic_code_domain>;

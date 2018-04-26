@@ -180,8 +180,10 @@ public:
   for the equivalent generic code and those are compared.
   */
   template <class T> inline bool equivalent(const status_code<T> &o) const noexcept;
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   //! Throw a code as a C++ exception.
   void throw_exception() const { _domain->_throw_exception(*this); }
+#endif
 };
 
 /*! A lightweight, typed, status code reflecting empty, success, or failure.

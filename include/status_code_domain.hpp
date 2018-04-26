@@ -306,8 +306,13 @@ protected:
   virtual generic_code _generic_code(const status_code<void> &code) const noexcept = 0;
   //! Return a reference to a string textually representing a code.
   virtual string_ref _message(const status_code<void> &code) const noexcept = 0;
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   //! Throw a code as a C++ exception.
   virtual void _throw_exception(const status_code<void> &code) const = 0;
+#else
+  // Keep a vtable slot for binary compatibility
+  virtual void _throw_exception(const status_code<void> &code) const final { abort(); }
+#endif
 };
 
 SYSTEM_ERROR2_NAMESPACE_END
