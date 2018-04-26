@@ -405,6 +405,10 @@ int main()
   status_code<erased<int>> adl3(ADLHelper1{}), adl4(ADLHelper1{}, ADLHelper2{});
   CHECK(adl3.value() == static_cast<int>(Code::success1));
   CHECK(adl4.value() == static_cast<int>(Code::goaway));
+  system_code adl5(errc::no_link);
+  CHECK(adl5.value() == static_cast<int>(errc::no_link));
+  (void) []()->generic_code { return errc::no_link; }
+  ();
 
   return retcode;
 }

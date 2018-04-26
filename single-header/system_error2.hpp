@@ -1035,7 +1035,6 @@ public:
   template <class T, class... Args, //
             class MakeStatusCodeOutType = decltype(make_status_code(std::declval<T>(), std::declval<Args>()...)), // ADL enable
             typename std::enable_if<!std::is_same<typename std::decay<T>::type, status_code>::value // not copy/move of self
-                                    && !std::is_same<typename std::decay<T>::type, value_type>::value // not copy/move of value type
                                     && is_status_code<MakeStatusCodeOutType>::value // ADL makes a status code
                                     && std::is_constructible<status_code, MakeStatusCodeOutType>::value, // ADLed status code is compatible
                                     bool>::type = true>
