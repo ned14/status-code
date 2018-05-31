@@ -80,18 +80,24 @@ SYSTEM_ERROR2_NAMESPACE_END
 
 #ifndef SYSTEM_ERROR2_FATAL
 #include <cstdlib>  // for abort
+#ifdef __APPLE__
+#include <unistd.h>  // for write
+#endif
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 namespace detail
 {
   namespace avoid_stdio_include
   {
+#ifndef __APPLE__
     extern "C" ptrdiff_t write(int, const void *, size_t);
+#endif
   }
   inline void do_fatal_exit(const char *msg)
   {
-    avoid_stdio_include::write(2 /*stderr*/, msg, cstrlen(msg));
-    avoid_stdio_include::write(2 /*stderr*/, "\n", 1);
+    using namespace avoid_stdio_include;
+    write(2 /*stderr*/, msg, cstrlen(msg));
+    write(2 /*stderr*/, "\n", 1);
     abort();
   }
 }  // namespace detail

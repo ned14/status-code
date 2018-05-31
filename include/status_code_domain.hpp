@@ -70,7 +70,7 @@ public:
   /*! (Potentially thread safe) Reference to a message string.
 
   Be aware that you cannot add payload to implementations of this class.
-  You get exactly the `void *[2]` array to keep state, this is usually
+  You get exactly the `void *[3]` array to keep state, this is usually
   sufficient for a `std::shared_ptr<>` or a `std::string`.
 
   You can install a handler to be called when this object is copied,
