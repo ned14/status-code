@@ -52,10 +52,10 @@ SYSTEM_ERROR2_NAMESPACE_END
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 /*! A tag for an erased value type for `status_code<D>`.
-  Available only if `ErasedType` is an integral type.
-  */
+Available only if `ErasedType` is a trivially copyable type.
+*/
 template <class ErasedType,  //
-          typename std::enable_if<std::is_integral<ErasedType>::value, bool>::type = true>
+          typename std::enable_if<std::is_trivially_copyable<ErasedType>::value, bool>::type = true>
 struct erased
 {
   using value_type = ErasedType;

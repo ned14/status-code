@@ -130,7 +130,7 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr com_code_domain variable.
   static inline constexpr const _com_code_domain *get();
 
-  virtual string_ref name() const noexcept override final { return string_ref("COM domain"); }  // NOLINT
+  virtual string_ref name() const noexcept override { return string_ref("COM domain"); }  // NOLINT
 protected:
   virtual bool _failure(const status_code<void> &code) const noexcept override final  // NOLINT
   {
@@ -206,14 +206,14 @@ protected:
     }
     return generic_code(errc::unknown);
   }
-  virtual string_ref _message(const status_code<void> &code) const noexcept override final  // NOLINT
+  virtual string_ref _message(const status_code<void> &code) const noexcept override  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const com_code &>(code);  // NOLINT
     return _make_string_ref(c.value());
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
-  virtual void _throw_exception(const status_code<void> &code) const override final  // NOLINT
+  virtual void _throw_exception(const status_code<void> &code) const override  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const com_code &>(code);  // NOLINT

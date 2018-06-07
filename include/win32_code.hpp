@@ -127,7 +127,7 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr win32_code_domain variable.
   static inline constexpr const _win32_code_domain *get();
 
-  virtual string_ref name() const noexcept override final { return string_ref("win32 domain"); }  // NOLINT
+  virtual string_ref name() const noexcept override { return string_ref("win32 domain"); }  // NOLINT
 protected:
   virtual bool _failure(const status_code<void> &code) const noexcept override final  // NOLINT
   {
@@ -159,14 +159,14 @@ protected:
     const auto &c = static_cast<const win32_code &>(code);  // NOLINT
     return generic_code(static_cast<errc>(_win32_code_to_errno(c.value())));
   }
-  virtual string_ref _message(const status_code<void> &code) const noexcept override final  // NOLINT
+  virtual string_ref _message(const status_code<void> &code) const noexcept override  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const win32_code &>(code);  // NOLINT
     return _make_string_ref(c.value());
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
-  virtual void _throw_exception(const status_code<void> &code) const override final  // NOLINT
+  virtual void _throw_exception(const status_code<void> &code) const override  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const win32_code &>(code);  // NOLINT

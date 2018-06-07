@@ -233,7 +233,7 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr generic_code_domain variable.
   static inline constexpr const _generic_code_domain *get();
 
-  virtual _base::string_ref name() const noexcept override final { return string_ref("generic domain"); }  // NOLINT
+  virtual _base::string_ref name() const noexcept override { return string_ref("generic domain"); }  // NOLINT
 protected:
   virtual bool _failure(const status_code<void> &code) const noexcept override final  // NOLINT
   {
@@ -256,7 +256,7 @@ protected:
     assert(code.domain() == *this);
     return static_cast<const generic_code &>(code);  // NOLINT
   }
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final  // NOLINT
+  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const generic_code &>(code);  // NOLINT
@@ -264,7 +264,7 @@ protected:
     return string_ref(msgs[static_cast<int>(c.value())]);
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
-  virtual void _throw_exception(const status_code<void> &code) const override final  // NOLINT
+  virtual void _throw_exception(const status_code<void> &code) const override  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const generic_code &>(code);  // NOLINT
