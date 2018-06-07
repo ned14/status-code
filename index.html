@@ -278,7 +278,7 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_generic_code.html#standardese-system_error2__generic_error"><code>generic_error</code></a> &mdash; A specialisation of <code>status_error</code> for the generic code domain.</p>
 </li>
 <li>
-<p><a href="doc_generic_code.html#standardese-system_error2"><code>get</code></a></p>
+<p><a href="doc_win32_code.html#standardese-system_error2"><code>get</code></a></p>
 </li>
 <li>
 <p><a href="doc_status_code.html#standardese-system_error2__in_place"><code>in_place</code></a> &mdash; Aliases <code>std::in_place</code> if on C++ 17 or later, else defined locally.</p>
@@ -330,6 +330,9 @@ code with fewer unintended portability problems.</p>
 </li>
 <li>
 <p><a href="doc_system_code.html#standardese-system_error2__system_code"><code>system_code</code></a> &mdash; An erased-mutable status code suitably large for all the system codes which can be returned on this system.</p>
+</li>
+<li>
+<p><a href="doc_system_code_from_exception.html#standardese-system_error2__system_code_from_exception-std__exception_ptr---system_error2__system_code-"><code>system_code_from_exception</code></a> &mdash; A utility function which returns the closest matching system_code to a supplied exception ptr.</p>
 </li>
 <li>
 <p><a href="doc_win32_code.html#standardese-system_error2__win32_code"><code>win32_code</code></a> &mdash; (Windows only) A Win32 error code, those returned by <code>GetLastError()</code>.</p>

@@ -162,7 +162,7 @@ doc_status_code_domain
 </code></pre>
 
 <p>(Potentially thread safe) Reference to a message string.</p>
-<p>Be aware that you cannot add payload to implementations of this class. You get exactly the <code>void *[2]</code> array to keep state, this is usually sufficient for a <code>std::shared_ptr&lt;&gt;</code> or a <code>std::string</code>.</p>
+<p>Be aware that you cannot add payload to implementations of this class. You get exactly the <code>void *[3]</code> array to keep state, this is usually sufficient for a <code>std::shared_ptr&lt;&gt;</code> or a <code>std::string</code>.</p>
 <p>You can install a handler to be called when this object is copied, moved and destructed. This takes the form of a C function pointer.</p>
 <h4>Member variables</h4>
 <ul>

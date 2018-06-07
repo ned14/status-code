@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>
+doc_system_code_from_exception
+</title>
+</head>
+<body>
+
+<h1>Header file <code>system_code_from_exception.hpp</code></h1>
+<p><span id="standardese-system_code_from_exception-hpp"></span></p>
+<pre><code class="standardese-language-cpp"><span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_system_code.html#standardese-system_code-hpp"><span class="typ dec var fun">system_code.hpp</span></a><span class="pre">&quot;</span>
+
+<span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
+<span class="pun">{</span>
+    <a href="doc_system_code.html#standardese-system_error2__system_code"><span class="typ dec var fun">system_error2::system_code</span></a> <a href="doc_system_code_from_exception.html#standardese-system_error2__system_code_from_exception-std__exception_ptr---system_error2__system_code-"><span class="typ dec var fun">system_code_from_exception</span></a><span class="pun">(</span><span class="typ dec var fun">std::exception_ptr</span><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">ep</span> <span class="pun">=</span> <span class="kwd">std</span><span class="pun">::</span><span class="kwd">current_exception</span><span class="pun">(</span><span class="pun">,</span> <a href="doc_system_code.html#standardese-system_error2__system_code"><span class="typ dec var fun">system_error2::system_code</span></a> <span class="typ dec var fun">not_matched</span> <span class="pun">=</span> <span class="kwd">generic_code</span><span class="pun">(</span><span class="kwd">errc</span><span class="pun">::</span><span class="kwd">resource_unavailable_try_again</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+<span class="pun">}</span>
+</code></pre>
+
+<p><span id="standardese-system_error2"></span></p>
+<h3>Function <code>system_error2::system_code_from_exception</code></h3>
+<p><span id="standardese-system_error2__system_code_from_exception-std__exception_ptr---system_error2__system_code-"></span></p>
+<pre><code class="standardese-language-cpp"><a href="doc_system_code.html#standardese-system_error2__system_code"><span class="typ dec var fun">system_error2::system_code</span></a> <span class="typ dec var fun">system_code_from_exception</span><span class="pun">(</span><span class="typ dec var fun">std::exception_ptr</span><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">ep</span> <span class="pun">=</span> <span class="kwd">std</span><span class="pun">::</span><span class="kwd">current_exception</span><span class="pun">(</span><span class="pun">,</span> <a href="doc_system_code.html#standardese-system_error2__system_code"><span class="typ dec var fun">system_error2::system_code</span></a> <span class="typ dec var fun">not_matched</span> <span class="pun">=</span> <span class="kwd">generic_code</span><span class="pun">(</span><span class="kwd">errc</span><span class="pun">::</span><span class="kwd">resource_unavailable_try_again</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+</code></pre>
+
+<p>A utility function which returns the closest matching system_code to a supplied exception ptr.</p>
+<hr /></body>
+</html>
