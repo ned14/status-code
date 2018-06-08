@@ -248,7 +248,7 @@ public:
     }
 
   public:
-    //! Construct from a C string literal
+    //! Construct from a C string literal allocated using `malloc()`.
     explicit atomic_refcounted_string_ref(const char *str, size_type len = static_cast<size_type>(-1), void *state1 = nullptr, void *state2 = nullptr) noexcept : string_ref(str, len, nullptr, state1, state2)
     {
       _msg() = static_cast<_allocated_msg *>(calloc(1, sizeof(_allocated_msg)));  // NOLINT
