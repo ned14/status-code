@@ -54,7 +54,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #ifndef SYSTEM_ERROR2_NODISCARD
-#if defined(STANDARDESE_IS_IN_THE_HOUSE)
+#if defined(STANDARDESE_IS_IN_THE_HOUSE) || (_HAS_CXX17 && _MSC_VER >= 1911 /* VS2017.3 */)
 #define SYSTEM_ERROR2_NODISCARD [[nodiscard]]
 #endif
 #endif

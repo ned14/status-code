@@ -460,9 +460,9 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #ifndef SYSTEM_ERROR2_NODISCARD
-
-
-
+#if 0 || (_HAS_CXX17 && _MSC_VER >= 1911 /* VS2017.3 */)
+#define SYSTEM_ERROR2_NODISCARD [[nodiscard]]
+#endif
 #endif
 #ifndef SYSTEM_ERROR2_NODISCARD
 #ifdef __has_cpp_attribute
@@ -692,29 +692,35 @@ public:
     //! Copy assignment
     string_ref &operator=(const string_ref &o)
     {
+      if(this != &o)
+      {
 #if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
-      string_ref temp(static_cast<string_ref &&>(*this));
-      this->~string_ref();
-      try
-      {
-        new(this) string_ref(o); // may throw
-      }
-      catch(...)
-      {
-        new(this) string_ref(static_cast<string_ref &&>(temp));
-        throw;
-      }
+        string_ref temp(static_cast<string_ref &&>(*this));
+        this->~string_ref();
+        try
+        {
+          new(this) string_ref(o); // may throw
+        }
+        catch(...)
+        {
+          new(this) string_ref(static_cast<string_ref &&>(temp));
+          throw;
+        }
 #else
-      this->~string_ref();
-      new(this) string_ref(o);
+        this->~string_ref();
+        new(this) string_ref(o);
 #endif
+      }
       return *this;
     }
     //! Move assignment
     string_ref &operator=(string_ref &&o) noexcept
     {
-      this->~string_ref();
-      new(this) string_ref(static_cast<string_ref &&>(o));
+      if(this != &o)
+      {
+        this->~string_ref();
+        new(this) string_ref(static_cast<string_ref &&>(o));
+      }
       return *this;
     }
     //! Destruction
@@ -1000,7 +1006,7 @@ public:
   //! Return the status code domain.
   constexpr const status_code_domain &domain() const noexcept { return *_domain; }
   //! True if the status code is empty.
-  constexpr bool empty() const noexcept { return _domain == nullptr; }
+  SYSTEM_ERROR2_NODISCARD constexpr bool empty() const noexcept { return _domain == nullptr; }
 
   //! Return a reference to a string textually representing a code.
   string_ref message() const noexcept { return (_domain != nullptr) ? _domain->_do_message(*this) : string_ref("(empty)"); }

@@ -152,7 +152,7 @@ public:
   //! Return the status code domain.
   constexpr const status_code_domain &domain() const noexcept { return *_domain; }
   //! True if the status code is empty.
-  constexpr bool empty() const noexcept { return _domain == nullptr; }
+  SYSTEM_ERROR2_NODISCARD constexpr bool empty() const noexcept { return _domain == nullptr; }
 
   //! Return a reference to a string textually representing a code.
   string_ref message() const noexcept { return (_domain != nullptr) ? _domain->_do_message(*this) : string_ref("(empty)"); }

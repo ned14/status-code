@@ -161,29 +161,35 @@ public:
     //! Copy assignment
     string_ref &operator=(const string_ref &o)
     {
+      if(this != &o)
+      {
 #if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
-      string_ref temp(static_cast<string_ref &&>(*this));
-      this->~string_ref();
-      try
-      {
-        new(this) string_ref(o);  // may throw
-      }
-      catch(...)
-      {
-        new(this) string_ref(static_cast<string_ref &&>(temp));
-        throw;
-      }
+        string_ref temp(static_cast<string_ref &&>(*this));
+        this->~string_ref();
+        try
+        {
+          new(this) string_ref(o);  // may throw
+        }
+        catch(...)
+        {
+          new(this) string_ref(static_cast<string_ref &&>(temp));
+          throw;
+        }
 #else
-      this->~string_ref();
-      new(this) string_ref(o);
+        this->~string_ref();
+        new(this) string_ref(o);
 #endif
+      }
       return *this;
     }
     //! Move assignment
     string_ref &operator=(string_ref &&o) noexcept
     {
-      this->~string_ref();
-      new(this) string_ref(static_cast<string_ref &&>(o));
+      if(this != &o)
+      {
+        this->~string_ref();
+        new(this) string_ref(static_cast<string_ref &&>(o));
+      }
       return *this;
     }
     //! Destruction
