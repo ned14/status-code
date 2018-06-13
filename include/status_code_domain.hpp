@@ -161,8 +161,22 @@ public:
     //! Copy assignment
     string_ref &operator=(const string_ref &o)
     {
+#if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
+      string_ref temp(static_cast<string_ref &&>(*this));
+      this->~string_ref();
+      try
+      {
+        new(this) string_ref(o);  // may throw
+      }
+      catch(...)
+      {
+        new(this) string_ref(static_cast<string_ref &&>(temp));
+        throw;
+      }
+#else
       this->~string_ref();
       new(this) string_ref(o);
+#endif
       return *this;
     }
     //! Move assignment
@@ -183,11 +197,13 @@ public:
     }
 
     //! Returns whether the reference is empty or not
-    bool empty() const noexcept { return _begin == _end; }
+    SYSTEM_ERROR2_NODISCARD bool empty() const noexcept { return _begin == _end; }
     //! Returns the size of the string
     size_type size() const noexcept { return _end - _begin; }
     //! Returns a null terminated C string
-    value_type *c_str() const noexcept { return _begin; }
+    const_pointer c_str() const noexcept { return _begin; }
+    //! Returns a null terminated C string
+    const_pointer data() const noexcept { return _begin; }
     //! Returns the beginning of the string
     iterator begin() noexcept { return _begin; }
     //! Returns the beginning of the string
@@ -299,19 +315,19 @@ public:
 
 protected:
   //! True if code means failure.
-  virtual bool _failure(const status_code<void> &code) const noexcept = 0;
+  virtual bool _do_failure(const status_code<void> &code) const noexcept = 0;
   //! True if code is (potentially non-transitively) equivalent to another code in another domain.
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept = 0;
+  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept = 0;
   //! Returns the generic code closest to this code, if any.
   virtual generic_code _generic_code(const status_code<void> &code) const noexcept = 0;
   //! Return a reference to a string textually representing a code.
-  virtual string_ref _message(const status_code<void> &code) const noexcept = 0;
+  virtual string_ref _do_message(const status_code<void> &code) const noexcept = 0;
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   //! Throw a code as a C++ exception.
-  virtual void _throw_exception(const status_code<void> &code) const = 0;
+  virtual void _do_throw_exception(const status_code<void> &code) const = 0;
 #else
   // Keep a vtable slot for binary compatibility
-  virtual void _throw_exception(const status_code<void> &code) const final { abort(); }
+  virtual void _do_throw_exception(const status_code<void> &code) const final { abort(); }
 #endif
 };
 

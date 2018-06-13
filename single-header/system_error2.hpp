@@ -459,6 +459,35 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 #endif
 
+#ifndef SYSTEM_ERROR2_NODISCARD
+
+
+
+#endif
+#ifndef SYSTEM_ERROR2_NODISCARD
+#ifdef __has_cpp_attribute
+#if __has_cpp_attribute(nodiscard)
+#define SYSTEM_ERROR2_NODISCARD [[nodiscard]]
+#endif
+#elif defined(__clang__)
+#define SYSTEM_ERROR2_NODISCARD __attribute__((warn_unused_result))
+#elif defined(_MSC_VER)
+// _Must_inspect_result_ expands into this
+#define SYSTEM_ERROR2_NODISCARD __declspec("SAL_name" "(" "\"_Must_inspect_result_\"" "," "\"\"" "," "\"2\"" ")") __declspec("SAL_begin") __declspec("SAL_post") __declspec("SAL_mustInspect") __declspec("SAL_post") __declspec("SAL_checkReturn") __declspec("SAL_end")
+
+
+
+
+
+
+
+
+#endif
+#endif
+#ifndef SYSTEM_ERROR2_NODISCARD
+#define SYSTEM_ERROR2_NODISCARD
+#endif
+
 #ifndef SYSTEM_ERROR2_NAMESPACE
 //! The system_error2 namespace name.
 #define SYSTEM_ERROR2_NAMESPACE system_error2
@@ -486,18 +515,24 @@ SYSTEM_ERROR2_NAMESPACE_END
 
 #ifndef SYSTEM_ERROR2_FATAL
 #include <cstdlib> // for abort
+#ifdef __APPLE__
+#include <unistd.h> // for write
+#endif
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 namespace detail
 {
   namespace avoid_stdio_include
   {
+#ifndef __APPLE__
     extern "C" ptrdiff_t write(int, const void *, size_t);
+#endif
   }
   inline void do_fatal_exit(const char *msg)
   {
-    avoid_stdio_include::write(2 /*stderr*/, msg, cstrlen(msg));
-    avoid_stdio_include::write(2 /*stderr*/, "\n", 1);
+    using namespace avoid_stdio_include;
+    write(2 /*stderr*/, msg, cstrlen(msg));
+    write(2 /*stderr*/, "\n", 1);
     abort();
   }
 } // namespace detail
@@ -558,7 +593,7 @@ public:
   /*! (Potentially thread safe) Reference to a message string.
 
   Be aware that you cannot add payload to implementations of this class.
-  You get exactly the `void *[2]` array to keep state, this is usually
+  You get exactly the `void *[3]` array to keep state, this is usually
   sufficient for a `std::shared_ptr<>` or a `std::string`.
 
   You can install a handler to be called when this object is copied,
@@ -657,8 +692,22 @@ public:
     //! Copy assignment
     string_ref &operator=(const string_ref &o)
     {
+#if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
+      string_ref temp(static_cast<string_ref &&>(*this));
+      this->~string_ref();
+      try
+      {
+        new(this) string_ref(o); // may throw
+      }
+      catch(...)
+      {
+        new(this) string_ref(static_cast<string_ref &&>(temp));
+        throw;
+      }
+#else
       this->~string_ref();
       new(this) string_ref(o);
+#endif
       return *this;
     }
     //! Move assignment
@@ -679,11 +728,13 @@ public:
     }
 
     //! Returns whether the reference is empty or not
-    bool empty() const noexcept { return _begin == _end; }
+    SYSTEM_ERROR2_NODISCARD bool empty() const noexcept { return _begin == _end; }
     //! Returns the size of the string
     size_type size() const noexcept { return _end - _begin; }
     //! Returns a null terminated C string
-    value_type *c_str() const noexcept { return _begin; }
+    const_pointer c_str() const noexcept { return _begin; }
+    //! Returns a null terminated C string
+    const_pointer data() const noexcept { return _begin; }
     //! Returns the beginning of the string
     iterator begin() noexcept { return _begin; }
     //! Returns the beginning of the string
@@ -745,7 +796,7 @@ public:
     }
 
   public:
-    //! Construct from a C string literal
+    //! Construct from a C string literal allocated using `malloc()`.
     explicit atomic_refcounted_string_ref(const char *str, size_type len = static_cast<size_type>(-1), void *state1 = nullptr, void *state2 = nullptr) noexcept : string_ref(str, len, nullptr, state1, state2)
     {
       _msg() = static_cast<_allocated_msg *>(calloc(1, sizeof(_allocated_msg))); // NOLINT
@@ -799,19 +850,19 @@ public:
 
 protected:
   //! True if code means failure.
-  virtual bool _failure(const status_code<void> &code) const noexcept = 0;
+  virtual bool _do_failure(const status_code<void> &code) const noexcept = 0;
   //! True if code is (potentially non-transitively) equivalent to another code in another domain.
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept = 0;
+  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept = 0;
   //! Returns the generic code closest to this code, if any.
   virtual generic_code _generic_code(const status_code<void> &code) const noexcept = 0;
   //! Return a reference to a string textually representing a code.
-  virtual string_ref _message(const status_code<void> &code) const noexcept = 0;
+  virtual string_ref _do_message(const status_code<void> &code) const noexcept = 0;
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
   //! Throw a code as a C++ exception.
-  virtual void _throw_exception(const status_code<void> &code) const = 0;
+  virtual void _do_throw_exception(const status_code<void> &code) const = 0;
 #else
   // Keep a vtable slot for binary compatibility
-  virtual void _throw_exception(const status_code<void> &code) const { abort(); }
+  virtual void _do_throw_exception(const status_code<void> &code) const final { abort(); }
 #endif
 };
 
@@ -843,12 +894,12 @@ SYSTEM_ERROR2_NAMESPACE_END
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 /*! A tag for an erased value type for `status_code<D>`.
-  Available only if `ErasedType` is an integral type.
-  */
+Available only if `ErasedType` is a trivially copyable type.
+*/
 
 
 template <class ErasedType, //
-          typename std::enable_if<std::is_integral<ErasedType>::value, bool>::type = true>
+          typename std::enable_if<std::is_trivially_copyable<ErasedType>::value, bool>::type = true>
 struct erased
 {
   using value_type = ErasedType;
@@ -952,11 +1003,11 @@ public:
   constexpr bool empty() const noexcept { return _domain == nullptr; }
 
   //! Return a reference to a string textually representing a code.
-  string_ref message() const noexcept { return (_domain != nullptr) ? _domain->_message(*this) : string_ref("(empty)"); }
+  string_ref message() const noexcept { return (_domain != nullptr) ? _domain->_do_message(*this) : string_ref("(empty)"); }
   //! True if code means success.
-  bool success() const noexcept { return (_domain != nullptr) ? !_domain->_failure(*this) : false; }
+  bool success() const noexcept { return (_domain != nullptr) ? !_domain->_do_failure(*this) : false; }
   //! True if code means failure.
-  bool failure() const noexcept { return (_domain != nullptr) ? _domain->_failure(*this) : false; }
+  bool failure() const noexcept { return (_domain != nullptr) ? _domain->_do_failure(*this) : false; }
   /*! True if code is strictly (and potentially non-transitively) semantically equivalent to another code in another domain.
   Note that usually non-semantic i.e. pure value comparison is used when the other status code has the same domain.
   As `equivalent()` will try mapping to generic code, this usually captures when two codes have the same semantic
@@ -966,10 +1017,10 @@ public:
 
 
 
-  template <class T> bool strictly_equivalent(const status_code<T> &o) const noexcept
+  template <class T> bool strictly_do_equivalent(const status_code<T> &o) const noexcept
   {
     if(_domain && o._domain)
-      return _domain->_equivalent(*this, o);
+      return _domain->_do_equivalent(*this, o);
     // If we are both empty, we are equivalent
     if(!_domain && !o._domain)
       return true;
@@ -977,7 +1028,7 @@ public:
     return false;
   }
   /*! True if code is equivalent, by any means, to another code in another domain (guaranteed transitive).
-  Firstly `strictly_equivalent()` is run in both directions. If neither succeeds, each domain is asked
+  Firstly `strictly_do_equivalent()` is run in both directions. If neither succeeds, each domain is asked
   for the equivalent generic code and those are compared.
   */
 
@@ -986,7 +1037,7 @@ public:
   template <class T> inline bool equivalent(const status_code<T> &o) const noexcept;
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
   //! Throw a code as a C++ exception.
-  void throw_exception() const { _domain->_throw_exception(*this); }
+  void throw_exception() const { _domain->_do_throw_exception(*this); }
 #endif
 };
 
@@ -1103,7 +1154,7 @@ public:
   //! Return the status code domain.
   constexpr const domain_type &domain() const noexcept { return *static_cast<const domain_type *>(this->_domain); }
   //! Return a reference to a string textually representing a code.
-  string_ref message() const noexcept { return this->_domain ? string_ref(domain()._message(*this)) : string_ref("(empty)"); }
+  string_ref message() const noexcept { return this->_domain ? string_ref(domain()._do_message(*this)) : string_ref("(empty)"); }
 
   //! Reset the code to empty.
   SYSTEM_ERROR2_CONSTEXPR14 void clear() noexcept
@@ -1477,14 +1528,14 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr generic_code_domain variable.
   static inline constexpr const _generic_code_domain *get();
 
-  virtual _base::string_ref name() const noexcept override final { return string_ref("generic domain"); } // NOLINT
+  virtual _base::string_ref name() const noexcept override { return string_ref("generic domain"); } // NOLINT
 protected:
-  virtual bool _failure(const status_code<void> &code) const noexcept override final // NOLINT
+  virtual bool _do_failure(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
     return static_cast<const generic_code &>(code).value() != errc::success; // NOLINT
   }
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final // NOLINT
+  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final // NOLINT
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const generic_code &>(code1); // NOLINT
@@ -1500,7 +1551,7 @@ protected:
     assert(code.domain() == *this);
     return static_cast<const generic_code &>(code); // NOLINT
   }
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final // NOLINT
+  virtual _base::string_ref _do_message(const status_code<void> &code) const noexcept override // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const generic_code &>(code); // NOLINT
@@ -1508,7 +1559,7 @@ protected:
     return string_ref(msgs[static_cast<int>(c.value())]);
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
-  virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
+  virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const generic_code &>(code); // NOLINT
@@ -1538,21 +1589,21 @@ template <class T> inline bool status_code<void>::equivalent(const status_code<T
 {
   if(_domain && o._domain)
   {
-    if(_domain->_equivalent(*this, o))
+    if(_domain->_do_equivalent(*this, o))
     {
       return true;
     }
-    if(o._domain->_equivalent(o, *this))
+    if(o._domain->_do_equivalent(o, *this))
     {
       return true;
     }
     generic_code c1 = o._domain->_generic_code(o);
-    if(c1.value() != errc::unknown && _domain->_equivalent(*this, c1))
+    if(c1.value() != errc::unknown && _domain->_do_equivalent(*this, c1))
     {
       return true;
     }
     generic_code c2 = _domain->_generic_code(*this);
-    if(c2.value() != errc::unknown && o._domain->_equivalent(o, c2))
+    if(c2.value() != errc::unknown && o._domain->_do_equivalent(o, c2))
     {
       return true;
     }
@@ -1653,14 +1704,14 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr posix_code_domain variable.
   static inline constexpr const _posix_code_domain *get();
 
-  virtual string_ref name() const noexcept override final { return string_ref("posix domain"); } // NOLINT
+  virtual string_ref name() const noexcept override { return string_ref("posix domain"); } // NOLINT
 protected:
-  virtual bool _failure(const status_code<void> &code) const noexcept override final // NOLINT
+  virtual bool _do_failure(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
     return static_cast<const posix_code &>(code).value() != 0; // NOLINT
   }
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final // NOLINT
+  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final // NOLINT
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const posix_code &>(code1); // NOLINT
@@ -1685,14 +1736,14 @@ protected:
     const auto &c = static_cast<const posix_code &>(code); // NOLINT
     return generic_code(static_cast<errc>(c.value()));
   }
-  virtual string_ref _message(const status_code<void> &code) const noexcept override final // NOLINT
+  virtual string_ref _do_message(const status_code<void> &code) const noexcept override // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const posix_code &>(code); // NOLINT
     return _make_string_ref(c.value());
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
-  virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
+  virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const posix_code &>(code); // NOLINT
@@ -1989,14 +2040,14 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr win32_code_domain variable.
   static inline constexpr const _win32_code_domain *get();
 
-  virtual string_ref name() const noexcept override final { return string_ref("win32 domain"); } // NOLINT
+  virtual string_ref name() const noexcept override { return string_ref("win32 domain"); } // NOLINT
 protected:
-  virtual bool _failure(const status_code<void> &code) const noexcept override final // NOLINT
+  virtual bool _do_failure(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
     return static_cast<const win32_code &>(code).value() != 0; // NOLINT
   }
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final // NOLINT
+  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final // NOLINT
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const win32_code &>(code1); // NOLINT
@@ -2021,14 +2072,14 @@ protected:
     const auto &c = static_cast<const win32_code &>(code); // NOLINT
     return generic_code(static_cast<errc>(_win32_code_to_errno(c.value())));
   }
-  virtual string_ref _message(const status_code<void> &code) const noexcept override final // NOLINT
+  virtual string_ref _do_message(const status_code<void> &code) const noexcept override // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const win32_code &>(code); // NOLINT
     return _make_string_ref(c.value());
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
-  virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
+  virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const win32_code &>(code); // NOLINT
@@ -3268,14 +3319,14 @@ public:
   //! Constexpr singleton getter. Returns the address of the constexpr nt_code_domain variable.
   static inline constexpr const _nt_code_domain *get();
 
-  virtual string_ref name() const noexcept override final { return string_ref("NT domain"); } // NOLINT
+  virtual string_ref name() const noexcept override { return string_ref("NT domain"); } // NOLINT
 protected:
-  virtual bool _failure(const status_code<void> &code) const noexcept override final // NOLINT
+  virtual bool _do_failure(const status_code<void> &code) const noexcept override final // NOLINT
   {
     assert(code.domain() == *this);
     return static_cast<const nt_code &>(code).value() < 0; // NOLINT
   }
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final // NOLINT
+  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final // NOLINT
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const nt_code &>(code1); // NOLINT
@@ -3308,14 +3359,14 @@ protected:
     const auto &c = static_cast<const nt_code &>(code); // NOLINT
     return generic_code(static_cast<errc>(_nt_code_to_errno(c.value())));
   }
-  virtual string_ref _message(const status_code<void> &code) const noexcept override final // NOLINT
+  virtual string_ref _do_message(const status_code<void> &code) const noexcept override // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const nt_code &>(code); // NOLINT
     return _make_string_ref(c.value());
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
-  virtual void _throw_exception(const status_code<void> &code) const override final // NOLINT
+  virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const nt_code &>(code); // NOLINT

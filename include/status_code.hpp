@@ -155,20 +155,20 @@ public:
   constexpr bool empty() const noexcept { return _domain == nullptr; }
 
   //! Return a reference to a string textually representing a code.
-  string_ref message() const noexcept { return (_domain != nullptr) ? _domain->_message(*this) : string_ref("(empty)"); }
+  string_ref message() const noexcept { return (_domain != nullptr) ? _domain->_do_message(*this) : string_ref("(empty)"); }
   //! True if code means success.
-  bool success() const noexcept { return (_domain != nullptr) ? !_domain->_failure(*this) : false; }
+  bool success() const noexcept { return (_domain != nullptr) ? !_domain->_do_failure(*this) : false; }
   //! True if code means failure.
-  bool failure() const noexcept { return (_domain != nullptr) ? _domain->_failure(*this) : false; }
+  bool failure() const noexcept { return (_domain != nullptr) ? _domain->_do_failure(*this) : false; }
   /*! True if code is strictly (and potentially non-transitively) semantically equivalent to another code in another domain.
   Note that usually non-semantic i.e. pure value comparison is used when the other status code has the same domain.
   As `equivalent()` will try mapping to generic code, this usually captures when two codes have the same semantic
   meaning in `equivalent()`.
   */
-  template <class T> bool strictly_equivalent(const status_code<T> &o) const noexcept
+  template <class T> bool strictly_do_equivalent(const status_code<T> &o) const noexcept
   {
     if(_domain && o._domain)
-      return _domain->_equivalent(*this, o);
+      return _domain->_do_equivalent(*this, o);
     // If we are both empty, we are equivalent
     if(!_domain && !o._domain)
       return true;
@@ -176,13 +176,13 @@ public:
     return false;
   }
   /*! True if code is equivalent, by any means, to another code in another domain (guaranteed transitive).
-  Firstly `strictly_equivalent()` is run in both directions. If neither succeeds, each domain is asked
+  Firstly `strictly_do_equivalent()` is run in both directions. If neither succeeds, each domain is asked
   for the equivalent generic code and those are compared.
   */
   template <class T> inline bool equivalent(const status_code<T> &o) const noexcept;
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   //! Throw a code as a C++ exception.
-  void throw_exception() const { _domain->_throw_exception(*this); }
+  void throw_exception() const { _domain->_do_throw_exception(*this); }
 #endif
 };
 
@@ -290,7 +290,7 @@ public:
   //! Return the status code domain.
   constexpr const domain_type &domain() const noexcept { return *static_cast<const domain_type *>(this->_domain); }
   //! Return a reference to a string textually representing a code.
-  string_ref message() const noexcept { return this->_domain ? string_ref(domain()._message(*this)) : string_ref("(empty)"); }
+  string_ref message() const noexcept { return this->_domain ? string_ref(domain()._do_message(*this)) : string_ref("(empty)"); }
 
   //! Reset the code to empty.
   SYSTEM_ERROR2_CONSTEXPR14 void clear() noexcept

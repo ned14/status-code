@@ -87,12 +87,12 @@ public:
 
   virtual string_ref name() const noexcept override { return string_ref("posix domain"); }  // NOLINT
 protected:
-  virtual bool _failure(const status_code<void> &code) const noexcept override final  // NOLINT
+  virtual bool _do_failure(const status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
     return static_cast<const posix_code &>(code).value() != 0;  // NOLINT
   }
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final  // NOLINT
+  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final  // NOLINT
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const posix_code &>(code1);  // NOLINT
@@ -117,14 +117,14 @@ protected:
     const auto &c = static_cast<const posix_code &>(code);  // NOLINT
     return generic_code(static_cast<errc>(c.value()));
   }
-  virtual string_ref _message(const status_code<void> &code) const noexcept override  // NOLINT
+  virtual string_ref _do_message(const status_code<void> &code) const noexcept override  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const posix_code &>(code);  // NOLINT
     return _make_string_ref(c.value());
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
-  virtual void _throw_exception(const status_code<void> &code) const override  // NOLINT
+  virtual void _do_throw_exception(const status_code<void> &code) const override  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const posix_code &>(code);  // NOLINT

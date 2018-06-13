@@ -53,6 +53,35 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 #endif
 
+#ifndef SYSTEM_ERROR2_NODISCARD
+#if defined(STANDARDESE_IS_IN_THE_HOUSE)
+#define SYSTEM_ERROR2_NODISCARD [[nodiscard]]
+#endif
+#endif
+#ifndef SYSTEM_ERROR2_NODISCARD
+#ifdef __has_cpp_attribute
+#if __has_cpp_attribute(nodiscard)
+#define SYSTEM_ERROR2_NODISCARD [[nodiscard]]
+#endif
+#elif defined(__clang__)
+#define SYSTEM_ERROR2_NODISCARD __attribute__((warn_unused_result))
+#elif defined(_MSC_VER)
+// _Must_inspect_result_ expands into this
+#define SYSTEM_ERROR2_NODISCARD                                                                                                                                                                                                                                                                                                \
+  __declspec("SAL_name"                                                                                                                                                                                                                                                                                                        \
+             "("                                                                                                                                                                                                                                                                                                               \
+             "\"_Must_inspect_result_\""                                                                                                                                                                                                                                                                                       \
+             ","                                                                                                                                                                                                                                                                                                               \
+             "\"\""                                                                                                                                                                                                                                                                                                            \
+             ","                                                                                                                                                                                                                                                                                                               \
+             "\"2\""                                                                                                                                                                                                                                                                                                           \
+             ")") __declspec("SAL_begin") __declspec("SAL_post") __declspec("SAL_mustInspect") __declspec("SAL_post") __declspec("SAL_checkReturn") __declspec("SAL_end")
+#endif
+#endif
+#ifndef SYSTEM_ERROR2_NODISCARD
+#define SYSTEM_ERROR2_NODISCARD
+#endif
+
 #ifndef SYSTEM_ERROR2_NAMESPACE
 //! The system_error2 namespace name.
 #define SYSTEM_ERROR2_NAMESPACE system_error2

@@ -235,12 +235,12 @@ public:
 
   virtual _base::string_ref name() const noexcept override { return string_ref("generic domain"); }  // NOLINT
 protected:
-  virtual bool _failure(const status_code<void> &code) const noexcept override final  // NOLINT
+  virtual bool _do_failure(const status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
     return static_cast<const generic_code &>(code).value() != errc::success;  // NOLINT
   }
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final  // NOLINT
+  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final  // NOLINT
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const generic_code &>(code1);  // NOLINT
@@ -256,7 +256,7 @@ protected:
     assert(code.domain() == *this);
     return static_cast<const generic_code &>(code);  // NOLINT
   }
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override  // NOLINT
+  virtual _base::string_ref _do_message(const status_code<void> &code) const noexcept override  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const generic_code &>(code);  // NOLINT
@@ -264,7 +264,7 @@ protected:
     return string_ref(msgs[static_cast<int>(c.value())]);
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
-  virtual void _throw_exception(const status_code<void> &code) const override  // NOLINT
+  virtual void _do_throw_exception(const status_code<void> &code) const override  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const generic_code &>(code);  // NOLINT
@@ -294,21 +294,21 @@ template <class T> inline bool status_code<void>::equivalent(const status_code<T
 {
   if(_domain && o._domain)
   {
-    if(_domain->_equivalent(*this, o))
+    if(_domain->_do_equivalent(*this, o))
     {
       return true;
     }
-    if(o._domain->_equivalent(o, *this))
+    if(o._domain->_do_equivalent(o, *this))
     {
       return true;
     }
     generic_code c1 = o._domain->_generic_code(o);
-    if(c1.value() != errc::unknown && _domain->_equivalent(*this, c1))
+    if(c1.value() != errc::unknown && _domain->_do_equivalent(*this, c1))
     {
       return true;
     }
     generic_code c2 = _domain->_generic_code(*this);
-    if(c2.value() != errc::unknown && o._domain->_equivalent(o, c2))
+    if(c2.value() != errc::unknown && o._domain->_do_equivalent(o, c2))
     {
       return true;
     }
