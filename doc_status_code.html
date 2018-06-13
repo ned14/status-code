@@ -21,7 +21,7 @@ doc_status_code
 
 <span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
 <span class="pun">{</span>
-    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">,</span> typename std::enable_if&lt;std::is_integral&lt;ErasedType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">,</span> typename std::enable_if&lt;std::is_trivially_copyable&lt;ErasedType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
     <span class="kwd">struct</span> <a href="doc_status_code.html#standardese-system_error2__erased-ErasedType--"><span class="typ dec var fun">erased</span></a><span class="pun">;</span>
 
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">&gt;</span>
@@ -59,7 +59,7 @@ doc_status_code
 <p><span id="standardese-system_error2"></span></p>
 <h3>Struct <code>system_error2::erased</code></h3>
 <p><span id="standardese-system_error2__erased-ErasedType--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">,</span> typename std::enable_if&lt;std::is_integral&lt;ErasedType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">,</span> typename std::enable_if&lt;std::is_trivially_copyable&lt;ErasedType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
 <span class="kwd">struct</span> <span class="typ dec var fun">erased</span>
 <span class="pun">{</span>
     <span class="kwd">using</span> <span class="typ dec var fun">value_type</span> <span class="pun">=</span> <span class="typ dec var fun">ErasedType</span><span class="pun">;</span>
@@ -67,7 +67,7 @@ doc_status_code
 </code></pre>
 
 <p>A tag for an erased value type for <code>status_code&lt;D&gt;</code>.</p>
-<p>Available only if <code>ErasedType</code> is an integral type.</p>
+<p>Available only if <code>ErasedType</code> is a trivially copyable type.</p>
 <hr />
 <h3>Struct <code>system_error2::is_status_code</code></h3>
 <p><span id="standardese-system_error2__is_status_code-T-"></span></p>
@@ -121,7 +121,7 @@ doc_status_code
     <span class="kwd">bool</span> <a href="doc_status_code.html#standardese-system_error2__status_code-__failure--const"><span class="typ dec var fun">failure</span></a><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">&gt;</span>
-    <span class="kwd">bool</span> <a href="doc_status_code.html#standardese-system_error2__status_code-__strictly_equivalent-T--status_code-T-const--const"><span class="typ dec var fun">strictly_equivalent</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>T<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">o</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+    <span class="kwd">bool</span> <a href="doc_status_code.html#standardese-system_error2__status_code-__strictly_do_equivalent-T--status_code-T-const--const"><span class="typ dec var fun">strictly_do_equivalent</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>T<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">o</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">&gt;</span>
     <span class="kwd">bool</span> <a href="doc_status_code.html#standardese-system_error2__status_code-__equivalent-T--status_code-T-const--const"><span class="typ dec var fun">equivalent</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>T<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">o</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
@@ -237,10 +237,10 @@ doc_status_code
 
 <p>True if code means failure.</p>
 <hr />
-<h3>Function <code>system_error2::status_code::strictly_equivalent</code></h3>
-<p><span id="standardese-system_error2__status_code-__strictly_equivalent-T--status_code-T-const--const"></span></p>
+<h3>Function <code>system_error2::status_code::strictly_do_equivalent</code></h3>
+<p><span id="standardese-system_error2__status_code-__strictly_do_equivalent-T--status_code-T-const--const"></span></p>
 <pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">&gt;</span>
-<span class="kwd">bool</span> <span class="typ dec var fun">strictly_equivalent</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>T<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">o</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+<span class="kwd">bool</span> <span class="typ dec var fun">strictly_do_equivalent</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>T<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">o</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 </code></pre>
 
 <p>True if code is strictly (and potentially non-transitively) semantically equivalent to another code in another domain.</p>
@@ -253,7 +253,7 @@ doc_status_code
 </code></pre>
 
 <p>True if code is equivalent, by any means, to another code in another domain (guaranteed transitive).</p>
-<p>Firstly <code>strictly_equivalent()</code> is run in both directions. If neither succeeds, each domain is asked for the equivalent generic code and those are compared.</p>
+<p>Firstly <code>strictly_do_equivalent()</code> is run in both directions. If neither succeeds, each domain is asked for the equivalent generic code and those are compared.</p>
 <hr />
 <h3>Function <code>system_error2::status_code::throw_exception</code></h3>
 <p><span id="standardese-system_error2__status_code-__throw_exception--const"></span></p>
