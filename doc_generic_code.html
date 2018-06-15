@@ -23,7 +23,7 @@ doc_generic_code
 
     <span class="kwd">constexpr</span> <a href="doc_generic_code.html#standardese-system_error2___generic_code_domain"><span class="typ dec var fun">system_error2::_generic_code_domain</span></a> <span class="kwd">const</span> <a href="doc_generic_code.html#standardese-system_error2__generic_code_domain"><span class="typ dec var fun">generic_code_domain</span></a><span class="pun">;</span>
 
-    <span class="kwd">static</span> <span class="kwd">constexpr</span> <a href="doc_generic_code.html#standardese-system_error2___generic_code_domain"><span class="typ dec var fun">system_error2::_generic_code_domain</span></a> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">_generic_code_domain::</span><span class="typ dec var fun">get</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+    <span class="kwd">static</span> <span class="kwd">constexpr</span> <a href="doc_generic_code.html#standardese-system_error2___generic_code_domain"><span class="typ dec var fun">system_error2::_generic_code_domain</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">_generic_code_domain::</span><span class="typ dec var fun">get</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
 
     <span class="kwd">constexpr</span> <a href="doc_status_code_domain.html#standardese-system_error2__generic_code"><span class="typ dec var fun">system_error2::generic_code</span></a> <span class="typ dec var fun">make_status_code</span><span class="pun">(</span><a href="doc_generic_code.html#standardese-system_error2__errc"><span class="typ dec var fun">system_error2::errc</span></a> <span class="typ dec var fun">c</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 
@@ -162,7 +162,7 @@ doc_generic_code
 
     <span class="typ dec var fun">~_generic_code_domain</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
 
-    <span class="kwd">static</span> <span class="kwd">constexpr</span> <span class="typ dec var fun">system_error2::_generic_code_domain</span> <span class="kwd">const</span><span class="pun">*</span> <a href="doc_generic_code.html#standardese-system_error2___generic_code_domain__get--"><span class="typ dec var fun">get</span></a><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+    <span class="kwd">static</span> <span class="kwd">constexpr</span> <span class="typ dec var fun">system_error2::_generic_code_domain</span> <span class="kwd">const</span><span class="pun">&amp;</span> <a href="doc_generic_code.html#standardese-system_error2___generic_code_domain__get--"><span class="typ dec var fun">get</span></a><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
 
     <span class="kwd">virtual</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">_base::string_ref</span></a> <span class="typ dec var fun">name</span><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 
@@ -196,10 +196,10 @@ doc_generic_code
 <hr />
 <h3>Function <code>system_error2::_generic_code_domain::get</code></h3>
 <p><span id="standardese-system_error2___generic_code_domain__get--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">static</span> <span class="kwd">constexpr</span> <a href="doc_generic_code.html#standardese-system_error2___generic_code_domain"><span class="typ dec var fun">system_error2::_generic_code_domain</span></a> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">get</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+<pre><code class="standardese-language-cpp"><span class="kwd">static</span> <span class="kwd">constexpr</span> <a href="doc_generic_code.html#standardese-system_error2___generic_code_domain"><span class="typ dec var fun">system_error2::_generic_code_domain</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">get</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
 </code></pre>
 
-<p>Constexpr singleton getter. Returns the address of the constexpr generic_code_domain variable.</p>
+<p>Constexpr singleton getter. Returns the constexpr generic_code_domain variable.</p>
 <hr />
 <hr />
 <h3>Type alias <code>system_error2::generic_error</code></h3>

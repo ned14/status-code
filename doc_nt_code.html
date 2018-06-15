@@ -22,7 +22,7 @@ doc_nt_code
 
     <span class="kwd">constexpr</span> <a href="doc_nt_code.html#standardese-system_error2___nt_code_domain"><span class="typ dec var fun">system_error2::_nt_code_domain</span></a> <span class="kwd">const</span> <a href="doc_nt_code.html#standardese-system_error2__nt_code_domain"><span class="typ dec var fun">nt_code_domain</span></a><span class="pun">;</span>
 
-    <span class="kwd">static</span> <span class="kwd">constexpr</span> <a href="doc_nt_code.html#standardese-system_error2___nt_code_domain"><span class="typ dec var fun">system_error2::_nt_code_domain</span></a> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">_nt_code_domain::</span><span class="typ dec var fun">get</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+    <span class="kwd">static</span> <span class="kwd">constexpr</span> <a href="doc_nt_code.html#standardese-system_error2___nt_code_domain"><span class="typ dec var fun">system_error2::_nt_code_domain</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">_nt_code_domain::</span><span class="typ dec var fun">get</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
 <span class="pun">}</span>
 </code></pre>
 
@@ -61,7 +61,7 @@ doc_nt_code
 
     <span class="typ dec var fun">~_nt_code_domain</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
 
-    <span class="kwd">static</span> <span class="kwd">constexpr</span> <span class="typ dec var fun">system_error2::_nt_code_domain</span> <span class="kwd">const</span><span class="pun">*</span> <a href="doc_nt_code.html#standardese-system_error2___nt_code_domain__get--"><span class="typ dec var fun">get</span></a><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+    <span class="kwd">static</span> <span class="kwd">constexpr</span> <span class="typ dec var fun">system_error2::_nt_code_domain</span> <span class="kwd">const</span><span class="pun">&amp;</span> <a href="doc_nt_code.html#standardese-system_error2___nt_code_domain__get--"><span class="typ dec var fun">get</span></a><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
 
     <span class="kwd">virtual</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span></a> <span class="typ dec var fun">name</span><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 
@@ -95,10 +95,10 @@ doc_nt_code
 <hr />
 <h3>Function <code>system_error2::_nt_code_domain::get</code></h3>
 <p><span id="standardese-system_error2___nt_code_domain__get--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">static</span> <span class="kwd">constexpr</span> <a href="doc_nt_code.html#standardese-system_error2___nt_code_domain"><span class="typ dec var fun">system_error2::_nt_code_domain</span></a> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">get</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+<pre><code class="standardese-language-cpp"><span class="kwd">static</span> <span class="kwd">constexpr</span> <a href="doc_nt_code.html#standardese-system_error2___nt_code_domain"><span class="typ dec var fun">system_error2::_nt_code_domain</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">get</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
 </code></pre>
 
-<p>Constexpr singleton getter. Returns the address of the constexpr nt_code_domain variable.</p>
+<p>Constexpr singleton getter. Returns the constexpr nt_code_domain variable.</p>
 <hr />
 <hr />
 <h3>Variable <code>system_error2::nt_code_domain</code></h3>

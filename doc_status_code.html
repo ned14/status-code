@@ -86,11 +86,11 @@ doc_status_code
 <span class="kwd">class</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span><span class="typ dec var fun">void</span><span class="pun">&gt;</span>
 <span class="pun">{</span>
 <span class="kwd">public</span><span class="pun">:</span>
-    <span class="kwd">using</span> <a href="doc_status_code.html#standardese-system_error2__status_code-__domain_type"><span class="typ dec var fun">domain_type</span></a> <span class="pun">=</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain"><span class="typ dec var fun">system_error2::status_code_domain</span></a><span class="pun">;</span>
+    <span class="kwd">using</span> <a href="doc_status_code.html#standardese-system_error2__status_code-__domain_type"><span class="typ dec var fun">domain_type</span></a> <span class="pun">=</span> <span class="kwd">void</span><span class="pun">;</span>
 
     <span class="kwd">using</span> <a href="doc_status_code.html#standardese-system_error2__status_code-__value_type"><span class="typ dec var fun">value_type</span></a> <span class="pun">=</span> <span class="kwd">void</span><span class="pun">;</span>
 
-    <span class="kwd">using</span> <a href="doc_status_code.html#standardese-system_error2__status_code-__string_ref"><span class="typ dec var fun">string_ref</span></a> <span class="pun">=</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">typename domain_type::string_ref</span></a><span class="pun">;</span>
+    <span class="kwd">using</span> <a href="doc_status_code.html#standardese-system_error2__status_code-__string_ref"><span class="typ dec var fun">string_ref</span></a> <span class="pun">=</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">typename status_code_domain::string_ref</span></a><span class="pun">;</span>
 
 <span class="kwd">protected</span><span class="pun">:</span>
     <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain"><span class="typ dec var fun">system_error2::status_code_domain</span></a> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">_domain</span><span class="pun">;</span>
@@ -134,7 +134,7 @@ doc_status_code
 <p>Differs from <code>status_code&lt;erased&lt;&gt;&gt;</code> by being always available irrespective of the domain’s value type, but cannot be copied, moved, nor destructed. Thus one always passes this around by const lvalue reference.</p>
 <h3>Type alias <code>system_error2::status_code::domain_type</code></h3>
 <p><span id="standardese-system_error2__status_code-__domain_type"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">domain_type</span> <span class="pun">=</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain"><span class="typ dec var fun">system_error2::status_code_domain</span></a><span class="pun">;</span>
+<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">domain_type</span> <span class="pun">=</span> <span class="kwd">void</span><span class="pun">;</span>
 </code></pre>
 
 <p>The type of the domain.</p>
@@ -148,7 +148,7 @@ doc_status_code
 <hr />
 <h3>Type alias <code>system_error2::status_code::string_ref</code></h3>
 <p><span id="standardese-system_error2__status_code-__string_ref"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">string_ref</span> <span class="pun">=</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">typename domain_type::string_ref</span></a><span class="pun">;</span>
+<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">string_ref</span> <span class="pun">=</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">typename status_code_domain::string_ref</span></a><span class="pun">;</span>
 </code></pre>
 
 <p>The type of a reference to a message string.</p>
