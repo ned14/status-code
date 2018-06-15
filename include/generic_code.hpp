@@ -264,7 +264,7 @@ protected:
     return string_ref(msgs[static_cast<int>(c.value())]);
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
-  virtual void _do_throw_exception(const status_code<void> &code) const override  // NOLINT
+  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const generic_code &>(code);  // NOLINT

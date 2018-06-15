@@ -330,10 +330,10 @@ protected:
   virtual string_ref _do_message(const status_code<void> &code) const noexcept = 0;
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   //! Throw a code as a C++ exception.
-  virtual void _do_throw_exception(const status_code<void> &code) const = 0;
+  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const = 0;
 #else
   // Keep a vtable slot for binary compatibility
-  virtual void _do_throw_exception(const status_code<void> &code) const final { abort(); }
+  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const final { abort(); }
 #endif
 };
 

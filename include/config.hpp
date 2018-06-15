@@ -45,11 +45,33 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include <initializer_list>
 
 #ifndef SYSTEM_ERROR2_CONSTEXPR14
-#if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
+#if defined(STANDARDESE_IS_IN_THE_HOUSE) || __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
 //! Defined to be `constexpr` when on C++ 14 or better compilers. Usually automatic, can be overriden.
 #define SYSTEM_ERROR2_CONSTEXPR14 constexpr
 #else
 #define SYSTEM_ERROR2_CONSTEXPR14
+#endif
+#endif
+
+#ifndef SYSTEM_ERROR2_NORETURN
+#if defined(STANDARDESE_IS_IN_THE_HOUSE) || (_HAS_CXX17 && _MSC_VER >= 1911 /* VS2017.3 */)
+#define SYSTEM_ERROR2_NORETURN [[noreturn]]
+#endif
+#endif
+#if !defined(SYSTEM_ERROR2_NORETURN)
+#ifdef __has_cpp_attribute
+#if __has_cpp_attribute(noreturn)
+#define SYSTEM_ERROR2_NORETURN [[noreturn]]
+#endif
+#endif
+#endif
+#if !defined(SYSTEM_ERROR2_NORETURN)
+#if defined(_MSC_VER)
+#define SYSTEM_ERROR2_NORETURN __declspec(noreturn)
+#elif defined(__GNUC__)
+#define SYSTEM_ERROR2_NORETURN __attribute__((__noreturn__))
+#else
+#define SYSTEM_ERROR2_NORETURN
 #endif
 #endif
 

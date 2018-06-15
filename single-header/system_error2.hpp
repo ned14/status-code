@@ -451,11 +451,33 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include <initializer_list>
 
 #ifndef SYSTEM_ERROR2_CONSTEXPR14
-#if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
+#if 0 || __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
 //! Defined to be `constexpr` when on C++ 14 or better compilers. Usually automatic, can be overriden.
 #define SYSTEM_ERROR2_CONSTEXPR14 constexpr
 #else
 #define SYSTEM_ERROR2_CONSTEXPR14
+#endif
+#endif
+
+#ifndef SYSTEM_ERROR2_NORETURN
+#if 0 || (_HAS_CXX17 && _MSC_VER >= 1911 /* VS2017.3 */)
+#define SYSTEM_ERROR2_NORETURN [[noreturn]]
+#endif
+#endif
+#if !defined(SYSTEM_ERROR2_NORETURN)
+#ifdef __has_cpp_attribute
+#if __has_cpp_attribute(noreturn)
+#define SYSTEM_ERROR2_NORETURN [[noreturn]]
+#endif
+#endif
+#endif
+#if !defined(SYSTEM_ERROR2_NORETURN)
+#if defined(_MSC_VER)
+#define SYSTEM_ERROR2_NORETURN __declspec(noreturn)
+#elif defined(__GNUC__)
+#define SYSTEM_ERROR2_NORETURN __attribute__((__noreturn__))
+#else
+#define SYSTEM_ERROR2_NORETURN
 #endif
 #endif
 
@@ -865,10 +887,10 @@ protected:
   virtual string_ref _do_message(const status_code<void> &code) const noexcept = 0;
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
   //! Throw a code as a C++ exception.
-  virtual void _do_throw_exception(const status_code<void> &code) const = 0;
+  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const = 0;
 #else
   // Keep a vtable slot for binary compatibility
-  virtual void _do_throw_exception(const status_code<void> &code) const final { abort(); }
+  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const final { abort(); }
 #endif
 };
 
@@ -1043,7 +1065,7 @@ public:
   template <class T> inline bool equivalent(const status_code<T> &o) const noexcept;
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
   //! Throw a code as a C++ exception.
-  void throw_exception() const { _domain->_do_throw_exception(*this); }
+  SYSTEM_ERROR2_NORETURN void throw_exception() const { _domain->_do_throw_exception(*this); }
 #endif
 };
 
@@ -1565,7 +1587,7 @@ protected:
     return string_ref(msgs[static_cast<int>(c.value())]);
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
-  virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
+  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const generic_code &>(code); // NOLINT
@@ -1749,7 +1771,7 @@ protected:
     return _make_string_ref(c.value());
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
-  virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
+  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const posix_code &>(code); // NOLINT
@@ -2085,7 +2107,7 @@ protected:
     return _make_string_ref(c.value());
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
-  virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
+  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const win32_code &>(code); // NOLINT
@@ -3372,7 +3394,7 @@ protected:
     return _make_string_ref(c.value());
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
-  virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
+  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const nt_code &>(code); // NOLINT
