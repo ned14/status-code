@@ -82,8 +82,8 @@ public:
   _posix_code_domain &operator=(_posix_code_domain &&) = default;
   ~_posix_code_domain() = default;
 
-  //! Constexpr singleton getter. Returns the address of the constexpr posix_code_domain variable.
-  static inline constexpr const _posix_code_domain *get();
+  //! Constexpr singleton getter. Returns constexpr posix_code_domain variable.
+  static inline constexpr const _posix_code_domain &get();
 
   virtual string_ref name() const noexcept override { return string_ref("posix domain"); }  // NOLINT
 protected:
@@ -134,9 +134,9 @@ protected:
 };
 //! A constexpr source variable for the POSIX code domain, which is that of `errno`. Returned by `_posix_code_domain::get()`.
 constexpr _posix_code_domain posix_code_domain;
-inline constexpr const _posix_code_domain *_posix_code_domain::get()
+inline constexpr const _posix_code_domain &_posix_code_domain::get()
 {
-  return &posix_code_domain;
+  return posix_code_domain;
 }
 
 SYSTEM_ERROR2_NAMESPACE_END

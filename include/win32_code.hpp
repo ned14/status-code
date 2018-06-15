@@ -124,8 +124,8 @@ public:
   _win32_code_domain &operator=(_win32_code_domain &&) = default;
   ~_win32_code_domain() = default;
 
-  //! Constexpr singleton getter. Returns the address of the constexpr win32_code_domain variable.
-  static inline constexpr const _win32_code_domain *get();
+  //! Constexpr singleton getter. Returns the constexpr win32_code_domain variable.
+  static inline constexpr const _win32_code_domain &get();
 
   virtual string_ref name() const noexcept override { return string_ref("win32 domain"); }  // NOLINT
 protected:
@@ -176,9 +176,9 @@ protected:
 };
 //! (Windows only) A constexpr source variable for the win32 code domain, which is that of `GetLastError()` (Windows). Returned by `_win32_code_domain::get()`.
 constexpr _win32_code_domain win32_code_domain;
-inline constexpr const _win32_code_domain *_win32_code_domain::get()
+inline constexpr const _win32_code_domain &_win32_code_domain::get()
 {
-  return &win32_code_domain;
+  return win32_code_domain;
 }
 
 SYSTEM_ERROR2_NAMESPACE_END

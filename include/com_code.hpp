@@ -127,8 +127,8 @@ public:
   _com_code_domain &operator=(_com_code_domain &&) = default;
   ~_com_code_domain() = default;
 
-  //! Constexpr singleton getter. Returns the address of the constexpr com_code_domain variable.
-  static inline constexpr const _com_code_domain *get();
+  //! Constexpr singleton getter. Returns the constexpr com_code_domain variable.
+  static inline constexpr const _com_code_domain &get();
 
   virtual string_ref name() const noexcept override { return string_ref("COM domain"); }  // NOLINT
 protected:
@@ -223,9 +223,9 @@ protected:
 };
 //! (Windows only) A constexpr source variable for the COM code domain. Returned by `_com_code_domain::get()`.
 constexpr _com_code_domain com_code_domain;
-inline constexpr const _com_code_domain *_com_code_domain::get()
+inline constexpr const _com_code_domain &_com_code_domain::get()
 {
-  return &com_code_domain;
+  return com_code_domain;
 }
 
 SYSTEM_ERROR2_NAMESPACE_END

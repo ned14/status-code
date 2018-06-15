@@ -135,8 +135,8 @@ public:
   _nt_code_domain &operator=(_nt_code_domain &&) = default;
   ~_nt_code_domain() = default;
 
-  //! Constexpr singleton getter. Returns the address of the constexpr nt_code_domain variable.
-  static inline constexpr const _nt_code_domain *get();
+  //! Constexpr singleton getter. Returns the constexpr nt_code_domain variable.
+  static inline constexpr const _nt_code_domain &get();
 
   virtual string_ref name() const noexcept override { return string_ref("NT domain"); }  // NOLINT
 protected:
@@ -195,9 +195,9 @@ protected:
 };
 //! (Windows only) A constexpr source variable for the NT code domain, which is that of NT kernel functions. Returned by `_nt_code_domain::get()`.
 constexpr _nt_code_domain nt_code_domain;
-inline constexpr const _nt_code_domain *_nt_code_domain::get()
+inline constexpr const _nt_code_domain &_nt_code_domain::get()
 {
-  return &nt_code_domain;
+  return nt_code_domain;
 }
 
 SYSTEM_ERROR2_NAMESPACE_END

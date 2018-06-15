@@ -230,8 +230,8 @@ public:
   _generic_code_domain &operator=(_generic_code_domain &&) = default;
   ~_generic_code_domain() = default;
 
-  //! Constexpr singleton getter. Returns the address of the constexpr generic_code_domain variable.
-  static inline constexpr const _generic_code_domain *get();
+  //! Constexpr singleton getter. Returns the constexpr generic_code_domain variable.
+  static inline constexpr const _generic_code_domain &get();
 
   virtual _base::string_ref name() const noexcept override { return string_ref("generic domain"); }  // NOLINT
 protected:
@@ -276,9 +276,9 @@ protected:
 using generic_error = status_error<_generic_code_domain>;
 //! A constexpr source variable for the generic code domain, which is that of `errc` (POSIX). Returned by `_generic_code_domain::get()`.
 constexpr _generic_code_domain generic_code_domain;
-inline constexpr const _generic_code_domain *_generic_code_domain::get()
+inline constexpr const _generic_code_domain &_generic_code_domain::get()
 {
-  return &generic_code_domain;
+  return generic_code_domain;
 }
 // Enable implicit construction of generic_code from errc
 constexpr inline generic_code make_status_code(errc c) noexcept

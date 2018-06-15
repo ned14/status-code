@@ -976,11 +976,11 @@ template <> class status_code<void>
 
 public:
   //! The type of the domain.
-  using domain_type = status_code_domain;
+  using domain_type = void;
   //! The type of the status code.
   using value_type = void;
   //! The type of a reference to a message string.
-  using string_ref = typename domain_type::string_ref;
+  using string_ref = typename status_code_domain::string_ref;
 
 protected:
   const status_code_domain *_domain{nullptr};
@@ -1109,26 +1109,26 @@ public:
   //! Explicit in-place construction.
   template <class... Args>
   constexpr explicit status_code(in_place_t /*unused */, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, Args &&...>::value)
-      : _base(domain_type::get())
+      : _base(&domain_type::get())
       , _value(static_cast<Args &&>(args)...)
   {
   }
   //! Explicit in-place construction from initialiser list.
   template <class T, class... Args>
   constexpr explicit status_code(in_place_t /*unused */, std::initializer_list<T> il, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, std::initializer_list<T>, Args &&...>::value)
-      : _base(domain_type::get())
+      : _base(&domain_type::get())
       , _value(il, static_cast<Args &&>(args)...)
   {
   }
   //! Explicit copy construction from a `value_type`.
   constexpr explicit status_code(const value_type &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
-      : _base(domain_type::get())
+      : _base(&domain_type::get())
       , _value(v)
   {
   }
   //! Explicit move construction from a `value_type`.
   constexpr explicit status_code(value_type &&v) noexcept(std::is_nothrow_move_constructible<value_type>::value)
-      : _base(domain_type::get())
+      : _base(&domain_type::get())
       , _value(static_cast<value_type &&>(v))
   {
   }
@@ -1531,8 +1531,8 @@ public:
   _generic_code_domain &operator=(_generic_code_domain &&) = default;
   ~_generic_code_domain() = default;
 
-  //! Constexpr singleton getter. Returns the address of the constexpr generic_code_domain variable.
-  static inline constexpr const _generic_code_domain *get();
+  //! Constexpr singleton getter. Returns the constexpr generic_code_domain variable.
+  static inline constexpr const _generic_code_domain &get();
 
   virtual _base::string_ref name() const noexcept override { return string_ref("generic domain"); } // NOLINT
 protected:
@@ -1577,9 +1577,9 @@ protected:
 using generic_error = status_error<_generic_code_domain>;
 //! A constexpr source variable for the generic code domain, which is that of `errc` (POSIX). Returned by `_generic_code_domain::get()`.
 constexpr _generic_code_domain generic_code_domain;
-inline constexpr const _generic_code_domain *_generic_code_domain::get()
+inline constexpr const _generic_code_domain &_generic_code_domain::get()
 {
-  return &generic_code_domain;
+  return generic_code_domain;
 }
 // Enable implicit construction of generic_code from errc
 constexpr inline generic_code make_status_code(errc c) noexcept
@@ -1707,8 +1707,8 @@ public:
   _posix_code_domain &operator=(_posix_code_domain &&) = default;
   ~_posix_code_domain() = default;
 
-  //! Constexpr singleton getter. Returns the address of the constexpr posix_code_domain variable.
-  static inline constexpr const _posix_code_domain *get();
+  //! Constexpr singleton getter. Returns constexpr posix_code_domain variable.
+  static inline constexpr const _posix_code_domain &get();
 
   virtual string_ref name() const noexcept override { return string_ref("posix domain"); } // NOLINT
 protected:
@@ -1759,9 +1759,9 @@ protected:
 };
 //! A constexpr source variable for the POSIX code domain, which is that of `errno`. Returned by `_posix_code_domain::get()`.
 constexpr _posix_code_domain posix_code_domain;
-inline constexpr const _posix_code_domain *_posix_code_domain::get()
+inline constexpr const _posix_code_domain &_posix_code_domain::get()
 {
-  return &posix_code_domain;
+  return posix_code_domain;
 }
 
 SYSTEM_ERROR2_NAMESPACE_END
@@ -2043,8 +2043,8 @@ public:
   _win32_code_domain &operator=(_win32_code_domain &&) = default;
   ~_win32_code_domain() = default;
 
-  //! Constexpr singleton getter. Returns the address of the constexpr win32_code_domain variable.
-  static inline constexpr const _win32_code_domain *get();
+  //! Constexpr singleton getter. Returns the constexpr win32_code_domain variable.
+  static inline constexpr const _win32_code_domain &get();
 
   virtual string_ref name() const noexcept override { return string_ref("win32 domain"); } // NOLINT
 protected:
@@ -2095,9 +2095,9 @@ protected:
 };
 //! (Windows only) A constexpr source variable for the win32 code domain, which is that of `GetLastError()` (Windows). Returned by `_win32_code_domain::get()`.
 constexpr _win32_code_domain win32_code_domain;
-inline constexpr const _win32_code_domain *_win32_code_domain::get()
+inline constexpr const _win32_code_domain &_win32_code_domain::get()
 {
-  return &win32_code_domain;
+  return win32_code_domain;
 }
 
 SYSTEM_ERROR2_NAMESPACE_END
@@ -3322,8 +3322,8 @@ public:
   _nt_code_domain &operator=(_nt_code_domain &&) = default;
   ~_nt_code_domain() = default;
 
-  //! Constexpr singleton getter. Returns the address of the constexpr nt_code_domain variable.
-  static inline constexpr const _nt_code_domain *get();
+  //! Constexpr singleton getter. Returns the constexpr nt_code_domain variable.
+  static inline constexpr const _nt_code_domain &get();
 
   virtual string_ref name() const noexcept override { return string_ref("NT domain"); } // NOLINT
 protected:
@@ -3382,9 +3382,9 @@ protected:
 };
 //! (Windows only) A constexpr source variable for the NT code domain, which is that of NT kernel functions. Returned by `_nt_code_domain::get()`.
 constexpr _nt_code_domain nt_code_domain;
-inline constexpr const _nt_code_domain *_nt_code_domain::get()
+inline constexpr const _nt_code_domain &_nt_code_domain::get()
 {
-  return &nt_code_domain;
+  return nt_code_domain;
 }
 
 SYSTEM_ERROR2_NAMESPACE_END

@@ -125,7 +125,7 @@ public:
     }
   };
   constexpr Code_domain_impl() noexcept : _base(0x430f120194fc06c7) {}
-  static inline constexpr const Code_domain_impl *get();
+  static inline constexpr const Code_domain_impl &get();
   virtual _base::string_ref name() const noexcept override final  // NOLINT
   {
     static string_ref v("Code_category_impl");
@@ -222,9 +222,9 @@ public:
   }
 };
 constexpr Code_domain_impl Code_domain;
-inline constexpr const Code_domain_impl *Code_domain_impl::get()
+inline constexpr const Code_domain_impl &Code_domain_impl::get()
 {
-  return &Code_domain;
+  return Code_domain;
 }
 // Test make_status_code ADL helper
 struct ADLHelper1

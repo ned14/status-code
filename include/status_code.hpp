@@ -122,11 +122,11 @@ template <> class status_code<void>
 
 public:
   //! The type of the domain.
-  using domain_type = status_code_domain;
+  using domain_type = void;
   //! The type of the status code.
   using value_type = void;
   //! The type of a reference to a message string.
-  using string_ref = typename domain_type::string_ref;
+  using string_ref = typename status_code_domain::string_ref;
 
 protected:
   const status_code_domain *_domain{nullptr};
@@ -242,26 +242,26 @@ public:
   //! Explicit in-place construction.
   template <class... Args>
   constexpr explicit status_code(in_place_t /*unused */, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, Args &&...>::value)
-      : _base(domain_type::get())
+      : _base(&domain_type::get())
       , _value(static_cast<Args &&>(args)...)
   {
   }
   //! Explicit in-place construction from initialiser list.
   template <class T, class... Args>
   constexpr explicit status_code(in_place_t /*unused */, std::initializer_list<T> il, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, std::initializer_list<T>, Args &&...>::value)
-      : _base(domain_type::get())
+      : _base(&domain_type::get())
       , _value(il, static_cast<Args &&>(args)...)
   {
   }
   //! Explicit copy construction from a `value_type`.
   constexpr explicit status_code(const value_type &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
-      : _base(domain_type::get())
+      : _base(&domain_type::get())
       , _value(v)
   {
   }
   //! Explicit move construction from a `value_type`.
   constexpr explicit status_code(value_type &&v) noexcept(std::is_nothrow_move_constructible<value_type>::value)
-      : _base(domain_type::get())
+      : _base(&domain_type::get())
       , _value(static_cast<value_type &&>(v))
   {
   }
