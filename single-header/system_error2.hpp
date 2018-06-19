@@ -804,6 +804,7 @@ public:
         if(dest->_msg() != nullptr)
         {
           auto count = dest->_msg()->count.fetch_add(1);
+          (void) count;
           assert(count != 0);
         }
         return;
@@ -1045,7 +1046,7 @@ public:
 
 
 
-  template <class T> bool strictly_do_equivalent(const status_code<T> &o) const noexcept
+  template <class T> bool strictly_equivalent(const status_code<T> &o) const noexcept
   {
     if(_domain && o._domain)
       return _domain->_do_equivalent(*this, o);
@@ -1056,7 +1057,7 @@ public:
     return false;
   }
   /*! True if code is equivalent, by any means, to another code in another domain (guaranteed transitive).
-  Firstly `strictly_do_equivalent()` is run in both directions. If neither succeeds, each domain is asked
+  Firstly `strictly_equivalent()` is run in both directions. If neither succeeds, each domain is asked
   for the equivalent generic code and those are compared.
   */
 
@@ -1413,7 +1414,7 @@ enum class errc : int
   not_connected = ENOTCONN,
   not_enough_memory = ENOMEM,
   not_supported = ENOTSUP,
-  operation_cancelled = ECANCELED,
+  operation_canceled = ECANCELED,
   operation_in_progress = EINPROGRESS,
   operation_not_permitted = EPERM,
   operation_not_supported = EOPNOTSUPP,

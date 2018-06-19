@@ -250,6 +250,7 @@ public:
         if(dest->_msg() != nullptr)
         {
           auto count = dest->_msg()->count.fetch_add(1);
+          (void) count;
           assert(count != 0);
         }
         return;

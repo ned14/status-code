@@ -165,7 +165,7 @@ public:
   As `equivalent()` will try mapping to generic code, this usually captures when two codes have the same semantic
   meaning in `equivalent()`.
   */
-  template <class T> bool strictly_do_equivalent(const status_code<T> &o) const noexcept
+  template <class T> bool strictly_equivalent(const status_code<T> &o) const noexcept
   {
     if(_domain && o._domain)
       return _domain->_do_equivalent(*this, o);
@@ -176,7 +176,7 @@ public:
     return false;
   }
   /*! True if code is equivalent, by any means, to another code in another domain (guaranteed transitive).
-  Firstly `strictly_do_equivalent()` is run in both directions. If neither succeeds, each domain is asked
+  Firstly `strictly_equivalent()` is run in both directions. If neither succeeds, each domain is asked
   for the equivalent generic code and those are compared.
   */
   template <class T> inline bool equivalent(const status_code<T> &o) const noexcept;
