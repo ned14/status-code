@@ -25,6 +25,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_ERROR_HPP
 #define SYSTEM_ERROR2_ERROR_HPP
 
+#include "errored_status_code.hpp"
 #include "system_code.hpp"
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
@@ -46,96 +47,12 @@ the program is terminated as this is a logic error)
 As with `system_code`, it remains guaranteed to be two CPU registers in size,
 and trivially copyable.
 */
-class error : public system_code
-{
-  using system_code::clear;
-  using system_code::empty;
-  using system_code::success;
-  using system_code::failure;
-
-public:
-  //! The type of the erased error code.
-  using system_code::value_type;
-  //! The type of a reference to a message string.
-  using system_code::string_ref;
-
-  //! Default construction not permitted.
-  error() = delete;
-  //! Copy constructor.
-  error(const error &) = default;
-  //! Move constructor.
-  error(error &&) = default;
-  //! Copy assignment.
-  error &operator=(const error &) = default;
-  //! Move assignment.
-  error &operator=(error &&) = default;
-  ~error() = default;
-
-  /*! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage.
-
-  The input is checked to ensure it is a failure, if not then `SYSTEM_ERROR2_FATAL()` is called which by default calls `std::terminate()`.
-  */
-  template <class DomainType,  //
-            typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
-  error(const status_code<DomainType> &v) noexcept : system_code(v)  // NOLINT
-  {
-    if(!v.failure())
-    {
-      SYSTEM_ERROR2_FATAL("error constructed from a status code which is not a failure");
-    }
-  }
-  /*! Implicit construction from any type where an ADL discovered `make_status_code(T &&)` returns a `status_code`
-  whose value type is trivially copyable and it would fit into our storage.
-
-  The input is checked to ensure it is a failure, if not then `SYSTEM_ERROR2_FATAL()` is called which by default calls `std::terminate()`.
-  */
-  template <class T,                                                                           //
-            class _IfMakeStatusCode = decltype(make_status_code(std::declval<T>())),           //
-            typename std::enable_if<!std::is_same<typename std::decay<T>::type, error>::value  //
-                                    && is_status_code<_IfMakeStatusCode>::value                //
-                                    && detail::type_erasure_is_safe<value_type, typename _IfMakeStatusCode::value_type>::value,
-                                    bool>::type = true>
-  error(T &&v) noexcept(noexcept(make_status_code(std::declval<T>())))  // NOLINT
-  : error(make_status_code(static_cast<T &&>(v)))
-  {
-  }
-};
+using error = errored_status_code<erased<system_code::value_type>>;
 
 #ifndef NDEBUG
 static_assert(sizeof(error) == 2 * sizeof(void *), "error is not exactly two pointers in size!");
 static_assert(std::is_trivially_copyable<error>::value, "error is not trivially copyable!");
 #endif
-
-//! True if the status code's are semantically equal via `equivalent()`.
-template <class DomainType> inline bool operator==(const status_code<DomainType> &a, const error &b) noexcept
-{
-  return a.equivalent(static_cast<const system_code &>(b));
-}
-//! True if the status code's are not semantically equal via `equivalent()`.
-template <class DomainType> inline bool operator!=(const status_code<DomainType> &a, const error &b) noexcept
-{
-  return !a.equivalent(static_cast<const system_code &>(b));
-}
-//! True if the status code's are semantically equal via `equivalent()` to the generic code.
-inline bool operator==(const error &a, errc b) noexcept
-{
-  return a.equivalent(generic_code(b));
-}
-//! True if the status code's are semantically equal via `equivalent()` to the generic code.
-inline bool operator==(errc a, const error &b) noexcept
-{
-  return b.equivalent(generic_code(a));
-}
-//! True if the status code's are not semantically equal via `equivalent()` to the generic code.
-inline bool operator!=(const error &a, errc b) noexcept
-{
-  return !a.equivalent(generic_code(b));
-}
-//! True if the status code's are not semantically equal via `equivalent()` to the generic code.
-inline bool operator!=(errc a, const error &b) noexcept
-{
-  return !b.equivalent(generic_code(a));
-}
 
 SYSTEM_ERROR2_NAMESPACE_END
 

@@ -51,6 +51,15 @@ SYSTEM_ERROR2_NAMESPACE_END
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
+//! Namespace for user injected mixins
+namespace mixins
+{
+  template <class Base, class T> struct mixin : public Base
+  {
+    using Base::Base;
+  };
+}
+
 /*! A tag for an erased value type for `status_code<D>`.
 Available only if `ErasedType` is a trivially copyable type.
 */
@@ -186,17 +195,61 @@ public:
 #endif
 };
 
+namespace detail
+{
+  template <class DomainType> class status_code_storage : public status_code<void>
+  {
+    using _base = status_code<void>;
+
+  public:
+    //! The type of the domain.
+    using domain_type = DomainType;
+    //! The type of the status code.
+    using value_type = typename domain_type::value_type;
+    //! The type of a reference to a message string.
+    using string_ref = typename domain_type::string_ref;
+
+#ifndef NDEBUG
+    static_assert(!std::is_default_constructible<value_type>::value || std::is_nothrow_default_constructible<value_type>::value, "DomainType::value_type is not nothrow default constructible!");
+    static_assert(!std::is_move_constructible<value_type>::value || std::is_nothrow_move_constructible<value_type>::value, "DomainType::value_type is not nothrow move constructible!");
+    static_assert(std::is_nothrow_destructible<value_type>::value, "DomainType::value_type is not nothrow destructible!");
+#endif
+
+  protected:
+    status_code_storage() = default;
+    status_code_storage(const status_code_storage &) = default;
+    status_code_storage(status_code_storage &&) = default;  // NOLINT
+    status_code_storage &operator=(const status_code_storage &) = default;
+    status_code_storage &operator=(status_code_storage &&) = default;  // NOLINT
+    ~status_code_storage() = default;
+
+    value_type _value{};
+    struct _value_type_constructor
+    {
+    };
+    template <class... Args>
+    constexpr status_code_storage(_value_type_constructor /*unused*/, const status_code_domain *v, Args &&... args)
+        : _base(v)
+        , _value(static_cast<Args &&>(args)...)
+    {
+    }
+  };
+}
+
 /*! A lightweight, typed, status code reflecting empty, success, or failure.
 This is the main workhorse of the system_error2 library.
 
 An ADL discovered helper function `make_status_code(T, Args...)` is looked up by one of the constructors.
 If it is found, and it generates a status code compatible with this status code, implicit construction
 is made available.
+
+You may mix in custom member functions and member function overrides by injecting a specialisation of
+`mixins::mixin<Base, status_code<YourDomainType>>`. Your mixin must inherit from `Base`.
 */
-template <class DomainType> class status_code : public status_code<void>
+template <class DomainType> class status_code : public mixins::mixin<detail::status_code_storage<DomainType>, status_code<DomainType>>
 {
   template <class T> friend class status_code;
-  using _base = status_code<void>;
+  using _base = mixins::mixin<detail::status_code_storage<DomainType>, status_code<DomainType>>;
 
 public:
   //! The type of the domain.
@@ -205,15 +258,6 @@ public:
   using value_type = typename domain_type::value_type;
   //! The type of a reference to a message string.
   using string_ref = typename domain_type::string_ref;
-
-#ifndef NDEBUG
-  static_assert(!std::is_default_constructible<value_type>::value || std::is_nothrow_default_constructible<value_type>::value, "DomainType::value_type is not nothrow default constructible!");
-  static_assert(!std::is_move_constructible<value_type>::value || std::is_nothrow_move_constructible<value_type>::value, "DomainType::value_type is not nothrow move constructible!");
-  static_assert(std::is_nothrow_destructible<value_type>::value, "DomainType::value_type is not nothrow destructible!");
-#endif
-
-protected:
-  value_type _value{};
 
 public:
   //! Default construction to empty
@@ -242,27 +286,23 @@ public:
   //! Explicit in-place construction.
   template <class... Args>
   constexpr explicit status_code(in_place_t /*unused */, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, Args &&...>::value)
-      : _base(&domain_type::get())
-      , _value(static_cast<Args &&>(args)...)
+      : _base(typename _base::_value_type_constructor{}, &domain_type::get(), static_cast<Args &&>(args)...)
   {
   }
   //! Explicit in-place construction from initialiser list.
   template <class T, class... Args>
   constexpr explicit status_code(in_place_t /*unused */, std::initializer_list<T> il, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, std::initializer_list<T>, Args &&...>::value)
-      : _base(&domain_type::get())
-      , _value(il, static_cast<Args &&>(args)...)
+      : _base(typename _base::_value_type_constructor{}, &domain_type::get(), il, static_cast<Args &&>(args)...)
   {
   }
   //! Explicit copy construction from a `value_type`.
   constexpr explicit status_code(const value_type &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
-      : _base(&domain_type::get())
-      , _value(v)
+      : _base(typename _base::_value_type_constructor{}, &domain_type::get(), v)
   {
   }
   //! Explicit move construction from a `value_type`.
   constexpr explicit status_code(value_type &&v) noexcept(std::is_nothrow_move_constructible<value_type>::value)
-      : _base(&domain_type::get())
-      , _value(static_cast<value_type &&>(v))
+      : _base(typename _base::_value_type_constructor{}, &domain_type::get(), static_cast<value_type &&>(v))
   {
   }
   /*! Explicit construction from an erased status code. Available only if
@@ -282,7 +322,7 @@ public:
   //! Assignment from a `value_type`.
   constexpr status_code &operator=(const value_type &v) noexcept(std::is_nothrow_copy_assignable<value_type>::value)
   {
-    _value = v;
+    this->_value = v;
     return *this;
   }
 
@@ -295,21 +335,21 @@ public:
   //! Reset the code to empty.
   SYSTEM_ERROR2_CONSTEXPR14 void clear() noexcept
   {
-    _value.~value_type();
+    this->_value.~value_type();
     this->_domain = nullptr;
-    new(&_value) value_type();
+    new(&this->_value) value_type();
   }
 
 #if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
   //! Return a reference to the `value_type`.
-  constexpr value_type &value() & noexcept { return _value; }
+  constexpr value_type &value() & noexcept { return this->_value; }
   //! Return a reference to the `value_type`.
-  constexpr value_type &&value() && noexcept { return _value; }
+  constexpr value_type &&value() && noexcept { return this->_value; }
 #endif
   //! Return a reference to the `value_type`.
-  constexpr const value_type &value() const &noexcept { return _value; }
+  constexpr const value_type &value() const &noexcept { return this->_value; }
   //! Return a reference to the `value_type`.
-  constexpr const value_type &&value() const &&noexcept { return _value; }
+  constexpr const value_type &&value() const &&noexcept { return this->_value; }
 };
 
 /*! Type erased status_code, but copyable/movable/destructible unlike `status_code<void>`. Available

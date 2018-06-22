@@ -96,7 +96,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define SYSTEM_ERROR2_ERROR_HPP
 /* Proposed SG14 status_code
 (C) 2018 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
-File Created: Feb 2018
+File Created: Jun 2018
 
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -140,56 +140,8 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 
 
-#ifndef SYSTEM_ERROR2_SYSTEM_CODE_HPP
-#define SYSTEM_ERROR2_SYSTEM_CODE_HPP
-/* Proposed SG14 status_code
-(C) 2018 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
-File Created: Feb 2018
-
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License in the accompanying file
-Licence.txt or at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-
-Distributed under the Boost Software License, Version 1.0.
-(See accompanying file Licence.txt or copy at
-http://www.boost.org/LICENSE_1_0.txt)
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#ifndef SYSTEM_ERROR2_POSIX_CODE_HPP
-#define SYSTEM_ERROR2_POSIX_CODE_HPP
+#ifndef SYSTEM_ERROR2_ERRORED_STATUS_CODE_HPP
+#define SYSTEM_ERROR2_ERRORED_STATUS_CODE_HPP
 /* Proposed SG14 status_code
 (C) 2018 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
 File Created: Feb 2018
@@ -927,6 +879,15 @@ SYSTEM_ERROR2_NAMESPACE_END
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
+//! Namespace for user injected mixins
+namespace mixins
+{
+  template <class Base, class T> struct mixin : public Base
+  {
+    using Base::Base;
+  };
+}
+
 /*! A tag for an erased value type for `status_code<D>`.
 Available only if `ErasedType` is a trivially copyable type.
 */
@@ -1075,12 +1036,56 @@ public:
 #endif
 };
 
+namespace detail
+{
+  template <class DomainType> class status_code_storage : public status_code<void>
+  {
+    using _base = status_code<void>;
+
+  public:
+    //! The type of the domain.
+    using domain_type = DomainType;
+    //! The type of the status code.
+    using value_type = typename domain_type::value_type;
+    //! The type of a reference to a message string.
+    using string_ref = typename domain_type::string_ref;
+
+#ifndef NDEBUG
+    static_assert(!std::is_default_constructible<value_type>::value || std::is_nothrow_default_constructible<value_type>::value, "DomainType::value_type is not nothrow default constructible!");
+    static_assert(!std::is_move_constructible<value_type>::value || std::is_nothrow_move_constructible<value_type>::value, "DomainType::value_type is not nothrow move constructible!");
+    static_assert(std::is_nothrow_destructible<value_type>::value, "DomainType::value_type is not nothrow destructible!");
+#endif
+
+  protected:
+    status_code_storage() = default;
+    status_code_storage(const status_code_storage &) = default;
+    status_code_storage(status_code_storage &&) = default; // NOLINT
+    status_code_storage &operator=(const status_code_storage &) = default;
+    status_code_storage &operator=(status_code_storage &&) = default; // NOLINT
+    ~status_code_storage() = default;
+
+    value_type _value{};
+    struct _value_type_constructor
+    {
+    };
+    template <class... Args>
+    constexpr status_code_storage(_value_type_constructor /*unused*/, const status_code_domain *v, Args &&... args)
+        : _base(v)
+        , _value(static_cast<Args &&>(args)...)
+    {
+    }
+  };
+}
+
 /*! A lightweight, typed, status code reflecting empty, success, or failure.
 This is the main workhorse of the system_error2 library.
 
 An ADL discovered helper function `make_status_code(T, Args...)` is looked up by one of the constructors.
 If it is found, and it generates a status code compatible with this status code, implicit construction
 is made available.
+
+You may mix in custom member functions and member function overrides by injecting a specialisation of
+`mixins::mixin<Base, status_code<YourDomainType>>`. Your mixin must inherit from `Base`.
 */
 
 
@@ -1088,10 +1093,13 @@ is made available.
 
 
 
-template <class DomainType> class status_code : public status_code<void>
+
+
+
+template <class DomainType> class status_code : public mixins::mixin<detail::status_code_storage<DomainType>, status_code<DomainType>>
 {
   template <class T> friend class status_code;
-  using _base = status_code<void>;
+  using _base = mixins::mixin<detail::status_code_storage<DomainType>, status_code<DomainType>>;
 
 public:
   //! The type of the domain.
@@ -1100,15 +1108,6 @@ public:
   using value_type = typename domain_type::value_type;
   //! The type of a reference to a message string.
   using string_ref = typename domain_type::string_ref;
-
-#ifndef NDEBUG
-  static_assert(!std::is_default_constructible<value_type>::value || std::is_nothrow_default_constructible<value_type>::value, "DomainType::value_type is not nothrow default constructible!");
-  static_assert(!std::is_move_constructible<value_type>::value || std::is_nothrow_move_constructible<value_type>::value, "DomainType::value_type is not nothrow move constructible!");
-  static_assert(std::is_nothrow_destructible<value_type>::value, "DomainType::value_type is not nothrow destructible!");
-#endif
-
-protected:
-  value_type _value{};
 
 public:
   //! Default construction to empty
@@ -1137,27 +1136,23 @@ public:
   //! Explicit in-place construction.
   template <class... Args>
   constexpr explicit status_code(in_place_t /*unused */, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, Args &&...>::value)
-      : _base(&domain_type::get())
-      , _value(static_cast<Args &&>(args)...)
+      : _base(typename _base::_value_type_constructor{}, &domain_type::get(), static_cast<Args &&>(args)...)
   {
   }
   //! Explicit in-place construction from initialiser list.
   template <class T, class... Args>
   constexpr explicit status_code(in_place_t /*unused */, std::initializer_list<T> il, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, std::initializer_list<T>, Args &&...>::value)
-      : _base(&domain_type::get())
-      , _value(il, static_cast<Args &&>(args)...)
+      : _base(typename _base::_value_type_constructor{}, &domain_type::get(), il, static_cast<Args &&>(args)...)
   {
   }
   //! Explicit copy construction from a `value_type`.
   constexpr explicit status_code(const value_type &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
-      : _base(&domain_type::get())
-      , _value(v)
+      : _base(typename _base::_value_type_constructor{}, &domain_type::get(), v)
   {
   }
   //! Explicit move construction from a `value_type`.
   constexpr explicit status_code(value_type &&v) noexcept(std::is_nothrow_move_constructible<value_type>::value)
-      : _base(&domain_type::get())
-      , _value(static_cast<value_type &&>(v))
+      : _base(typename _base::_value_type_constructor{}, &domain_type::get(), static_cast<value_type &&>(v))
   {
   }
   /*! Explicit construction from an erased status code. Available only if
@@ -1180,7 +1175,7 @@ public:
   //! Assignment from a `value_type`.
   constexpr status_code &operator=(const value_type &v) noexcept(std::is_nothrow_copy_assignable<value_type>::value)
   {
-    _value = v;
+    this->_value = v;
     return *this;
   }
 
@@ -1193,21 +1188,21 @@ public:
   //! Reset the code to empty.
   SYSTEM_ERROR2_CONSTEXPR14 void clear() noexcept
   {
-    _value.~value_type();
+    this->_value.~value_type();
     this->_domain = nullptr;
-    new(&_value) value_type();
+    new(&this->_value) value_type();
   }
 
 #if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
   //! Return a reference to the `value_type`.
-  constexpr value_type &value() & noexcept { return _value; }
+  constexpr value_type &value() & noexcept { return this->_value; }
   //! Return a reference to the `value_type`.
-  constexpr value_type &&value() && noexcept { return _value; }
+  constexpr value_type &&value() && noexcept { return this->_value; }
 #endif
   //! Return a reference to the `value_type`.
-  constexpr const value_type &value() const &noexcept { return _value; }
+  constexpr const value_type &value() const &noexcept { return this->_value; }
   //! Return a reference to the `value_type`.
-  constexpr const value_type &&value() const &&noexcept { return _value; }
+  constexpr const value_type &&value() const &&noexcept { return this->_value; }
 };
 
 /*! Type erased status_code, but copyable/movable/destructible unlike `status_code<void>`. Available
@@ -1679,6 +1674,221 @@ template <class DomainType1> inline bool operator!=(errc a, const status_code<Do
 SYSTEM_ERROR2_NAMESPACE_END
 
 #endif
+SYSTEM_ERROR2_NAMESPACE_BEGIN
+
+/*! A `status_code` which is always a failure. The closest equivalent to
+`std::error_code`, except it cannot be null, cannot be modified, and is templated.
+
+Differences from `status_code`:
+
+- Always a failure (this is checked at construction, and if not the case,
+the program is terminated as this is a logic error)
+- No default construction.
+- No empty state possible.
+- Is immutable.
+*/
+
+
+
+
+
+
+
+
+
+
+template <class DomainType> class errored_status_code : public status_code<DomainType>
+{
+  using _base = status_code<DomainType>;
+  using _base::clear;
+  using _base::empty;
+  using _base::success;
+  using _base::failure;
+
+  struct implicit_converting_constructor
+  {
+  };
+  struct explicit_converting_constructor
+  {
+  };
+
+public:
+  //! The type of the erased error code.
+  using _base::value_type;
+  //! The type of a reference to a message string.
+  using _base::string_ref;
+
+  using _base::_base;
+  //! Default construction not permitted.
+  errored_status_code() = delete;
+  //! Copy constructor.
+  errored_status_code(const errored_status_code &) = default;
+  //! Move constructor.
+  errored_status_code(errored_status_code &&) = default;
+  //! Copy assignment.
+  errored_status_code &operator=(const errored_status_code &) = default;
+  //! Move assignment.
+  errored_status_code &operator=(errored_status_code &&) = default;
+  ~errored_status_code() = default;
+
+  //! Implicitly construct from any convertible status code
+  template <class T, typename std::enable_if<std::is_convertible<status_code<DomainType>, T>::value, bool>::type = true>
+  constexpr errored_status_code(T &&o, implicit_converting_constructor /*unused*/ = {})
+      : _base(static_cast<T &&>(o))
+  {
+  }
+  //! Explicitly construct from any constructible status code
+  template <class T, typename std::enable_if<std::is_constructible<status_code<DomainType>, T>::value, bool>::type = true>
+  constexpr explicit errored_status_code(T &&o, explicit_converting_constructor /*unused*/ = {})
+      : _base(static_cast<T &&>(o))
+  {
+  }
+};
+
+//! True if the status code's are semantically equal via `equivalent()`.
+template <class DomainType1, class DomainType2> inline bool operator==(const status_code<DomainType1> &a, const errored_status_code<DomainType2> &b) noexcept
+{
+  return a.equivalent(b);
+}
+//! True if the status code's are semantically equal via `equivalent()`.
+template <class DomainType1, class DomainType2> inline bool operator==(const errored_status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
+{
+  return a.equivalent(b);
+}
+//! True if the status code's are not semantically equal via `equivalent()`.
+template <class DomainType1, class DomainType2> inline bool operator!=(const status_code<DomainType1> &a, const errored_status_code<DomainType2> &b) noexcept
+{
+  return !a.equivalent(b);
+}
+//! True if the status code's are not semantically equal via `equivalent()`.
+template <class DomainType1, class DomainType2> inline bool operator!=(const errored_status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
+{
+  return !a.equivalent(b);
+}
+//! True if the status code's are semantically equal via `equivalent()` to the generic code.
+template <class DomainType1> inline bool operator==(const errored_status_code<DomainType1> &a, errc b) noexcept
+{
+  return a.equivalent(generic_code(b));
+}
+//! True if the status code's are semantically equal via `equivalent()` to the generic code.
+template <class DomainType1> inline bool operator==(errc a, const errored_status_code<DomainType1> &b) noexcept
+{
+  return b.equivalent(generic_code(a));
+}
+//! True if the status code's are not semantically equal via `equivalent()` to the generic code.
+template <class DomainType1> inline bool operator!=(const errored_status_code<DomainType1> &a, errc b) noexcept
+{
+  return !a.equivalent(generic_code(b));
+}
+//! True if the status code's are not semantically equal via `equivalent()` to the generic code.
+template <class DomainType1> inline bool operator!=(errc a, const errored_status_code<DomainType1> &b) noexcept
+{
+  return !b.equivalent(generic_code(a));
+}
+
+
+SYSTEM_ERROR2_NAMESPACE_END
+
+#endif
+/* Proposed SG14 status_code
+(C) 2018 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
+File Created: Feb 2018
+
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License in the accompanying file
+Licence.txt or at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+Distributed under the Boost Software License, Version 1.0.
+(See accompanying file Licence.txt or copy at
+http://www.boost.org/LICENSE_1_0.txt)
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#ifndef SYSTEM_ERROR2_SYSTEM_CODE_HPP
+#define SYSTEM_ERROR2_SYSTEM_CODE_HPP
+/* Proposed SG14 status_code
+(C) 2018 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
+File Created: Feb 2018
+
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License in the accompanying file
+Licence.txt or at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+Distributed under the Boost Software License, Version 1.0.
+(See accompanying file Licence.txt or copy at
+http://www.boost.org/LICENSE_1_0.txt)
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#ifndef SYSTEM_ERROR2_POSIX_CODE_HPP
+#define SYSTEM_ERROR2_POSIX_CODE_HPP
+
+
+
 #include <cstring> // for strchr and strerror_r
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
@@ -3494,103 +3704,12 @@ and trivially copyable.
 
 
 
-class error : public system_code
-{
-  using system_code::clear;
-  using system_code::empty;
-  using system_code::success;
-  using system_code::failure;
-
-public:
-  //! The type of the erased error code.
-  using system_code::value_type;
-  //! The type of a reference to a message string.
-  using system_code::string_ref;
-
-  //! Default construction not permitted.
-  error() = delete;
-  //! Copy constructor.
-  error(const error &) = default;
-  //! Move constructor.
-  error(error &&) = default;
-  //! Copy assignment.
-  error &operator=(const error &) = default;
-  //! Move assignment.
-  error &operator=(error &&) = default;
-  ~error() = default;
-
-  /*! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage.
-
-  The input is checked to ensure it is a failure, if not then `SYSTEM_ERROR2_FATAL()` is called which by default calls `std::terminate()`.
-  */
-
-
-
-  template <class DomainType, //
-            typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
-  error(const status_code<DomainType> &v) noexcept : system_code(v) // NOLINT
-  {
-    if(!v.failure())
-    {
-      SYSTEM_ERROR2_FATAL("error constructed from a status code which is not a failure");
-    }
-  }
-  /*! Implicit construction from any type where an ADL discovered `make_status_code(T &&)` returns a `status_code`
-  whose value type is trivially copyable and it would fit into our storage.
-
-  The input is checked to ensure it is a failure, if not then `SYSTEM_ERROR2_FATAL()` is called which by default calls `std::terminate()`.
-  */
-
-
-
-
-  template <class T, //
-            class _IfMakeStatusCode = decltype(make_status_code(std::declval<T>())), //
-            typename std::enable_if<!std::is_same<typename std::decay<T>::type, error>::value //
-                                    && is_status_code<_IfMakeStatusCode>::value //
-                                    && detail::type_erasure_is_safe<value_type, typename _IfMakeStatusCode::value_type>::value,
-                                    bool>::type = true>
-  error(T &&v) noexcept(noexcept(make_status_code(std::declval<T>()))) // NOLINT
-  : error(make_status_code(static_cast<T &&>(v)))
-  {
-  }
-};
+using error = errored_status_code<erased<system_code::value_type>>;
 
 #ifndef NDEBUG
 static_assert(sizeof(error) == 2 * sizeof(void *), "error is not exactly two pointers in size!");
 static_assert(std::is_trivially_copyable<error>::value, "error is not trivially copyable!");
 #endif
-
-//! True if the status code's are semantically equal via `equivalent()`.
-template <class DomainType> inline bool operator==(const status_code<DomainType> &a, const error &b) noexcept
-{
-  return a.equivalent(static_cast<const system_code &>(b));
-}
-//! True if the status code's are not semantically equal via `equivalent()`.
-template <class DomainType> inline bool operator!=(const status_code<DomainType> &a, const error &b) noexcept
-{
-  return !a.equivalent(static_cast<const system_code &>(b));
-}
-//! True if the status code's are semantically equal via `equivalent()` to the generic code.
-inline bool operator==(const error &a, errc b) noexcept
-{
-  return a.equivalent(generic_code(b));
-}
-//! True if the status code's are semantically equal via `equivalent()` to the generic code.
-inline bool operator==(errc a, const error &b) noexcept
-{
-  return b.equivalent(generic_code(a));
-}
-//! True if the status code's are not semantically equal via `equivalent()` to the generic code.
-inline bool operator!=(const error &a, errc b) noexcept
-{
-  return !a.equivalent(generic_code(b));
-}
-//! True if the status code's are not semantically equal via `equivalent()` to the generic code.
-inline bool operator!=(errc a, const error &b) noexcept
-{
-  return !b.equivalent(generic_code(a));
-}
 
 SYSTEM_ERROR2_NAMESPACE_END
 
