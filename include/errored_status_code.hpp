@@ -57,9 +57,9 @@ template <class DomainType> class errored_status_code : public status_code<Domai
 
 public:
   //! The type of the erased error code.
-  using _base::value_type;
+  using typename _base::value_type;
   //! The type of a reference to a message string.
-  using _base::string_ref;
+  using typename _base::string_ref;
 
   using _base::_base;
   //! Default construction not permitted.
@@ -75,58 +75,61 @@ public:
   ~errored_status_code() = default;
 
   //! Implicitly construct from any convertible status code
-  template <class T, typename std::enable_if<std::is_convertible<status_code<DomainType>, T>::value, bool>::type = true>
+  template <class T, typename std::enable_if<std::is_convertible<T, status_code<DomainType>>::value && !std::is_constructible<status_code<DomainType>, T>::value, bool>::type = true>
   constexpr errored_status_code(T &&o, implicit_converting_constructor /*unused*/ = {})
       : _base(static_cast<T &&>(o))
   {
   }
   //! Explicitly construct from any constructible status code
-  template <class T, typename std::enable_if<std::is_constructible<status_code<DomainType>, T>::value, bool>::type = true>
+  template <class T, typename std::enable_if<!std::is_convertible<T, status_code<DomainType>>::value && std::is_constructible<status_code<DomainType>, T>::value, bool>::type = true>
   constexpr explicit errored_status_code(T &&o, explicit_converting_constructor /*unused*/ = {})
       : _base(static_cast<T &&>(o))
   {
   }
+
+  //! Return a const reference to the `value_type`.
+  constexpr const value_type &value() const &noexcept { return this->_value; }
 };
 
 //! True if the status code's are semantically equal via `equivalent()`.
 template <class DomainType1, class DomainType2> inline bool operator==(const status_code<DomainType1> &a, const errored_status_code<DomainType2> &b) noexcept
 {
-  return a.equivalent(b);
+  return a.equivalent(static_cast<const status_code<DomainType2> &>(b));
 }
 //! True if the status code's are semantically equal via `equivalent()`.
 template <class DomainType1, class DomainType2> inline bool operator==(const errored_status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
 {
-  return a.equivalent(b);
+  return static_cast<const status_code<DomainType1> &>(a).equivalent(b);
 }
 //! True if the status code's are not semantically equal via `equivalent()`.
 template <class DomainType1, class DomainType2> inline bool operator!=(const status_code<DomainType1> &a, const errored_status_code<DomainType2> &b) noexcept
 {
-  return !a.equivalent(b);
+  return !a.equivalent(static_cast<const status_code<DomainType2> &>(b));
 }
 //! True if the status code's are not semantically equal via `equivalent()`.
 template <class DomainType1, class DomainType2> inline bool operator!=(const errored_status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
 {
-  return !a.equivalent(b);
+  return !static_cast<const status_code<DomainType1> &>(a).equivalent(b);
 }
 //! True if the status code's are semantically equal via `equivalent()` to the generic code.
 template <class DomainType1> inline bool operator==(const errored_status_code<DomainType1> &a, errc b) noexcept
 {
-  return a.equivalent(generic_code(b));
+  return static_cast<const status_code<DomainType1> &>(a).equivalent(generic_code(b));
 }
 //! True if the status code's are semantically equal via `equivalent()` to the generic code.
 template <class DomainType1> inline bool operator==(errc a, const errored_status_code<DomainType1> &b) noexcept
 {
-  return b.equivalent(generic_code(a));
+  return static_cast<const status_code<DomainType1> &>(b).equivalent(generic_code(a));
 }
 //! True if the status code's are not semantically equal via `equivalent()` to the generic code.
 template <class DomainType1> inline bool operator!=(const errored_status_code<DomainType1> &a, errc b) noexcept
 {
-  return !a.equivalent(generic_code(b));
+  return !static_cast<const status_code<DomainType1> &>(a).equivalent(generic_code(b));
 }
 //! True if the status code's are not semantically equal via `equivalent()` to the generic code.
 template <class DomainType1> inline bool operator!=(errc a, const errored_status_code<DomainType1> &b) noexcept
 {
-  return !b.equivalent(generic_code(a));
+  return !static_cast<const status_code<DomainType1> &>(b).equivalent(generic_code(a));
 }
 
 

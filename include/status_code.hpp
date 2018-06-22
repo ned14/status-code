@@ -215,6 +215,29 @@ namespace detail
     static_assert(std::is_nothrow_destructible<value_type>::value, "DomainType::value_type is not nothrow destructible!");
 #endif
 
+    // Replace the type erased implementations with type aware implementations for better codegen
+    //! Return the status code domain.
+    constexpr const domain_type &domain() const noexcept { return *static_cast<const domain_type *>(this->_domain); }
+
+    //! Reset the code to empty.
+    SYSTEM_ERROR2_CONSTEXPR14 void clear() noexcept
+    {
+      this->_value.~value_type();
+      this->_domain = nullptr;
+      new(&this->_value) value_type();
+    }
+
+#if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
+    //! Return a reference to the `value_type`.
+    constexpr value_type &value() & noexcept { return this->_value; }
+    //! Return a reference to the `value_type`.
+    constexpr value_type &&value() && noexcept { return this->_value; }
+#endif
+    //! Return a reference to the `value_type`.
+    constexpr const value_type &value() const &noexcept { return this->_value; }
+    //! Return a reference to the `value_type`.
+    constexpr const value_type &&value() const &&noexcept { return this->_value; }
+
   protected:
     status_code_storage() = default;
     status_code_storage(const status_code_storage &) = default;
@@ -315,7 +338,7 @@ public:
       : status_code(reinterpret_cast<const value_type &>(v._value))  // NOLINT
   {
 #if __cplusplus >= 201400
-    assert(v.domain() == domain());
+    assert(v.domain() == this->domain());
 #endif
   }
 
@@ -326,30 +349,8 @@ public:
     return *this;
   }
 
-  // Replace the type erased implementations with type aware implementations for better codegen
-  //! Return the status code domain.
-  constexpr const domain_type &domain() const noexcept { return *static_cast<const domain_type *>(this->_domain); }
   //! Return a reference to a string textually representing a code.
-  string_ref message() const noexcept { return this->_domain ? string_ref(domain()._do_message(*this)) : string_ref("(empty)"); }
-
-  //! Reset the code to empty.
-  SYSTEM_ERROR2_CONSTEXPR14 void clear() noexcept
-  {
-    this->_value.~value_type();
-    this->_domain = nullptr;
-    new(&this->_value) value_type();
-  }
-
-#if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
-  //! Return a reference to the `value_type`.
-  constexpr value_type &value() & noexcept { return this->_value; }
-  //! Return a reference to the `value_type`.
-  constexpr value_type &&value() && noexcept { return this->_value; }
-#endif
-  //! Return a reference to the `value_type`.
-  constexpr const value_type &value() const &noexcept { return this->_value; }
-  //! Return a reference to the `value_type`.
-  constexpr const value_type &&value() const &&noexcept { return this->_value; }
+  string_ref message() const noexcept { return this->_domain ? string_ref(this->domain()._do_message(*this)) : string_ref("(empty)"); }
 };
 
 /*! Type erased status_code, but copyable/movable/destructible unlike `status_code<void>`. Available
