@@ -20,7 +20,7 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - g++-5
-    - clang-3.3
+    - clang-3.4
     - cmake
     - cmake-data
 
@@ -36,7 +36,7 @@ script:
    if [ "$CXX" = "g++" ]; then
      cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-fno-omit-frame-pointer -fsanitize=undefined" -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=undefined;
      cmake --build .;
-      bin/test-status-code;
+     bin/test-status-code;
    fi
  
 after_success:
