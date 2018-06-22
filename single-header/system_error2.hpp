@@ -480,6 +480,11 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define SYSTEM_ERROR2_NORETURN
 #endif
 #endif
+// GCCs before 7 don't grok [[noreturn]] virtual functions, and warn annoyingly
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 7
+#undef SYSTEM_ERROR2_NORETURN
+#define SYSTEM_ERROR2_NORETURN
+#endif
 
 #ifndef SYSTEM_ERROR2_NODISCARD
 #if 0 || (_HAS_CXX17 && _MSC_VER >= 1911 /* VS2017.3 */)
