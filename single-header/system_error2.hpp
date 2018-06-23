@@ -1056,6 +1056,29 @@ namespace detail
     static_assert(std::is_nothrow_destructible<value_type>::value, "DomainType::value_type is not nothrow destructible!");
 #endif
 
+    // Replace the type erased implementations with type aware implementations for better codegen
+    //! Return the status code domain.
+    constexpr const domain_type &domain() const noexcept { return *static_cast<const domain_type *>(this->_domain); }
+
+    //! Reset the code to empty.
+    SYSTEM_ERROR2_CONSTEXPR14 void clear() noexcept
+    {
+      this->_value.~value_type();
+      this->_domain = nullptr;
+      new(&this->_value) value_type();
+    }
+
+#if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
+    //! Return a reference to the `value_type`.
+    constexpr value_type &value() & noexcept { return this->_value; }
+    //! Return a reference to the `value_type`.
+    constexpr value_type &&value() && noexcept { return this->_value; }
+#endif
+    //! Return a reference to the `value_type`.
+    constexpr const value_type &value() const &noexcept { return this->_value; }
+    //! Return a reference to the `value_type`.
+    constexpr const value_type &&value() const &&noexcept { return this->_value; }
+
   protected:
     status_code_storage() = default;
     status_code_storage(const status_code_storage &) = default;
@@ -1168,41 +1191,19 @@ public:
       : status_code(reinterpret_cast<const value_type &>(v._value)) // NOLINT
   {
 #if __cplusplus >= 201400
-    assert(v.domain() == domain());
+    assert(v.domain() == this->domain());
 #endif
   }
 
   //! Assignment from a `value_type`.
-  constexpr status_code &operator=(const value_type &v) noexcept(std::is_nothrow_copy_assignable<value_type>::value)
+  SYSTEM_ERROR2_CONSTEXPR14 status_code &operator=(const value_type &v) noexcept(std::is_nothrow_copy_assignable<value_type>::value)
   {
     this->_value = v;
     return *this;
   }
 
-  // Replace the type erased implementations with type aware implementations for better codegen
-  //! Return the status code domain.
-  constexpr const domain_type &domain() const noexcept { return *static_cast<const domain_type *>(this->_domain); }
   //! Return a reference to a string textually representing a code.
-  string_ref message() const noexcept { return this->_domain ? string_ref(domain()._do_message(*this)) : string_ref("(empty)"); }
-
-  //! Reset the code to empty.
-  SYSTEM_ERROR2_CONSTEXPR14 void clear() noexcept
-  {
-    this->_value.~value_type();
-    this->_domain = nullptr;
-    new(&this->_value) value_type();
-  }
-
-#if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
-  //! Return a reference to the `value_type`.
-  constexpr value_type &value() & noexcept { return this->_value; }
-  //! Return a reference to the `value_type`.
-  constexpr value_type &&value() && noexcept { return this->_value; }
-#endif
-  //! Return a reference to the `value_type`.
-  constexpr const value_type &value() const &noexcept { return this->_value; }
-  //! Return a reference to the `value_type`.
-  constexpr const value_type &&value() const &&noexcept { return this->_value; }
+  string_ref message() const noexcept { return this->_domain ? string_ref(this->domain()._do_message(*this)) : string_ref("(empty)"); }
 };
 
 /*! Type erased status_code, but copyable/movable/destructible unlike `status_code<void>`. Available
@@ -1714,9 +1715,9 @@ template <class DomainType> class errored_status_code : public status_code<Domai
 
 public:
   //! The type of the erased error code.
-  using _base::value_type;
+  using typename _base::value_type;
   //! The type of a reference to a message string.
-  using _base::string_ref;
+  using typename _base::string_ref;
 
   using _base::_base;
   //! Default construction not permitted.
@@ -1731,59 +1732,72 @@ public:
   errored_status_code &operator=(errored_status_code &&) = default;
   ~errored_status_code() = default;
 
+  //! Implicitly construct from any similarly erased status code
+  constexpr errored_status_code(const _base &o) noexcept(std::is_nothrow_copy_constructible<_base>::value)
+      : _base(o)
+  {
+  }
+  //! Implicitly construct from any similarly erased status code
+  constexpr errored_status_code(_base &&o) noexcept(std::is_nothrow_move_constructible<_base>::value)
+      : _base(static_cast<_base &&>(o))
+  {
+  }
   //! Implicitly construct from any convertible status code
-  template <class T, typename std::enable_if<std::is_convertible<status_code<DomainType>, T>::value, bool>::type = true>
-  constexpr errored_status_code(T &&o, implicit_converting_constructor /*unused*/ = {})
+  template <class T, typename std::enable_if<std::is_convertible<T, status_code<DomainType>>::value && !std::is_constructible<status_code<DomainType>, T>::value, bool>::type = true>
+  constexpr errored_status_code(T &&o, implicit_converting_constructor /*unused*/ = {}) noexcept(std::is_nothrow_constructible<_base, T>::value)
       : _base(static_cast<T &&>(o))
   {
   }
   //! Explicitly construct from any constructible status code
-  template <class T, typename std::enable_if<std::is_constructible<status_code<DomainType>, T>::value, bool>::type = true>
-  constexpr explicit errored_status_code(T &&o, explicit_converting_constructor /*unused*/ = {})
+  template <class T, typename std::enable_if<!std::is_convertible<T, status_code<DomainType>>::value && std::is_constructible<status_code<DomainType>, T>::value, bool>::type = true>
+  constexpr explicit errored_status_code(T &&o, explicit_converting_constructor /*unused*/ = {}) noexcept(std::is_nothrow_constructible<_base, T>::value)
       : _base(static_cast<T &&>(o))
   {
   }
+
+  //! Return a const reference to the `value_type`.
+  constexpr const value_type &value() const &noexcept { return this->_value; }
 };
 
 //! True if the status code's are semantically equal via `equivalent()`.
 template <class DomainType1, class DomainType2> inline bool operator==(const status_code<DomainType1> &a, const errored_status_code<DomainType2> &b) noexcept
 {
-  return a.equivalent(b);
+  return a.equivalent(static_cast<const status_code<DomainType2> &>(b));
 }
 //! True if the status code's are semantically equal via `equivalent()`.
 template <class DomainType1, class DomainType2> inline bool operator==(const errored_status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
 {
-  return a.equivalent(b);
+  return static_cast<const status_code<DomainType1> &>(a).equivalent(b);
 }
 //! True if the status code's are not semantically equal via `equivalent()`.
 template <class DomainType1, class DomainType2> inline bool operator!=(const status_code<DomainType1> &a, const errored_status_code<DomainType2> &b) noexcept
 {
-  return !a.equivalent(b);
+  return !a.equivalent(static_cast<const status_code<DomainType2> &>(b));
 }
 //! True if the status code's are not semantically equal via `equivalent()`.
 template <class DomainType1, class DomainType2> inline bool operator!=(const errored_status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
 {
-  return !a.equivalent(b);
+  return !static_cast<const status_code<DomainType1> &>(a).equivalent(b);
 }
 //! True if the status code's are semantically equal via `equivalent()` to the generic code.
 template <class DomainType1> inline bool operator==(const errored_status_code<DomainType1> &a, errc b) noexcept
 {
-  return a.equivalent(generic_code(b));
+  return static_cast<const status_code<DomainType1> &>(a).equivalent(generic_code(b));
 }
 //! True if the status code's are semantically equal via `equivalent()` to the generic code.
 template <class DomainType1> inline bool operator==(errc a, const errored_status_code<DomainType1> &b) noexcept
 {
-  return b.equivalent(generic_code(a));
+  return static_cast<const status_code<DomainType1> &>(b).equivalent(generic_code(a));
 }
 //! True if the status code's are not semantically equal via `equivalent()` to the generic code.
 template <class DomainType1> inline bool operator!=(const errored_status_code<DomainType1> &a, errc b) noexcept
 {
-  return !a.equivalent(generic_code(b));
+  return !static_cast<const status_code<DomainType1> &>(a).equivalent(generic_code(b));
 }
 //! True if the status code's are not semantically equal via `equivalent()` to the generic code.
 template <class DomainType1> inline bool operator!=(errc a, const errored_status_code<DomainType1> &b) noexcept
 {
-  return !b.equivalent(generic_code(a));
+  return !static_cast<const status_code<DomainType1> &>(b).equivalent(generic_code(a));
 }
 
 

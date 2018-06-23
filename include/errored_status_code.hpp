@@ -74,15 +74,25 @@ public:
   errored_status_code &operator=(errored_status_code &&) = default;
   ~errored_status_code() = default;
 
+  //! Implicitly construct from any similarly erased status code
+  constexpr errored_status_code(const _base &o) noexcept(std::is_nothrow_copy_constructible<_base>::value)
+      : _base(o)
+  {
+  }
+  //! Implicitly construct from any similarly erased status code
+  constexpr errored_status_code(_base &&o) noexcept(std::is_nothrow_move_constructible<_base>::value)
+      : _base(static_cast<_base &&>(o))
+  {
+  }
   //! Implicitly construct from any convertible status code
   template <class T, typename std::enable_if<std::is_convertible<T, status_code<DomainType>>::value && !std::is_constructible<status_code<DomainType>, T>::value, bool>::type = true>
-  constexpr errored_status_code(T &&o, implicit_converting_constructor /*unused*/ = {})
+  constexpr errored_status_code(T &&o, implicit_converting_constructor /*unused*/ = {}) noexcept(std::is_nothrow_constructible<_base, T>::value)
       : _base(static_cast<T &&>(o))
   {
   }
   //! Explicitly construct from any constructible status code
   template <class T, typename std::enable_if<!std::is_convertible<T, status_code<DomainType>>::value && std::is_constructible<status_code<DomainType>, T>::value, bool>::type = true>
-  constexpr explicit errored_status_code(T &&o, explicit_converting_constructor /*unused*/ = {})
+  constexpr explicit errored_status_code(T &&o, explicit_converting_constructor /*unused*/ = {}) noexcept(std::is_nothrow_constructible<_base, T>::value)
       : _base(static_cast<T &&>(o))
   {
   }

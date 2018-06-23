@@ -20,7 +20,7 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - g++-5
-    - clang-3.6
+    - clang-3.3
     - cmake
     - cmake-data
 

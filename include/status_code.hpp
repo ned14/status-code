@@ -343,7 +343,7 @@ public:
   }
 
   //! Assignment from a `value_type`.
-  constexpr status_code &operator=(const value_type &v) noexcept(std::is_nothrow_copy_assignable<value_type>::value)
+  SYSTEM_ERROR2_CONSTEXPR14 status_code &operator=(const value_type &v) noexcept(std::is_nothrow_copy_assignable<value_type>::value)
   {
     this->_value = v;
     return *this;
