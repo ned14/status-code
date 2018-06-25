@@ -275,6 +275,9 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_error.html#standardese-system_error2__error"><code>error</code></a> &mdash; An erased <code>system_code</code> which is always a failure. The closest equivalent to <code>std::error_code</code>, except it cannot be null and cannot be modified.</p>
 </li>
 <li>
+<p><a href="doc_errored_status_code.html#standardese-system_error2__errored_status_code-DomainType-"><code>errored_status_code</code></a> &mdash; A <code>status_code</code> which is always a failure. The closest equivalent to <code>std::error_code</code>, except it cannot be modified, and is templated.</p>
+</li>
+<li>
 <p><a href="doc_status_code_domain.html#standardese-system_error2__generic_code"><code>generic_code</code></a> &mdash; The generic code is a status code with the generic code domain, which is that of <code>errc</code> (POSIX).</p>
 </li>
 <li>
@@ -299,6 +302,14 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_generic_code.html#standardese-system_error2"><code>make_status_code</code></a></p>
 </li>
 <li>
+<h3>Namespace <code>system_error2::mixins</code></h3>
+<p><span id="standardese-system_error2__mixins"></span></p>
+<p>Namespace for user injected mixins</p>
+<ul>
+<li><a href="doc_status_code.html#standardese-system_error2__mixins"><code>mixin</code></a></li>
+</ul>
+</li>
+<li>
 <p><a href="doc_nt_code.html#standardese-system_error2__nt_code"><code>nt_code</code></a> &mdash; (Windows only) A NT error code, those returned by NT kernel functions.</p>
 </li>
 <li>
@@ -308,13 +319,13 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_nt_code.html#standardese-system_error2__nt_error"><code>nt_error</code></a> &mdash; (Windows only) A specialisation of <code>status_error</code> for the NT error code domain.</p>
 </li>
 <li>
-<p><a href="doc_error.html#standardese-system_error2__operator---DomainType--status_code-DomainType-const--system_error2__errorconst--"><code>operator!=</code></a> &mdash; True if the status code’s are not semantically equal via <code>equivalent()</code>.</p>
+<p><a href="doc_generic_code.html#standardese-system_error2__operator---DomainType1-DomainType2--status_code-DomainType1-const--status_code-DomainType2-const--"><code>operator!=</code></a> &mdash; True if the status code’s are not semantically equal via <code>equivalent()</code>.</p>
 </li>
 <li>
 <p><a href="doc_iostream_support.html#standardese-system_error2__operator---DomainType---std__ostream--status_code-DomainType-const--"><code>operator&lt;&lt;</code></a> &mdash; Print the status code to a <code>std::ostream &amp;</code>.</p>
 </li>
 <li>
-<p><a href="doc_error.html#standardese-system_error2__operator---DomainType--status_code-DomainType-const--system_error2__errorconst--"><code>operator==</code></a> &mdash; True if the status code’s are semantically equal via <code>equivalent()</code>.</p>
+<p><a href="doc_generic_code.html#standardese-system_error2__operator---DomainType1-DomainType2--status_code-DomainType1-const--status_code-DomainType2-const--"><code>operator==</code></a> &mdash; True if the status code’s are semantically equal via <code>equivalent()</code>.</p>
 </li>
 <li>
 <p><a href="doc_posix_code.html#standardese-system_error2__posix_code"><code>posix_code</code></a> &mdash; A POSIX error code, those returned by <code>errno</code>.</p>

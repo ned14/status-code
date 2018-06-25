@@ -10,57 +10,20 @@ doc_error
 
 <h1>Header file <code>error.hpp</code></h1>
 <p><span id="standardese-error-hpp"></span></p>
-<pre><code class="standardese-language-cpp"><span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_system_code.html#standardese-system_code-hpp"><span class="typ dec var fun">system_code.hpp</span></a><span class="pre">&quot;</span>
+<pre><code class="standardese-language-cpp"><span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_errored_status_code.html#standardese-errored_status_code-hpp"><span class="typ dec var fun">errored_status_code.hpp</span></a><span class="pre">&quot;</span>
+
+<span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_system_code.html#standardese-system_code-hpp"><span class="typ dec var fun">system_code.hpp</span></a><span class="pre">&quot;</span>
 
 <span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
 <span class="pun">{</span>
-    <span class="kwd">class</span> <a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">error</span></a><span class="pun">;</span>
-
-    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">&gt;</span>
-    <span class="kwd">bool</span> <a href="doc_error.html#standardese-system_error2__operator---DomainType--status_code-DomainType-const--system_error2__errorconst--"><span class="typ dec var fun">operator==</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-
-    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">&gt;</span>
-    <span class="kwd">bool</span> <a href="doc_error.html#standardese-system_error2__operator---DomainType--status_code-DomainType-const--system_error2__errorconst--"><span class="typ dec var fun">operator!=</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-
-    <span class="kwd">bool</span> <a href="doc_error.html#standardese-system_error2__operator---system_error2__errorconst--system_error2__errc-"><span class="typ dec var fun">operator==</span></a><span class="pun">(</span><a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_generic_code.html#standardese-system_error2__errc"><span class="typ dec var fun">system_error2::errc</span></a> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-
-    <span class="kwd">bool</span> <a href="doc_error.html#standardese-system_error2__operator---system_error2__errc-system_error2__errorconst--"><span class="typ dec var fun">operator==</span></a><span class="pun">(</span><a href="doc_generic_code.html#standardese-system_error2__errc"><span class="typ dec var fun">system_error2::errc</span></a> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-
-    <span class="kwd">bool</span> <a href="doc_error.html#standardese-system_error2__operator---system_error2__errorconst--system_error2__errc-"><span class="typ dec var fun">operator!=</span></a><span class="pun">(</span><a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_generic_code.html#standardese-system_error2__errc"><span class="typ dec var fun">system_error2::errc</span></a> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-
-    <span class="kwd">bool</span> <a href="doc_error.html#standardese-system_error2__operator---system_error2__errc-system_error2__errorconst--"><span class="typ dec var fun">operator!=</span></a><span class="pun">(</span><a href="doc_generic_code.html#standardese-system_error2__errc"><span class="typ dec var fun">system_error2::errc</span></a> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+    <span class="kwd">using</span> <a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">error</span></a> <span class="pun">=</span> <span class="typ dec var fun">errored_status_code</span><span class="pun">&lt;</span>erased&lt;system_code::value_type&gt;<span class="pun">&gt;</span><span class="pun">;</span>
 <span class="pun">}</span>
 </code></pre>
 
 <p><span id="standardese-system_error2"></span></p>
-<h3>Class <code>system_error2::error</code></h3>
+<h3>Type alias <code>system_error2::error</code></h3>
 <p><span id="standardese-system_error2__error"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">class</span> <span class="typ dec var fun">error</span>
-<span class="pun">:</span> <span class="kwd">public</span> <span class="typ dec var fun">system_code</span>
-<span class="pun">{</span>
-<span class="kwd">public</span><span class="pun">:</span>
-    <span class="kwd">using</span> <a href="doc_system_code.html#standardese-system_error2__system_code"><span class="typ dec var fun">system_code::value_type</span></a><span class="pun">;</span>
-
-    <span class="kwd">using</span> <a href="doc_system_code.html#standardese-system_error2__system_code"><span class="typ dec var fun">system_code::string_ref</span></a><span class="pun">;</span>
-
-    <a href="doc_error.html#standardese-system_error2__error__error-T-_IfMakeStatusCode---T---"><span class="typ dec var fun">error</span></a><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">delete</span><span class="pun">;</span>
-
-    <a href="doc_error.html#standardese-system_error2__error__error-system_error2__errorconst--"><span class="typ dec var fun">error</span></a><span class="pun">(</span><span class="typ dec var fun">system_error2::error</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-
-    <a href="doc_error.html#standardese-system_error2__error__error-system_error2__error---"><span class="typ dec var fun">error</span></a><span class="pun">(</span><span class="typ dec var fun">system_error2::error</span><span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-
-    <span class="typ dec var fun">system_error2::error</span><span class="pun">&amp;</span> <a href="doc_error.html#standardese-system_error2__error__operator--system_error2__errorconst--"><span class="typ dec var fun">operator=</span></a><span class="pun">(</span><span class="typ dec var fun">system_error2::error</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-
-    <span class="typ dec var fun">system_error2::error</span><span class="pun">&amp;</span> <a href="doc_error.html#standardese-system_error2__error__operator--system_error2__error---"><span class="typ dec var fun">operator=</span></a><span class="pun">(</span><span class="typ dec var fun">system_error2::error</span><span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-
-    <span class="typ dec var fun">~error</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-
-    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">,</span> typename std::enable_if&lt;detail::type_erasure_is_safe&lt;value_type, typename DomainType::value_type&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
-    <a href="doc_error.html#standardese-system_error2__error__error-DomainType---status_code-DomainType-const--"><span class="typ dec var fun">error</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-
-    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">_IfMakeStatusCode</span> <span class="pun">=</span> decltype(make_status_code(std::declval&lt;T&gt;()))<span class="pun">,</span> typename std::enable_if&lt;!std::is_same&lt;typename std::decay&lt;T&gt;::type, error&gt;::value &amp;&amp; is_status_code&lt;_IfMakeStatusCode&gt;::value &amp;&amp; detail::type_erasure_is_safe&lt;value_type, typename _IfMakeStatusCode::value_type&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
-    <a href="doc_error.html#standardese-system_error2__error__error-T-_IfMakeStatusCode---T---"><span class="typ dec var fun">error</span></a><span class="pun">(</span><span class="typ dec var fun">T</span><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="typ dec var fun">noexcept</span><span class="pun">(</span><span class="kwd">make_status_code</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">declval</span><span class="pun">&lt;</span><span class="kwd">T</span><span class="pun">&gt;</span><span class="pun">(</span><span class="pun">)</span><span class="pun">)</span><span class="pun">)</span><span class="pun">)</span><span class="pun">;</span>
-<span class="pun">};</span>
+<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">error</span> <span class="pun">=</span> <span class="typ dec var fun">errored_status_code</span><span class="pun">&lt;</span>erased&lt;system_code::value_type&gt;<span class="pun">&gt;</span><span class="pun">;</span>
 </code></pre>
 
 <p>An erased <code>system_code</code> which is always a failure. The closest equivalent to <code>std::error_code</code>, except it cannot be null and cannot be modified.</p>
@@ -81,102 +44,5 @@ doc_error
 </li>
 </ul>
 <p>As with <code>system_code</code>, it remains guaranteed to be two CPU registers in size, and trivially copyable.</p>
-<h3>Constructor <code>system_error2::error::error</code></h3>
-<p><span id="standardese-system_error2__error__error--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="typ dec var fun">error</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">delete</span><span class="pun">;</span>
-</code></pre>
-
-<p>Default construction not permitted.</p>
-<hr />
-<h3>Constructor <code>system_error2::error::error</code></h3>
-<p><span id="standardese-system_error2__error__error-system_error2__errorconst--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="typ dec var fun">error</span><span class="pun">(</span><a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-</code></pre>
-
-<p>Copy constructor.</p>
-<hr />
-<h3>Constructor <code>system_error2::error::error</code></h3>
-<p><span id="standardese-system_error2__error__error-system_error2__error---"></span></p>
-<pre><code class="standardese-language-cpp"><span class="typ dec var fun">error</span><span class="pun">(</span><a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a><span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-</code></pre>
-
-<p>Move constructor.</p>
-<hr />
-<h3>Function <code>system_error2::error::operator=</code></h3>
-<p><span id="standardese-system_error2__error__operator--system_error2__errorconst--"></span></p>
-<pre><code class="standardese-language-cpp"><a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a><span class="pun">&amp;</span> <span class="typ dec var fun">operator=</span><span class="pun">(</span><a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-</code></pre>
-
-<p>Copy assignment.</p>
-<hr />
-<h3>Function <code>system_error2::error::operator=</code></h3>
-<p><span id="standardese-system_error2__error__operator--system_error2__error---"></span></p>
-<pre><code class="standardese-language-cpp"><a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a><span class="pun">&amp;</span> <span class="typ dec var fun">operator=</span><span class="pun">(</span><a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a><span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
-</code></pre>
-
-<p>Move assignment.</p>
-<hr />
-<h3>Constructor <code>system_error2::error::error</code></h3>
-<p><span id="standardese-system_error2__error__error-DomainType---status_code-DomainType-const--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">,</span> typename std::enable_if&lt;detail::type_erasure_is_safe&lt;value_type, typename DomainType::value_type&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
-<span class="typ dec var fun">error</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-</code></pre>
-
-<p>Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage.</p>
-<p>The input is checked to ensure it is a failure, if not then <code>SYSTEM_ERROR2_FATAL()</code> is called which by default calls <code>std::terminate()</code>.</p>
-<hr />
-<h3>Constructor <code>system_error2::error::error</code></h3>
-<p><span id="standardese-system_error2__error__error-T-_IfMakeStatusCode---T---"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">_IfMakeStatusCode</span> <span class="pun">=</span> decltype(make_status_code(std::declval&lt;T&gt;()))<span class="pun">,</span> typename std::enable_if&lt;!std::is_same&lt;typename std::decay&lt;T&gt;::type, error&gt;::value &amp;&amp; is_status_code&lt;_IfMakeStatusCode&gt;::value &amp;&amp; detail::type_erasure_is_safe&lt;value_type, typename _IfMakeStatusCode::value_type&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
-<span class="typ dec var fun">error</span><span class="pun">(</span><span class="typ dec var fun">T</span><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="typ dec var fun">noexcept</span><span class="pun">(</span><span class="kwd">make_status_code</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">declval</span><span class="pun">&lt;</span><span class="kwd">T</span><span class="pun">&gt;</span><span class="pun">(</span><span class="pun">)</span><span class="pun">)</span><span class="pun">)</span><span class="pun">)</span><span class="pun">;</span>
-</code></pre>
-
-<p>Implicit construction from any type where an ADL discovered <code>make_status_code(T &amp;&amp;)</code> returns a <code>status_code</code> whose value type is trivially copyable and it would fit into our storage.</p>
-<p>The input is checked to ensure it is a failure, if not then <code>SYSTEM_ERROR2_FATAL()</code> is called which by default calls <code>std::terminate()</code>.</p>
-<hr />
-<hr />
-<h3>Function <code>system_error2::operator==</code></h3>
-<p><span id="standardese-system_error2__operator---DomainType--status_code-DomainType-const--system_error2__errorconst--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">&gt;</span>
-<span class="kwd">bool</span> <span class="typ dec var fun">operator==</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-</code></pre>
-
-<p>True if the status code’s are semantically equal via <code>equivalent()</code>.</p>
-<hr />
-<h3>Function <code>system_error2::operator!=</code></h3>
-<p><span id="standardese-system_error2__operator---DomainType--status_code-DomainType-const--system_error2__errorconst--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">&gt;</span>
-<span class="kwd">bool</span> <span class="typ dec var fun">operator!=</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-</code></pre>
-
-<p>True if the status code’s are not semantically equal via <code>equivalent()</code>.</p>
-<hr />
-<h3>Function <code>system_error2::operator==</code></h3>
-<p><span id="standardese-system_error2__operator---system_error2__errorconst--system_error2__errc-"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">bool</span> <span class="typ dec var fun">operator==</span><span class="pun">(</span><a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_generic_code.html#standardese-system_error2__errc"><span class="typ dec var fun">system_error2::errc</span></a> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-</code></pre>
-
-<p>True if the status code’s are semantically equal via <code>equivalent()</code> to the generic code.</p>
-<hr />
-<h3>Function <code>system_error2::operator==</code></h3>
-<p><span id="standardese-system_error2__operator---system_error2__errc-system_error2__errorconst--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">bool</span> <span class="typ dec var fun">operator==</span><span class="pun">(</span><a href="doc_generic_code.html#standardese-system_error2__errc"><span class="typ dec var fun">system_error2::errc</span></a> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-</code></pre>
-
-<p>True if the status code’s are semantically equal via <code>equivalent()</code> to the generic code.</p>
-<hr />
-<h3>Function <code>system_error2::operator!=</code></h3>
-<p><span id="standardese-system_error2__operator---system_error2__errorconst--system_error2__errc-"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">bool</span> <span class="typ dec var fun">operator!=</span><span class="pun">(</span><a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_generic_code.html#standardese-system_error2__errc"><span class="typ dec var fun">system_error2::errc</span></a> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-</code></pre>
-
-<p>True if the status code’s are not semantically equal via <code>equivalent()</code> to the generic code.</p>
-<hr />
-<h3>Function <code>system_error2::operator!=</code></h3>
-<p><span id="standardese-system_error2__operator---system_error2__errc-system_error2__errorconst--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">bool</span> <span class="typ dec var fun">operator!=</span><span class="pun">(</span><a href="doc_generic_code.html#standardese-system_error2__errc"><span class="typ dec var fun">system_error2::errc</span></a> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_error.html#standardese-system_error2__error"><span class="typ dec var fun">system_error2::error</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
-</code></pre>
-
-<p>True if the status code’s are not semantically equal via <code>equivalent()</code> to the generic code.</p>
 <hr /></body>
 </html>
