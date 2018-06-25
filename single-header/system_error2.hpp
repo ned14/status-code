@@ -1108,7 +1108,7 @@ If it is found, and it generates a status code compatible with this status code,
 is made available.
 
 You may mix in custom member functions and member function overrides by injecting a specialisation of
-`mixins::mixin<Base, status_code<YourDomainType>>`. Your mixin must inherit from `Base`.
+`mixins::mixin<Base, YourDomainType>`. Your mixin must inherit from `Base`.
 */
 
 
@@ -1119,10 +1119,10 @@ You may mix in custom member functions and member function overrides by injectin
 
 
 
-template <class DomainType> class status_code : public mixins::mixin<detail::status_code_storage<DomainType>, status_code<DomainType>>
+template <class DomainType> class status_code : public mixins::mixin<detail::status_code_storage<DomainType>, DomainType>
 {
   template <class T> friend class status_code;
-  using _base = mixins::mixin<detail::status_code_storage<DomainType>, status_code<DomainType>>;
+  using _base = mixins::mixin<detail::status_code_storage<DomainType>, DomainType>;
 
 public:
   //! The type of the domain.
@@ -1145,6 +1145,7 @@ public:
   status_code &operator=(status_code &&) = default; // NOLINT
   ~status_code() = default;
 
+  /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
   template <class T, class... Args, //
             class MakeStatusCodeOutType = decltype(make_status_code(std::declval<T>(), std::declval<Args>()...)), // ADL enable
@@ -1252,6 +1253,7 @@ public:
   status_code &operator=(status_code &&) = default; // NOLINT
   ~status_code() = default;
 
+  /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
   template <class DomainType, //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
@@ -1678,18 +1680,14 @@ SYSTEM_ERROR2_NAMESPACE_END
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 /*! A `status_code` which is always a failure. The closest equivalent to
-`std::error_code`, except it cannot be null, cannot be modified, and is templated.
+`std::error_code`, except it cannot be modified, and is templated.
 
 Differences from `status_code`:
 
-- Always a failure (this is checked at construction, and if not the case,
-the program is terminated as this is a logic error)
-- No default construction.
-- No empty state possible.
+- Never successful (this contract is checked on constructed, if fails then it
+terminates the process).
 - Is immutable.
 */
-
-
 
 
 
@@ -1702,16 +1700,15 @@ template <class DomainType> class errored_status_code : public status_code<Domai
 {
   using _base = status_code<DomainType>;
   using _base::clear;
-  using _base::empty;
   using _base::success;
-  using _base::failure;
 
-  struct implicit_converting_constructor
+  void _check()
   {
-  };
-  struct explicit_converting_constructor
-  {
-  };
+    if(_base::success())
+    {
+      std::terminate();
+    }
+  }
 
 public:
   //! The type of the erased error code.
@@ -1719,9 +1716,8 @@ public:
   //! The type of a reference to a message string.
   using typename _base::string_ref;
 
-  using _base::_base;
   //! Default construction not permitted.
-  errored_status_code() = delete;
+  errored_status_code() = default;
   //! Copy constructor.
   errored_status_code(const errored_status_code &) = default;
   //! Move constructor.
@@ -1732,31 +1728,142 @@ public:
   errored_status_code &operator=(errored_status_code &&) = default;
   ~errored_status_code() = default;
 
-  //! Implicitly construct from any similarly erased status code
-  constexpr errored_status_code(const _base &o) noexcept(std::is_nothrow_copy_constructible<_base>::value)
+  //! Explicitly construct from any similarly erased status code
+  explicit errored_status_code(const _base &o) noexcept(std::is_nothrow_copy_constructible<_base>::value)
       : _base(o)
   {
+    _check();
   }
-  //! Implicitly construct from any similarly erased status code
-  constexpr errored_status_code(_base &&o) noexcept(std::is_nothrow_move_constructible<_base>::value)
+  //! Explicitly construct from any similarly erased status code
+  explicit errored_status_code(_base &&o) noexcept(std::is_nothrow_move_constructible<_base>::value)
       : _base(static_cast<_base &&>(o))
   {
+    _check();
   }
-  //! Implicitly construct from any convertible status code
-  template <class T, typename std::enable_if<std::is_convertible<T, status_code<DomainType>>::value && !std::is_constructible<status_code<DomainType>, T>::value, bool>::type = true>
-  constexpr errored_status_code(T &&o, implicit_converting_constructor /*unused*/ = {}) noexcept(std::is_nothrow_constructible<_base, T>::value)
-      : _base(static_cast<T &&>(o))
+
+  /***** KEEP THESE IN SYNC WITH STATUS_CODE *****/
+  //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
+  template <class T, class... Args, //
+            class MakeStatusCodeOutType = decltype(make_status_code(std::declval<T>(), std::declval<Args>()...)), // ADL enable
+            typename std::enable_if<!std::is_same<typename std::decay<T>::type, errored_status_code>::value // not copy/move of self
+                                    && is_status_code<MakeStatusCodeOutType>::value // ADL makes a status code
+                                    && std::is_constructible<errored_status_code, MakeStatusCodeOutType>::value, // ADLed status code is compatible
+                                    bool>::type = true>
+  errored_status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...))) // NOLINT
+  : errored_status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
+    _check();
   }
-  //! Explicitly construct from any constructible status code
-  template <class T, typename std::enable_if<!std::is_convertible<T, status_code<DomainType>>::value && std::is_constructible<status_code<DomainType>, T>::value, bool>::type = true>
-  constexpr explicit errored_status_code(T &&o, explicit_converting_constructor /*unused*/ = {}) noexcept(std::is_nothrow_constructible<_base, T>::value)
-      : _base(static_cast<T &&>(o))
+  //! Explicit in-place construction.
+  template <class... Args>
+  explicit errored_status_code(in_place_t _, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, Args &&...>::value)
+      : _base(_, static_cast<Args &&>(args)...)
   {
+    _check();
+  }
+  //! Explicit in-place construction from initialiser list.
+  template <class T, class... Args>
+  explicit errored_status_code(in_place_t _, std::initializer_list<T> il, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, std::initializer_list<T>, Args &&...>::value)
+      : _base(_, il, static_cast<Args &&>(args)...)
+  {
+    _check();
+  }
+  //! Explicit copy construction from a `value_type`.
+  explicit errored_status_code(const value_type &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
+      : _base(v)
+  {
+    _check();
+  }
+  //! Explicit move construction from a `value_type`.
+  explicit errored_status_code(value_type &&v) noexcept(std::is_nothrow_move_constructible<value_type>::value)
+      : _base(static_cast<value_type &&>(v))
+  {
+    _check();
+  }
+  /*! Explicit construction from an erased status code. Available only if
+  `value_type` is trivially destructible and `sizeof(status_code) <= sizeof(status_code<erased<>>)`.
+  Does not check if domains are equal.
+  */
+
+
+
+  template <class ErasedType, //
+            typename std::enable_if<detail::type_erasure_is_safe<ErasedType, value_type>::value, bool>::type = true>
+  explicit errored_status_code(const status_code<erased<ErasedType>> &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
+      : errored_status_code(reinterpret_cast<const value_type &>(v._value)) // NOLINT
+  {
+    assert(v.domain() == this->domain());
+    _check();
   }
 
   //! Return a const reference to the `value_type`.
   constexpr const value_type &value() const &noexcept { return this->_value; }
+};
+template <class ErasedType> class errored_status_code<erased<ErasedType>> : public status_code<erased<ErasedType>>
+{
+  using _base = status_code<erased<ErasedType>>;
+  using _base::success;
+
+  void _check()
+  {
+    if(_base::success())
+    {
+      std::terminate();
+    }
+  }
+
+public:
+  using value_type = typename _base::value_type;
+  using string_ref = typename _base::string_ref;
+
+  //! Default construction to empty
+  errored_status_code() = default;
+  //! Copy constructor
+  errored_status_code(const errored_status_code &) = default;
+  //! Move constructor
+  errored_status_code(errored_status_code &&) = default; // NOLINT
+                                                          //! Copy assignment
+  errored_status_code &operator=(const errored_status_code &) = default;
+  //! Move assignment
+  errored_status_code &operator=(errored_status_code &&) = default; // NOLINT
+  ~errored_status_code() = default;
+
+  //! Explicitly construct from any similarly erased status code
+  explicit errored_status_code(const _base &o) noexcept(std::is_nothrow_copy_constructible<_base>::value)
+      : _base(o)
+  {
+    _check();
+  }
+  //! Explicitly construct from any similarly erased status code
+  explicit errored_status_code(_base &&o) noexcept(std::is_nothrow_move_constructible<_base>::value)
+      : _base(static_cast<_base &&>(o))
+  {
+    _check();
+  }
+
+  /***** KEEP THESE IN SYNC WITH STATUS_CODE *****/
+  //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
+  template <class DomainType, //
+            typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
+  errored_status_code(const status_code<DomainType> &v) noexcept : _base(v) // NOLINT
+  {
+    _check();
+  }
+  //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
+  template <class T, class... Args, //
+            class MakeStatusCodeOutType = decltype(make_status_code(std::declval<T>(), std::declval<Args>()...)), // ADL enable
+            typename std::enable_if<!std::is_same<typename std::decay<T>::type, errored_status_code>::value // not copy/move of self
+                                    && !std::is_same<typename std::decay<T>::type, value_type>::value // not copy/move of value type
+                                    && is_status_code<MakeStatusCodeOutType>::value // ADL makes a status code
+                                    && std::is_constructible<errored_status_code, MakeStatusCodeOutType>::value, // ADLed status code is compatible
+                                    bool>::type = true>
+  errored_status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...))) // NOLINT
+  : errored_status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
+  {
+    _check();
+  }
+  //! Return the erased `value_type` by value.
+  constexpr value_type value() const noexcept { return this->_value; }
 };
 
 //! True if the status code's are semantically equal via `equivalent()`.

@@ -267,12 +267,12 @@ If it is found, and it generates a status code compatible with this status code,
 is made available.
 
 You may mix in custom member functions and member function overrides by injecting a specialisation of
-`mixins::mixin<Base, status_code<YourDomainType>>`. Your mixin must inherit from `Base`.
+`mixins::mixin<Base, YourDomainType>`. Your mixin must inherit from `Base`.
 */
-template <class DomainType> class status_code : public mixins::mixin<detail::status_code_storage<DomainType>, status_code<DomainType>>
+template <class DomainType> class status_code : public mixins::mixin<detail::status_code_storage<DomainType>, DomainType>
 {
   template <class T> friend class status_code;
-  using _base = mixins::mixin<detail::status_code_storage<DomainType>, status_code<DomainType>>;
+  using _base = mixins::mixin<detail::status_code_storage<DomainType>, DomainType>;
 
 public:
   //! The type of the domain.
@@ -295,6 +295,7 @@ public:
   status_code &operator=(status_code &&) = default;  // NOLINT
   ~status_code() = default;
 
+  /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
   template <class T, class... Args,                                                                                //
             class MakeStatusCodeOutType = decltype(make_status_code(std::declval<T>(), std::declval<Args>()...)),  // ADL enable
@@ -391,6 +392,7 @@ public:
   status_code &operator=(status_code &&) = default;  // NOLINT
   ~status_code() = default;
 
+  /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
   template <class DomainType,  //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
