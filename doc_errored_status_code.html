@@ -100,7 +100,7 @@ doc_errored_status_code
 <p>Differences from <code>status_code</code>:</p>
 <ul>
 <li>
-<p>Never successful (this contract is checked on constructed, if fails then it terminates the process).</p>
+<p>Never successful (this contract is checked on construction, if fails then it terminates the process).</p>
 </li>
 <li>
 <p>Is immutable.</p>
@@ -111,7 +111,7 @@ doc_errored_status_code
 <pre><code class="standardese-language-cpp"><span class="typ dec var fun">errored_status_code</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
 </code></pre>
 
-<p>Default construction not permitted.</p>
+<p>Default constructor.</p>
 <hr />
 <h3>Constructor <code>system_error2::errored_status_code::errored_status_code</code></h3>
 <p><span id="standardese-system_error2__errored_status_code-DomainType-__errored_status_code-consterrored_status_code-DomainType---"></span></p>
