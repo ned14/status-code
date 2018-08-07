@@ -34,7 +34,7 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 Differences from `status_code`:
 
-- Never successful (this contract is checked on constructed, if fails then it
+- Never successful (this contract is checked on construction, if fails then it
 terminates the process).
 - Is immutable.
 */
@@ -58,7 +58,7 @@ public:
   //! The type of a reference to a message string.
   using typename _base::string_ref;
 
-  //! Default construction not permitted.
+  //! Default constructor.
   errored_status_code() = default;
   //! Copy constructor.
   errored_status_code(const errored_status_code &) = default;

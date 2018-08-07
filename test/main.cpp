@@ -27,6 +27,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #include "iostream_support.hpp"
+#include "std_error_code.hpp"
 #include "system_error2.hpp"
 
 #include <cstdio>
@@ -409,6 +410,16 @@ int main()
   CHECK(adl5.value() == static_cast<int>(errc::no_link));
   (void) []()->generic_code { return errc::no_link; }
   ();
+
+  // Test std_error_code
+  std::error_code error_codes[] = {make_error_code(std::errc::permission_denied), {ERANGE, std::generic_category()}};
+  printf("\n");
+  for(size_t n = 0; n < sizeof(error_codes) / sizeof(error_codes[0]); n++)
+  {
+    std_error_code ec(error_codes[n]);
+    printf("error_code[%zu] has domain %s value (%s) and errc::permission_denied == error = %d\n", n, ec.domain().name().c_str(), ec.message().c_str(), static_cast<int>(errc::permission_denied == ec));
+    CHECK(n != 0 || ec == errc::permission_denied);
+  }
 
   return retcode;
 }
