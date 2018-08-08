@@ -35,13 +35,22 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
-template <class error_code_type> class _error_code_domain;
+namespace detail
+{
+  struct make_std_categories
+  {
+    static const std::error_category &generic_category() { return std::generic_category(); }
+    static const std::error_category &system_category() { return std::system_category(); }
+  };
+}
+
+template <class error_code_type, class make_category_types> class _error_code_domain;
 //! A wrapper of `std::error_code`.
-using std_error_code = status_code<_error_code_domain<std::error_code>>;
+using std_error_code = status_code<_error_code_domain<std::error_code, detail::make_std_categories>>;
 
 /*! The implementation of the domain for `std::error_code` error codes.
 */
-template <class error_code_type> class _error_code_domain : public status_code_domain
+template <class error_code_type, class make_categories_type> class _error_code_domain : public status_code_domain
 {
   template <class DomainType> friend class status_code;
   using _base = status_code_domain;
@@ -93,18 +102,39 @@ protected:
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const _status_code &>(code1);  // NOLINT
+    const auto &cat1 = c1.value().category();
+    // Are we comparing to another wrapped error_code?
     if(code2.domain() == *this)
     {
       const auto &c2 = static_cast<const _status_code &>(code2);  // NOLINT
-      return c1.value() == c2.value();
-    }
-    if(code2.domain() == generic_code_domain)
-    {
-      const auto &c2 = static_cast<const generic_code &>(code2);  // NOLINT
-      if(static_cast<int>(c2.value()) == static_cast<int>(c1.value().default_error_condition().value()))
+      const auto &cat2 = c2.value().category();
+      // If the error code categories are identical, do literal comparison
+      if(cat1 == cat2)
       {
-        return true;
+        return c1.value().value() == c2.value().value();
       }
+      // Otherwise fall back onto the _generic_code comparison, which uses default_error_condition()
+      return false;
+    }
+    // Am I an error code with generic category?
+    const auto &generic_category = make_categories_type::generic_category();
+    if(cat1 == generic_category)
+    {
+      // Convert to generic code, and compare that
+      generic_code _c1(static_cast<errc>(c1.value().value()));
+      return _c1 == code2;
+    }
+    // Am I an error code with system category?
+    const auto &system_category = make_categories_type::system_category();
+    if(cat1 == system_category)
+    {
+// Convert to POSIX or Win32 code, and compare that
+#ifdef _WIN32
+      win32_code _c1((win32::DWORD) c1.value().value());
+#else
+      posix_code _c1(c1.value().value());
+#endif
+      return _c1 == code2;
     }
     return false;
   }
@@ -112,6 +142,7 @@ protected:
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const _status_code &>(code);  // NOLINT
+    // Ask my embedded error code for its mapping to std::errc, which is a subset of our generic_code errc.
     return generic_code(static_cast<errc>(c.value().default_error_condition().value()));
   }
   virtual string_ref _do_message(const status_code<void> &code) const noexcept override  // NOLINT
@@ -129,9 +160,9 @@ protected:
   }
 #endif
 };
-//! A constexpr source variable for the `std::error_code` code domain. Returned by `_error_code_domain<error_code_type>::get()`.
-constexpr _error_code_domain<std::error_code> std_error_code_domain;
-template <class error_code_type> inline constexpr const _error_code_domain<error_code_type> &_error_code_domain<error_code_type>::get()
+//! A constexpr source variable for the `std::error_code` code domain. Returned by `_error_code_domain<error_code_type, detail::make_std_categoriesy>::get()`.
+constexpr _error_code_domain<std::error_code, detail::make_std_categories> std_error_code_domain;
+template <class error_code_type, class make_categories_type> inline constexpr const _error_code_domain<error_code_type, make_categories_type> &_error_code_domain<error_code_type, make_categories_type>::get()
 {
   return std_error_code_domain;
 }
