@@ -31,9 +31,13 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include "system_error2.hpp"
 
 #include <cstdio>
-#include <cstring>  // for strlen
+#include <cstring>  // for strdup, strlen
 #include <memory>
 #include <string>
+
+#ifdef _MSC_VER
+#define strdup _strdup
+#endif
 
 #define CHECK(expr)                                                                                                                                                                                                                                                                                                            \
   if(!(expr))                                                                                                                                                                                                                                                                                                                  \
@@ -300,6 +304,28 @@ int main()
   std::cout << "\ngeneric_code failure: " << failure1 << std::endl;
   std::cout << "StatusCode failure: " << failure2 << std::endl;
   std::cout << "erased<int> failure: " << failure3 << std::endl;
+
+  // Test atomic_refcounted_string_ref (used by Windows status codes)
+  {
+    using string_ref = status_code_domain::string_ref;
+    using shared_string_ref = status_code_domain::atomic_refcounted_string_ref;
+    const char msg[] = "status test message";
+
+    shared_string_ref shared_str1(strdup(msg));
+    string_ref shared_str2(shared_str1);
+    CHECK(!shared_str1.empty());
+    CHECK(!shared_str2.empty());
+    CHECK(shared_str1.data() == shared_str2.data());
+    CHECK(0 == strcmp(shared_str1.c_str(), msg));
+    CHECK(0 == strcmp(shared_str2.c_str(), msg));
+
+    string_ref shared_str3(std::move(shared_str1));
+    CHECK(shared_str1.empty());
+    CHECK(!shared_str2.empty());
+    CHECK(!shared_str3.empty());
+    CHECK(shared_str2.data() == shared_str3.data());
+    CHECK(0 == strcmp(shared_str3.c_str(), msg));
+  }
 
 #ifdef _WIN32
   // Test win32_code

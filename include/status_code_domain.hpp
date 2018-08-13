@@ -59,7 +59,7 @@ namespace detail
 }  // namespace detail
 
 /*! Abstract base class for a coding domain of a status code.
-*/
+ */
 class status_code_domain
 {
   template <class DomainType> friend class status_code;
@@ -225,7 +225,7 @@ public:
   };
 
   /*! A reference counted, threadsafe reference to a message string.
-  */
+   */
   class atomic_refcounted_string_ref : public string_ref
   {
     struct _allocated_msg
@@ -237,31 +237,39 @@ public:
 
     static void _refcounted_string_thunk(string_ref *_dest, const string_ref *_src, _thunk_op op) noexcept
     {
-      atomic_refcounted_string_ref *dest = static_cast<atomic_refcounted_string_ref *>(_dest);
-      const atomic_refcounted_string_ref *src = static_cast<const atomic_refcounted_string_ref *>(_src);
+      auto dest = static_cast<atomic_refcounted_string_ref *>(_dest);
+      auto src = static_cast<const atomic_refcounted_string_ref *>(_src);
       (void) src;
       assert(dest->_thunk == _refcounted_string_thunk);
       assert(src == nullptr || src->_thunk == _refcounted_string_thunk);
       switch(op)
       {
       case _thunk_op::copy:
-      case _thunk_op::move:
       {
         if(dest->_msg() != nullptr)
         {
-          auto count = dest->_msg()->count.fetch_add(1);
+          auto count = dest->_msg()->count.fetch_add(1, std::memory_order_relaxed);
           (void) count;
           assert(count != 0);
         }
+        return;
+      }
+      case _thunk_op::move:
+      {
+        assert(src);
+        auto msrc = const_cast<atomic_refcounted_string_ref *>(src);
+        msrc->_begin = msrc->_end = nullptr;
+        msrc->_state[0] = msrc->_state[1] = msrc->_state[2] = nullptr;
         return;
       }
       case _thunk_op::destruct:
       {
         if(dest->_msg() != nullptr)
         {
-          auto count = dest->_msg()->count.fetch_sub(1);
+          auto count = dest->_msg()->count.fetch_sub(1, std::memory_order_release);
           if(count == 1)
           {
+            std::atomic_thread_fence(std::memory_order_acquire);
             free((void *) dest->_begin);  // NOLINT
             delete dest->_msg();
           }
@@ -272,9 +280,8 @@ public:
 
   public:
     //! Construct from a C string literal allocated using `malloc()`.
-    explicit atomic_refcounted_string_ref(const char *str, size_type len = static_cast<size_type>(-1), void *state1 = nullptr, void *state2 = nullptr) noexcept : string_ref(str, len, nullptr, state1, state2)
+    explicit atomic_refcounted_string_ref(const char *str, size_type len = static_cast<size_type>(-1), void *state1 = nullptr, void *state2 = nullptr) noexcept : string_ref(str, len, new(std::nothrow) _allocated_msg{1}, state1, state2, _refcounted_string_thunk)
     {
-      _msg() = static_cast<_allocated_msg *>(calloc(1, sizeof(_allocated_msg)));  // NOLINT
       if(_msg() == nullptr)
       {
         free((void *) this->_begin);  // NOLINT
@@ -283,7 +290,6 @@ public:
         this->_end = strchr(this->_begin, 0);
         return;
       }
-      ++_msg()->count;
     }
   };
 
