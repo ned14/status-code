@@ -138,40 +138,40 @@ namespace detail
     static_assert(alignof(ErasedType) <= sizeof(ErasedType), "ErasedType must not be over-aligned");
     ErasedType value;
     char padding[N];
-    constexpr padded_erasure_object(ErasedType const &v) noexcept : value(v), padding{} {}
+    constexpr padded_erasure_object(const ErasedType &v) noexcept : value(v), padding{} {}
   };
 
   template <class To, class From,
             typename std::enable_if<is_erasure_castable<To, From>::value && (sizeof(To) == sizeof(From)), bool>::type = true>
-  constexpr To erasure_cast(From const &from) noexcept
+  constexpr To erasure_cast(const From &from) noexcept
   {
     return detail::bit_cast<To>(from);
   }
 
   template <class To, class From,
             typename std::enable_if<is_erasure_castable<To, From>::value && is_static_castable<To, From>::value && (sizeof(To) < sizeof(From)), bool>::type = true>
-  constexpr To erasure_cast(From const &from) noexcept
+  constexpr To erasure_cast(const From &from) noexcept
   {
     return static_cast<To>(detail::bit_cast<typename erasure_integer<From, To>::type>(from));
   }
 
   template <class To, class From,
             typename std::enable_if<is_erasure_castable<To, From>::value && is_static_castable<To, From>::value && (sizeof(To) > sizeof(From)), bool>::type = true>
-  constexpr To erasure_cast(From const &from) noexcept
+  constexpr To erasure_cast(const From &from) noexcept
   {
     return detail::bit_cast<To>(static_cast<typename erasure_integer<To, From>::type>(from));
   }
 
   template <class To, class From,
             typename std::enable_if<is_erasure_castable<To, From>::value && !is_static_castable<To, From>::value && (sizeof(To) < sizeof(From)), bool>::type = true>
-  constexpr To erasure_cast(From const &from) noexcept
+  constexpr To erasure_cast(const From &from) noexcept
   {
     return detail::bit_cast<padded_erasure_object<To, sizeof(From) - sizeof(To)>>(from).value;
   }
 
   template <class To, class From,
             typename std::enable_if<is_erasure_castable<To, From>::value && !is_static_castable<To, From>::value && (sizeof(To) > sizeof(From)), bool>::type = true>
-  constexpr To erasure_cast(From const &from) noexcept
+  constexpr To erasure_cast(const From &from) noexcept
   {
     return detail::bit_cast<To>(padded_erasure_object<From, sizeof(To) - sizeof(From)>{from});
   }
