@@ -487,7 +487,7 @@ public:
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
   template <class DomainType,  //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
-  constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(detail::erasure_cast<value_type, typename DomainType::value_type>(v.value()))
+  constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(detail::erasure_cast<value_type>(v.value()))
   {
   }
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
