@@ -45,6 +45,17 @@ inline std::ostream &operator<<(std::ostream &s, const status_code<DomainType> &
   return s << v.domain().name().c_str() << ": " << v.value();
 }
 
+/*! Print the erased status code to a `std::ostream &`.
+*/
+template <class ErasedType> inline std::ostream &operator<<(std::ostream &s, const status_code<erased<ErasedType>> &v)
+{
+  if(v.empty())
+  {
+    return s << "(empty)";
+  }
+  return s << v.domain().name().c_str() << ": " << v.message().c_str();
+}
+
 /*! Print the generic code to a `std::ostream &`.
 */
 inline std::ostream &operator<<(std::ostream &s, const generic_code &v)
@@ -56,13 +67,6 @@ inline std::ostream &operator<<(std::ostream &s, const generic_code &v)
   return s << v.domain().name().c_str() << ": " << v.message().c_str();
 }
 
-
-/*! Print the error to a `std::ostream &`.
-*/
-inline std::ostream &operator<<(std::ostream &s, const error &v)
-{
-  return s << v.domain().name().c_str() << ": " << v.message().c_str();
-}
 SYSTEM_ERROR2_NAMESPACE_END
 
 #endif
