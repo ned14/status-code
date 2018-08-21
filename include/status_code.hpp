@@ -72,19 +72,6 @@ struct erased
 
 namespace detail
 {
-  template <class T, class U> struct safe_reinterpret_cast
-  {
-    union {
-      T a{};
-      U b;
-    };
-    constexpr explicit safe_reinterpret_cast(const U &v)
-        : b(v)
-    {
-    }
-    constexpr T value() const { return a; }  // NOLINT
-  };
-
 #if 0
   template <class T, class U,  //
             typename std::enable_if<std::is_same<typename std::decay<decltype(make_status_code(std::declval<U>()))>::type, T>::value, bool>::type = true>
@@ -336,7 +323,7 @@ public:
   template <class ErasedType,  //
             typename std::enable_if<detail::type_erasure_is_safe<ErasedType, value_type>::value, bool>::type = true>
   constexpr explicit status_code(const status_code<erased<ErasedType>> &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
-      : status_code(reinterpret_cast<const value_type &>(v._value))  // NOLINT
+      : status_code(detail::erasure_cast<value_type>(v.value()))
   {
 #if __cplusplus >= 201400
     assert(v.domain() == this->domain());
@@ -396,7 +383,7 @@ public:
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
   template <class DomainType,  //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
-  constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(detail::safe_reinterpret_cast<value_type, typename DomainType::value_type>(v.value()).value())  // NOLINT
+  constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(detail::erasure_cast<value_type>(v.value()))
   {
   }
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.

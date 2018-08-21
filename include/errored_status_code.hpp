@@ -129,7 +129,7 @@ public:
   template <class ErasedType,  //
             typename std::enable_if<detail::type_erasure_is_safe<ErasedType, value_type>::value, bool>::type = true>
   explicit errored_status_code(const status_code<erased<ErasedType>> &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
-      : errored_status_code(reinterpret_cast<const value_type &>(v._value))  // NOLINT
+      : errored_status_code(detail::erasure_cast<value_type>(v.value()))  // NOLINT
   {
     assert(v.domain() == this->domain());
     _check();

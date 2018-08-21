@@ -35,7 +35,7 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 Requires that `DomainType::value_type` implements an `operator<<` overload for `std::ostream`.
 */
 template <class DomainType,  //
-          typename std::enable_if<std::is_same<std::ostream &, decltype(std::declval<std::ostream>() << std::declval<typename status_code<DomainType>::value_type>())>::value, bool>::type = true>
+          typename std::enable_if<std::is_same<std::ostream, typename std::decay<decltype(std::declval<std::ostream>() << std::declval<typename status_code<DomainType>::value_type>())>::type>::value, bool>::type = true>
 inline std::ostream &operator<<(std::ostream &s, const status_code<DomainType> &v)
 {
   if(v.empty())
