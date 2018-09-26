@@ -42,6 +42,7 @@ using posix_error = status_error<_posix_code_domain>;
 class _posix_code_domain : public status_code_domain
 {
   template <class DomainType> friend class status_code;
+  template <class StatusCode> friend class detail::indirecting_domain;
   using _base = status_code_domain;
 
   static _base::string_ref _make_string_ref(int c) noexcept
@@ -75,7 +76,7 @@ public:
   using _base::string_ref;
 
   //! Default constructor
-  constexpr _posix_code_domain() noexcept : _base(0xa59a56fe5f310933) {}
+  constexpr explicit _posix_code_domain(typename _base::unique_id_type id = 0xa59a56fe5f310933) noexcept : _base(id) {}
   _posix_code_domain(const _posix_code_domain &) = default;
   _posix_code_domain(_posix_code_domain &&) = default;
   _posix_code_domain &operator=(const _posix_code_domain &) = default;
@@ -87,12 +88,12 @@ public:
 
   virtual string_ref name() const noexcept override { return string_ref("posix domain"); }  // NOLINT
 protected:
-  virtual bool _do_failure(const status_code<void> &code) const noexcept override final  // NOLINT
+  virtual bool _do_failure(const status_code<void> &code) const noexcept override  // NOLINT
   {
     assert(code.domain() == *this);
     return static_cast<const posix_code &>(code).value() != 0;  // NOLINT
   }
-  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final  // NOLINT
+  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override  // NOLINT
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const posix_code &>(code1);  // NOLINT
@@ -111,7 +112,7 @@ protected:
     }
     return false;
   }
-  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final  // NOLINT
+  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const posix_code &>(code);  // NOLINT

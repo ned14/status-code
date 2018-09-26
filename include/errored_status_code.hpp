@@ -26,6 +26,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define SYSTEM_ERROR2_ERRORED_STATUS_CODE_HPP
 
 #include "generic_code.hpp"
+#include "status_code_ptr.hpp"
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
@@ -138,6 +139,15 @@ public:
   //! Return a const reference to the `value_type`.
   constexpr const value_type &value() const &noexcept { return this->_value; }
 };
+
+namespace traits
+{
+  template <class DomainType> struct is_move_relocating<errored_status_code<DomainType>>
+  {
+    static constexpr bool value = is_move_relocating<typename DomainType::value_type>::value;
+  };
+}  // namespace traits
+
 template <class ErasedType> class errored_status_code<erased<ErasedType>> : public status_code<erased<ErasedType>>
 {
   using _base = status_code<erased<ErasedType>>;
@@ -182,9 +192,20 @@ public:
 
   /***** KEEP THESE IN SYNC WITH STATUS_CODE *****/
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
-  template <class DomainType,  //
-            typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
+  template <class DomainType,                                                                              //
+            typename std::enable_if<!detail::is_erased_status_code<status_code<DomainType>>::value         //
+                                    && std::is_trivially_copyable<typename DomainType::value_type>::value  //
+                                    && detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
+                                    bool>::type = true>
   errored_status_code(const status_code<DomainType> &v) noexcept : _base(v)  // NOLINT
+  {
+    _check();
+  }
+  //! Implicit move construction from any other status code if its value type is trivially copyable or move relocating and it would fit into our storage
+  template <class DomainType,  //
+            typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
+                                    bool>::type = true>
+  errored_status_code(status_code<DomainType> &&v) noexcept : _base(static_cast<status_code<DomainType> &&>(v))  // NOLINT
   {
     _check();
   }
@@ -204,6 +225,15 @@ public:
   //! Return the erased `value_type` by value.
   constexpr value_type value() const noexcept { return this->_value; }
 };
+
+namespace traits
+{
+  template <class ErasedType> struct is_move_relocating<errored_status_code<erased<ErasedType>>>
+  {
+    static constexpr bool value = true;
+  };
+}  // namespace traits
+
 
 //! True if the status code's are semantically equal via `equivalent()`.
 template <class DomainType1, class DomainType2> inline bool operator==(const errored_status_code<DomainType1> &a, const errored_status_code<DomainType2> &b) noexcept

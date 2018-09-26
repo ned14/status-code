@@ -22,6 +22,7 @@ target_sources(status-code INTERFACE
   "${CMAKE_CURRENT_SOURCE_DIR}/include/posix_code.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/status_code.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/status_code_domain.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/status_code_ptr.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/status_error.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/std_error_code.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/system_code.hpp"

@@ -55,6 +55,7 @@ using com_error = status_error<_com_code_domain>;
 class _com_code_domain : public status_code_domain
 {
   template <class DomainType> friend class status_code;
+  template <class StatusCode> friend class detail::indirecting_domain;
   using _base = status_code_domain;
 
   //! Construct from a `HRESULT` error code
@@ -120,7 +121,7 @@ public:
 
 public:
   //! Default constructor
-  constexpr _com_code_domain() noexcept : _base(0xdc8275428b4effac) {}
+  constexpr explicit _com_code_domain(typename _base::unique_id_type id = 0xdc8275428b4effac) noexcept : _base(id) {}
   _com_code_domain(const _com_code_domain &) = default;
   _com_code_domain(_com_code_domain &&) = default;
   _com_code_domain &operator=(const _com_code_domain &) = default;
@@ -132,14 +133,14 @@ public:
 
   virtual string_ref name() const noexcept override { return string_ref("COM domain"); }  // NOLINT
 protected:
-  virtual bool _do_failure(const status_code<void> &code) const noexcept override final  // NOLINT
+  virtual bool _do_failure(const status_code<void> &code) const noexcept override  // NOLINT
   {
     assert(code.domain() == *this);
     return static_cast<const com_code &>(code).value() < 0;  // NOLINT
   }
   /*! Note semantic equivalence testing is only implemented for `FACILITY_WIN32` and `FACILITY_NT_BIT`.
   */
-  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final  // NOLINT
+  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override  // NOLINT
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const com_code &>(code1);  // NOLINT
@@ -188,7 +189,7 @@ protected:
     }
     return false;
   }
-  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final  // NOLINT
+  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c1 = static_cast<const com_code &>(code);  // NOLINT

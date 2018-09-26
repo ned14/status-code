@@ -414,7 +414,7 @@ int main()
   CHECK(failure10 == failure2);
 
   // Test error
-  error errors[] = {errc::permission_denied, failure1, failure2, failure3, failure4, failure9, failure10};
+  error errors[] = {errc::permission_denied, failure1, failure2, std::move(failure3), failure4, failure9, std::move(failure10)};
   printf("\n");
   for(size_t n = 0; n < sizeof(errors) / sizeof(errors[0]); n++)
   {
@@ -446,6 +446,12 @@ int main()
     printf("error_code[%zu] has domain %s value (%s) and errc::permission_denied == error = %d\n", n, ec.domain().name().c_str(), ec.message().c_str(), static_cast<int>(errc::permission_denied == ec));
     CHECK(n != 0 || ec == errc::permission_denied);
   }
+
+  // Test status_code_ptr
+  system_code success11(make_status_code_ptr(success9)), failure11(make_status_code_ptr(failure9));
+  printf("\n");
+  printf("Indirected success code has domain %s value (%s) and errc::permission_denied == error = %d\n", success11.domain().name().c_str(), success11.message().c_str(), static_cast<int>(errc::permission_denied == success11));
+  printf("Indirected failure code has domain %s value (%s) and errc::permission_denied == error = %d\n", failure11.domain().name().c_str(), failure11.message().c_str(), static_cast<int>(errc::permission_denied == failure11));
 
   return retcode;
 }

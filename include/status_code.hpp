@@ -58,16 +58,23 @@ namespace mixins
   {
     using Base::Base;
   };
-}
+}  // namespace mixins
 
 /*! A tag for an erased value type for `status_code<D>`.
-Available only if `ErasedType` is a trivially copyable type.
+Available only if `ErasedType` satisfies `traits::is_move_relocating<ErasedType>::value`.
 */
 template <class ErasedType,  //
-          typename std::enable_if<std::is_trivially_copyable<ErasedType>::value, bool>::type = true>
+          typename std::enable_if<traits::is_move_relocating<ErasedType>::value, bool>::type = true>
 struct erased
 {
   using value_type = ErasedType;
+};
+
+/*! A tag for an unique pointer to a `StatusCode`.
+*/
+template <class StatusCode> struct ptr
+{
+  using value_type = StatusCode *;
 };
 
 namespace detail
@@ -184,15 +191,25 @@ public:
 
 namespace detail
 {
+  template <class DomainType> struct get_domain_value_type
+  {
+    using domain_type = DomainType;
+    using value_type = typename domain_type::value_type;
+  };
+  template <class ErasedType> struct get_domain_value_type<erased<ErasedType>>
+  {
+    using domain_type = status_code_domain;
+    using value_type = ErasedType;
+  };
   template <class DomainType> class status_code_storage : public status_code<void>
   {
     using _base = status_code<void>;
 
   public:
     //! The type of the domain.
-    using domain_type = DomainType;
+    using domain_type = typename get_domain_value_type<DomainType>::domain_type;
     //! The type of the status code.
-    using value_type = typename domain_type::value_type;
+    using value_type = typename get_domain_value_type<DomainType>::value_type;
     //! The type of a reference to a message string.
     using string_ref = typename domain_type::string_ref;
 
@@ -228,9 +245,14 @@ namespace detail
   protected:
     status_code_storage() = default;
     status_code_storage(const status_code_storage &) = default;
-    status_code_storage(status_code_storage &&) = default;  // NOLINT
+    SYSTEM_ERROR2_CONSTEXPR14 status_code_storage(status_code_storage &&o) noexcept : _base(static_cast<status_code_storage &&>(o)), _value(static_cast<status_code_storage &&>(o)._value) { o._domain = nullptr; }
     status_code_storage &operator=(const status_code_storage &) = default;
-    status_code_storage &operator=(status_code_storage &&) = default;  // NOLINT
+    SYSTEM_ERROR2_CONSTEXPR14 status_code_storage &operator=(status_code_storage &&o) noexcept
+    {
+      this->~status_code_storage();
+      new(this) status_code_storage(static_cast<status_code_storage &&>(o));
+      return *this;
+    }
     ~status_code_storage() = default;
 
     value_type _value{};
@@ -247,7 +269,8 @@ namespace detail
 }
 
 /*! A lightweight, typed, status code reflecting empty, success, or failure.
-This is the main workhorse of the system_error2 library.
+This is the main workhorse of the system_error2 library. Its characteristics reflect the value type
+set by its domain type, so if that value type is move-only or trivial, so is this.
 
 An ADL discovered helper function `make_status_code(T, Args...)` is looked up by one of the constructors.
 If it is found, and it generates a status code compatible with this status code, implicit construction
@@ -281,6 +304,9 @@ public:
   //! Move assignment
   status_code &operator=(status_code &&) = default;  // NOLINT
   ~status_code() = default;
+
+  //! Return a copy of the code.
+  SYSTEM_ERROR2_CONSTEXPR14 status_code clone() const { return *this; }
 
   /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
@@ -317,7 +343,7 @@ public:
   {
   }
   /*! Explicit construction from an erased status code. Available only if
-  `value_type` is trivially destructible and `sizeof(status_code) <= sizeof(status_code<erased<>>)`.
+  `value_type` is trivially copyable or move relocating, and `sizeof(status_code) <= sizeof(status_code<erased<>>)`.
   Does not check if domains are equal.
   */
   template <class ErasedType,  //
@@ -341,19 +367,28 @@ public:
   string_ref message() const noexcept { return this->_domain ? string_ref(this->domain()._do_message(*this)) : string_ref("(empty)"); }
 };
 
-/*! Type erased status_code, but copyable/movable/destructible unlike `status_code<void>`. Available
+namespace traits
+{
+  template <class DomainType> struct is_move_relocating<status_code<DomainType>>
+  {
+    static constexpr bool value = is_move_relocating<typename DomainType::value_type>::value;
+  };
+}  // namespace traits
+
+
+/*! Type erased, move-only status_code, unlike `status_code<void>` which cannot be moved nor destroyed. Available
 only if `erased<>` is available, which is when the domain's type is trivially
-copyable, and if the size of the domain's typed error code is less than or equal to
-this erased error code.
+copyable or is move relocatable, and if the size of the domain's typed error code is less than or equal to
+this erased error code. Copy construction is disabled, but if you want a copy call `.clone()`.
 
 An ADL discovered helper function `make_status_code(T, Args...)` is looked up by one of the constructors.
 If it is found, and it generates a status code compatible with this status code, implicit construction
 is made available.
 */
-template <class ErasedType> class status_code<erased<ErasedType>> : public status_code<void>
+template <class ErasedType> class status_code<erased<ErasedType>> : public mixins::mixin<detail::status_code_storage<erased<ErasedType>>, erased<ErasedType>>
 {
   template <class T> friend class status_code;
-  using _base = status_code<void>;
+  using _base = mixins::mixin<detail::status_code_storage<erased<ErasedType>>, erased<ErasedType>>;
 
 public:
   //! The type of the domain (void, as it is erased).
@@ -363,28 +398,53 @@ public:
   //! The type of a reference to a message string.
   using string_ref = typename _base::string_ref;
 
-protected:
-  value_type _value{};
-
 public:
   //! Default construction to empty
   status_code() = default;
   //! Copy constructor
-  status_code(const status_code &) = default;
+  status_code(const status_code &) = delete;
   //! Move constructor
   status_code(status_code &&) = default;  // NOLINT
   //! Copy assignment
-  status_code &operator=(const status_code &) = default;
+  status_code &operator=(const status_code &) = delete;
   //! Move assignment
   status_code &operator=(status_code &&) = default;  // NOLINT
-  ~status_code() = default;
+  ~status_code()
+  {
+    if(nullptr != this->_domain)
+    {
+      this->_domain->_do_erased_destroy(*this, sizeof(*this));
+    }
+  }
+
+  //! Return a copy of the erased code by asking the domain to perform the erased copy.
+  status_code clone() const
+  {
+    if(nullptr == this->_domain)
+    {
+      return {};
+    }
+    status_code x;
+    this->_domain->_do_erased_copy(x, *this, sizeof(*this));
+    return x;
+  }
 
   /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
+  template <class DomainType,                                                                              //
+            typename std::enable_if<!detail::is_erased_status_code<status_code<DomainType>>::value         //
+                                    && std::is_trivially_copyable<typename DomainType::value_type>::value  //
+                                    && detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
+                                    bool>::type = true>
+  constexpr status_code(const status_code<DomainType> &v) noexcept : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
+  {
+  }
+  //! Implicit move construction from any other status code if its value type is trivially copyable or move relocating and it would fit into our storage
   template <class DomainType,  //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
-  constexpr status_code(const status_code<DomainType> &v) noexcept : _base(v), _value(detail::erasure_cast<value_type>(v.value()))
+  SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
   {
+    v._domain = nullptr;
   }
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
   template <class T, class... Args,                                                                                //
@@ -398,11 +458,21 @@ public:
   : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
   }
+
+  /**** By rights ought to be removed in any formal standard ****/
   //! Reset the code to empty.
   SYSTEM_ERROR2_CONSTEXPR14 void clear() noexcept { *this = status_code(); }
   //! Return the erased `value_type` by value.
-  constexpr value_type value() const noexcept { return _value; }
+  constexpr value_type value() const noexcept { return this->_value; }
 };
+
+namespace traits
+{
+  template <class ErasedType> struct is_move_relocating<status_code<erased<ErasedType>>>
+  {
+    static constexpr bool value = true;
+  };
+}  // namespace traits
 
 SYSTEM_ERROR2_NAMESPACE_END
 

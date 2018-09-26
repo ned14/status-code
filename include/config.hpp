@@ -122,6 +122,22 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 //! Namespace for the library
 SYSTEM_ERROR2_NAMESPACE_BEGIN
+
+//! Namespace for user specialised traits
+namespace traits
+{
+  /*! Specialise to true if you guarantee that a type is move relocating (i.e.
+  its move constructor equals copying bits from old to new, old is left in a
+  default constructed state, and calling the destructor on a default constructed
+  instance is trivial). All trivially copyable types are move relocating by
+  definition, and that is the unspecialised implementation.
+  */
+  template <class T> struct is_move_relocating
+  {
+    static constexpr bool value = std::is_trivially_copyable<T>::value;
+  };
+}  // namespace traits
+
 namespace detail
 {
   inline SYSTEM_ERROR2_CONSTEXPR14 size_t cstrlen(const char *str)
@@ -145,7 +161,7 @@ namespace detail
 
   template <class To, class From> using is_static_castable = std::integral_constant<bool, is_integral_or_enum<To>::value && is_integral_or_enum<From>::value>;
 
-  template <class To, class From> using is_bit_castable = std::integral_constant<bool, sizeof(To) == sizeof(From) && std::is_trivially_copyable<To>::value && std::is_trivially_copyable<From>::value>;
+  template <class To, class From> using is_bit_castable = std::integral_constant<bool, sizeof(To) == sizeof(From) && traits::is_move_relocating<To>::value && traits::is_move_relocating<From>::value>;
 
   template <class To, class From> union bit_cast_union {
     From source;
@@ -163,7 +179,7 @@ namespace detail
   types it may insert the value into another object with extra padding bytes
   to satisfy bit_cast's preconditions that both types have the same size. */
 
-  template <class To, class From> using is_erasure_castable = std::integral_constant<bool, std::is_trivially_copyable<To>::value && std::is_trivially_copyable<From>::value>;
+  template <class To, class From> using is_erasure_castable = std::integral_constant<bool, traits::is_move_relocating<To>::value && traits::is_move_relocating<From>::value>;
 
   template <class T, bool = std::is_enum<T>::value> struct identity_or_underlying_type
   {
@@ -179,7 +195,7 @@ namespace detail
 
   template <class ErasedType, std::size_t N> struct padded_erasure_object
   {
-    static_assert(std::is_trivially_copyable<ErasedType>::value, "ErasedType must be TriviallyCopyable");
+    static_assert(traits::is_move_relocating<ErasedType>::value, "ErasedType must be TriviallyCopyable or MoveRelocating");
     static_assert(alignof(ErasedType) <= sizeof(ErasedType), "ErasedType must not be over-aligned");
     ErasedType value;
     char padding[N];

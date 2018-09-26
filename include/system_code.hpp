@@ -52,7 +52,7 @@ using system_code = status_code<erased<intptr_t>>;
 
 #ifndef NDEBUG
 static_assert(sizeof(system_code) == 2 * sizeof(void *), "system_code is not exactly two pointers in size!");
-static_assert(std::is_trivially_copyable<system_code>::value, "system_code is not trivially copyable!");
+static_assert(traits::is_move_relocating<system_code>::value, "system_code is not move relocating!");
 #endif
 
 SYSTEM_ERROR2_NAMESPACE_END

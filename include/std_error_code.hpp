@@ -53,6 +53,7 @@ using std_error_code = status_code<_error_code_domain<std::error_code, detail::m
 template <class error_code_type, class make_categories_type> class _error_code_domain : public status_code_domain
 {
   template <class DomainType> friend class status_code;
+  template <class StatusCode> friend class detail::indirecting_domain;
   using _base = status_code_domain;
   using _status_code = status_code<_error_code_domain>;
 
@@ -81,7 +82,7 @@ public:
   using _base::string_ref;
 
   //! Default constructor
-  constexpr _error_code_domain() noexcept : _base(0x223a160d20de97b4) {}
+  constexpr explicit _error_code_domain(typename _base::unique_id_type id = 0x223a160d20de97b4) noexcept : _base(id) {}
   _error_code_domain(const _error_code_domain &) = default;
   _error_code_domain(_error_code_domain &&) = default;
   _error_code_domain &operator=(const _error_code_domain &) = default;

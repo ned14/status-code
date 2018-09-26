@@ -46,6 +46,7 @@ using generic_code = status_code<_generic_code_domain>;
 
 namespace detail
 {
+  template <class StatusCode> class indirecting_domain;
   template <class T> struct status_code_sizer
   {
     void *a;
@@ -53,7 +54,7 @@ namespace detail
   };
   template <class To, class From> struct type_erasure_is_safe
   {
-    static constexpr bool value = std::is_trivially_copyable<From>::value  //
+    static constexpr bool value = traits::is_move_relocating<From>::value  //
                                   && (sizeof(status_code_sizer<From>) <= sizeof(status_code_sizer<To>));
   };
 }  // namespace detail
@@ -63,6 +64,7 @@ namespace detail
 class status_code_domain
 {
   template <class DomainType> friend class status_code;
+  template <class StatusCode> friend class indirecting_domain;
 
 public:
   //! Type of the unique id for this domain.
@@ -340,8 +342,16 @@ protected:
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const = 0;
 #else
   // Keep a vtable slot for binary compatibility
-  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const final { abort(); }
+  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const { abort(); }
 #endif
+  // For a `status_code<erased<T>>` only, copy from `src` to `dst`. Default implementation uses `memcpy()`.
+  virtual void _do_erased_copy(status_code<void> &dst, const status_code<void> &src, size_t bytes) const { memcpy(&dst, &src, bytes); }
+  // For a `status_code<erased<T>>` only, destroy the erased value type. Default implementation does nothing.
+  virtual void _do_erased_destroy(status_code<void> &code, size_t bytes) const noexcept
+  {
+    (void) code;
+    (void) bytes;
+  }
 };
 
 SYSTEM_ERROR2_NAMESPACE_END

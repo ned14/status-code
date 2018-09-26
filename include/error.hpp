@@ -45,13 +45,13 @@ the program is terminated as this is a logic error)
 - Is immutable.
 
 As with `system_code`, it remains guaranteed to be two CPU registers in size,
-and trivially copyable.
+and move relocating.
 */
 using error = errored_status_code<erased<system_code::value_type>>;
 
 #ifndef NDEBUG
 static_assert(sizeof(error) == 2 * sizeof(void *), "error is not exactly two pointers in size!");
-static_assert(std::is_trivially_copyable<error>::value, "error is not trivially copyable!");
+static_assert(traits::is_move_relocating<error>::value, "error is not move relocating!");
 #endif
 
 SYSTEM_ERROR2_NAMESPACE_END

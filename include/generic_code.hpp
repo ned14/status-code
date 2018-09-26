@@ -214,6 +214,7 @@ namespace detail
 class _generic_code_domain : public status_code_domain
 {
   template <class> friend class status_code;
+  template <class StatusCode> friend class detail::indirecting_domain;
   using _base = status_code_domain;
 
 public:
@@ -223,7 +224,7 @@ public:
 
 public:
   //! Default constructor
-  constexpr _generic_code_domain() noexcept : _base(0x746d6354f4f733e9) {}
+  constexpr explicit _generic_code_domain(typename _base::unique_id_type id = 0x746d6354f4f733e9) noexcept : _base(id) {}
   _generic_code_domain(const _generic_code_domain &) = default;
   _generic_code_domain(_generic_code_domain &&) = default;
   _generic_code_domain &operator=(const _generic_code_domain &) = default;
@@ -235,12 +236,12 @@ public:
 
   virtual _base::string_ref name() const noexcept override { return string_ref("generic domain"); }  // NOLINT
 protected:
-  virtual bool _do_failure(const status_code<void> &code) const noexcept override final  // NOLINT
+  virtual bool _do_failure(const status_code<void> &code) const noexcept override  // NOLINT
   {
     assert(code.domain() == *this);
     return static_cast<const generic_code &>(code).value() != errc::success;  // NOLINT
   }
-  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final  // NOLINT
+  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override  // NOLINT
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const generic_code &>(code1);  // NOLINT
@@ -251,7 +252,7 @@ protected:
     }
     return false;
   }
-  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final  // NOLINT
+  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override  // NOLINT
   {
     assert(code.domain() == *this);
     return static_cast<const generic_code &>(code);  // NOLINT
