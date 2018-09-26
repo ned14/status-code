@@ -12,13 +12,27 @@ doc_errored_status_code
 <p><span id="standardese-errored_status_code-hpp"></span></p>
 <pre><code class="standardese-language-cpp"><span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_generic_code.html#standardese-generic_code-hpp"><span class="typ dec var fun">generic_code.hpp</span></a><span class="pre">&quot;</span>
 
+<span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_status_code_ptr.html#standardese-status_code_ptr-hpp"><span class="typ dec var fun">status_code_ptr.hpp</span></a><span class="pre">&quot;</span>
+
 <span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
 <span class="pun">{</span>
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">&gt;</span>
     <span class="kwd">class</span> <a href="doc_errored_status_code.html#standardese-system_error2__errored_status_code-DomainType-"><span class="typ dec var fun">errored_status_code</span></a><span class="pun">;</span>
 
+    <span class="kwd">namespace</span> <span class="typ dec var fun">traits</span>
+    <span class="pun">{</span>
+        <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">&gt;</span>
+        <span class="kwd">struct</span> <a href="doc_config.html#standardese-system_error2__traits__is_move_relocating-T-"><span class="typ dec var fun">is_move_relocating</span></a><span class="pun">&lt;</span><span class="kwd">errored_status_code</span><span class="pun">&lt;</span><span class="kwd">DomainType</span><span class="pun">&gt;</span><span class="pun">;</span>
+    <span class="pun">}</span>
+
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">&gt;</span>
     <span class="kwd">class</span> <a href="doc_errored_status_code.html#standardese-system_error2__errored_status_code-DomainType-"><span class="typ dec var fun">errored_status_code</span></a><span class="pun">&lt;</span><span class="kwd">erased</span><span class="pun">&lt;</span><span class="kwd">ErasedType</span><span class="pun">&gt;</span><span class="pun">;</span>
+
+    <span class="kwd">namespace</span> <span class="typ dec var fun">traits</span>
+    <span class="pun">{</span>
+        <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">&gt;</span>
+        <span class="kwd">struct</span> <a href="doc_config.html#standardese-system_error2__traits__is_move_relocating-T-"><span class="typ dec var fun">is_move_relocating</span></a><span class="pun">&lt;</span><span class="kwd">errored_status_code</span><span class="pun">&lt;</span><span class="kwd">erased</span><span class="pun">&lt;</span><span class="kwd">ErasedType</span><span class="pun">&gt;&gt;</span><span class="pun">&gt;</span><span class="pun">;</span>
+    <span class="pun">}</span>
 
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType1</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">DomainType2</span><span class="pun">&gt;</span>
     <span class="kwd">bool</span> <a href="doc_errored_status_code.html#standardese-system_error2__operator---DomainType1-DomainType2--errored_status_code-DomainType1-const--errored_status_code-DomainType2-const--"><span class="typ dec var fun">operator==</span></a><span class="pun">(</span><a href="doc_errored_status_code.html#standardese-system_error2__errored_status_code-DomainType-"><span class="typ dec var fun">errored_status_code</span></a><span class="pun">&lt;</span>DomainType1<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_errored_status_code.html#standardese-system_error2__errored_status_code-DomainType-"><span class="typ dec var fun">errored_status_code</span></a><span class="pun">&lt;</span>DomainType2<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
@@ -210,6 +224,8 @@ doc_errored_status_code
 <p>Return a const reference to the <code>value_type</code>.</p>
 <hr />
 <hr />
+<p><span id="standardese-system_error2__traits"></span></p>
+<p><span id="standardese-system_error2__traits"></span></p>
 <h3>Function <code>system_error2::operator==</code></h3>
 <p><span id="standardese-system_error2__operator---DomainType1-DomainType2--errored_status_code-DomainType1-const--errored_status_code-DomainType2-const--"></span></p>
 <pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType1</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">DomainType2</span><span class="pun">&gt;</span>

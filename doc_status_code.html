@@ -27,8 +27,11 @@ doc_status_code
         <span class="kwd">struct</span> <span class="typ dec var fun">mixin</span><span class="pun">;</span>
     <span class="pun">}</span>
 
-    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">,</span> typename std::enable_if&lt;std::is_trivially_copyable&lt;ErasedType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">,</span> typename std::enable_if&lt;traits::is_move_relocating&lt;ErasedType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
     <span class="kwd">struct</span> <a href="doc_status_code.html#standardese-system_error2__erased-ErasedType--"><span class="typ dec var fun">erased</span></a><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">StatusCode</span><span class="pun">&gt;</span>
+    <span class="kwd">struct</span> <a href="doc_status_code.html#standardese-system_error2__ptr-StatusCode-"><span class="typ dec var fun">ptr</span></a><span class="pun">;</span>
 
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">&gt;</span>
     <span class="kwd">struct</span> <a href="doc_status_code.html#standardese-system_error2__is_status_code-T-"><span class="typ dec var fun">is_status_code</span></a><span class="pun">;</span>
@@ -39,8 +42,20 @@ doc_status_code
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">&gt;</span>
     <span class="kwd">class</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">;</span>
 
+    <span class="kwd">namespace</span> <span class="typ dec var fun">traits</span>
+    <span class="pun">{</span>
+        <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">&gt;</span>
+        <span class="kwd">struct</span> <a href="doc_config.html#standardese-system_error2__traits__is_move_relocating-T-"><span class="typ dec var fun">is_move_relocating</span></a><span class="pun">&lt;</span><span class="kwd">status_code</span><span class="pun">&lt;</span><span class="kwd">DomainType</span><span class="pun">&gt;</span><span class="pun">;</span>
+    <span class="pun">}</span>
+
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">&gt;</span>
     <span class="kwd">class</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span><span class="kwd">erased</span><span class="pun">&lt;</span><span class="kwd">ErasedType</span><span class="pun">&gt;</span><span class="pun">;</span>
+
+    <span class="kwd">namespace</span> <span class="typ dec var fun">traits</span>
+    <span class="pun">{</span>
+        <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">&gt;</span>
+        <span class="kwd">struct</span> <a href="doc_config.html#standardese-system_error2__traits__is_move_relocating-T-"><span class="typ dec var fun">is_move_relocating</span></a><span class="pun">&lt;</span><span class="kwd">status_code</span><span class="pun">&lt;</span><span class="kwd">erased</span><span class="pun">&lt;</span><span class="kwd">ErasedType</span><span class="pun">&gt;&gt;</span><span class="pun">&gt;</span><span class="pun">;</span>
+    <span class="pun">}</span>
 <span class="pun">}</span>
 </code></pre>
 
@@ -76,7 +91,7 @@ doc_status_code
 <hr />
 <h3>Struct <code>system_error2::erased</code></h3>
 <p><span id="standardese-system_error2__erased-ErasedType--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">,</span> typename std::enable_if&lt;std::is_trivially_copyable&lt;ErasedType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">,</span> typename std::enable_if&lt;traits::is_move_relocating&lt;ErasedType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
 <span class="kwd">struct</span> <span class="typ dec var fun">erased</span>
 <span class="pun">{</span>
     <span class="kwd">using</span> <span class="typ dec var fun">value_type</span> <span class="pun">=</span> <span class="typ dec var fun">ErasedType</span><span class="pun">;</span>
@@ -84,7 +99,18 @@ doc_status_code
 </code></pre>
 
 <p>A tag for an erased value type for <code>status_code&lt;D&gt;</code>.</p>
-<p>Available only if <code>ErasedType</code> is a trivially copyable type.</p>
+<p>Available only if <code>ErasedType</code> satisfies <code>traits::is_move_relocating&lt;ErasedType&gt;::value</code>.</p>
+<hr />
+<h3>Struct <code>system_error2::ptr</code></h3>
+<p><span id="standardese-system_error2__ptr-StatusCode-"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">StatusCode</span><span class="pun">&gt;</span>
+<span class="kwd">struct</span> <span class="typ dec var fun">ptr</span>
+<span class="pun">{</span>
+    <span class="kwd">using</span> <span class="typ dec var fun">value_type</span> <span class="pun">=</span> <span class="typ dec var fun">StatusCode</span><span class="pun">*</span><span class="pun">;</span>
+<span class="pun">};</span>
+</code></pre>
+
+<p>A tag for an unique pointer to a <code>StatusCode</code>.</p>
 <hr />
 <h3>Struct <code>system_error2::is_status_code</code></h3>
 <p><span id="standardese-system_error2__is_status_code-T-"></span></p>
@@ -305,6 +331,8 @@ doc_status_code
 
     <span class="typ dec var fun">~status_code</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
 
+    <span class="kwd">constexpr</span> status_code&lt;DomainType&gt; <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-__clone--const"><span class="typ dec var fun">clone</span></a><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span><span class="pun">;</span>
+
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> <span class="kwd">class</span> <span class="pun">...</span> <span class="typ dec var fun">Args</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">MakeStatusCodeOutType</span> <span class="pun">=</span> decltype(make_status_code(std::declval&lt;T&gt;(),std::declval&lt;Args&gt;()...))<span class="pun">,</span> typename std::enable_if&lt;!std::is_same&lt;typename std::decay&lt;T&gt;::type, status_code&lt;DomainType&gt; &gt;::value &amp;&amp; is_status_code&lt;MakeStatusCodeOutType&gt;::value &amp;&amp; std::is_constructible&lt;status_code&lt;DomainType&gt;, MakeStatusCodeOutType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
     <span class="kwd">constexpr</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-__status_code-T-Args-MakeStatusCodeOutType---T---Args------"><span class="typ dec var fun">status_code</span></a><span class="pun">(</span><span class="typ dec var fun">T</span><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">v</span><span class="pun">,</span> Args &amp;&amp;... <span class="typ dec var fun">args</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="typ dec var fun">noexcept</span><span class="pun">(</span><span class="kwd">make_status_code</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">declval</span><span class="pun">&lt;</span><span class="kwd">T</span><span class="pun">&gt;</span><span class="pun">(</span><span class="pun">)</span><span class="pun">,</span> <span class="kwd">std</span><span class="pun">::</span><span class="kwd">declval</span><span class="pun">&lt;</span><span class="kwd">Args</span><span class="pun">&gt;</span><span class="pun">(</span><span class="pun">)</span><span class="pun">...</span><span class="pun">)</span><span class="pun">)</span><span class="pun">)</span><span class="pun">;</span>
 
@@ -328,7 +356,7 @@ doc_status_code
 </code></pre>
 
 <p>A lightweight, typed, status code reflecting empty, success, or failure.</p>
-<p>This is the main workhorse of the system_error2 library.</p>
+<p>This is the main workhorse of the system_error2 library. Its characteristics reflect the value type set by its domain type, so if that value type is move-only or trivial, so is this.</p>
 <p>An ADL discovered helper function <code>make_status_code(T, Args...)</code> is looked up by one of the constructors. If it is found, and it generates a status code compatible with this status code, implicit construction is made available.</p>
 <p>You may mix in custom member functions and member function overrides by injecting a specialisation of <code>mixins::mixin&lt;Base, YourDomainType&gt;</code>. Your mixin must inherit from <code>Base</code>.</p>
 <h3>Type alias <code>system_error2::status_code::domain_type</code></h3>
@@ -387,6 +415,13 @@ doc_status_code
 
 <p>Move assignment</p>
 <hr />
+<h3>Function <code>system_error2::status_code::clone</code></h3>
+<p><span id="standardese-system_error2__status_code-DomainType-__clone--const"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">constexpr</span> status_code&lt;DomainType&gt; <span class="typ dec var fun">clone</span><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span><span class="pun">;</span>
+</code></pre>
+
+<p>Return a copy of the code.</p>
+<hr />
 <h3>Constructor <code>system_error2::status_code::status_code</code></h3>
 <p><span id="standardese-system_error2__status_code-DomainType-__status_code-T-Args-MakeStatusCodeOutType---T---Args------"></span></p>
 <pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> <span class="kwd">class</span> <span class="pun">...</span> <span class="typ dec var fun">Args</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">MakeStatusCodeOutType</span> <span class="pun">=</span> decltype(make_status_code(std::declval&lt;T&gt;(),std::declval&lt;Args&gt;()...))<span class="pun">,</span> typename std::enable_if&lt;!std::is_same&lt;typename std::decay&lt;T&gt;::type, status_code&lt;DomainType&gt; &gt;::value &amp;&amp; is_status_code&lt;MakeStatusCodeOutType&gt;::value &amp;&amp; std::is_constructible&lt;status_code&lt;DomainType&gt;, MakeStatusCodeOutType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
@@ -431,7 +466,7 @@ doc_status_code
 <span class="kwd">constexpr</span> <span class="typ dec var fun">status_code</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;ErasedType&gt;<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">is_nothrow_copy_constructible</span><span class="pun">&lt;</span><span class="kwd">value_type</span><span class="pun">&gt;</span><span class="pun">::</span><span class="kwd">value</span><span class="pun">)</span><span class="pun">;</span>
 </code></pre>
 
-<p>Explicit construction from an erased status code. Available only if <code>value_type</code> is trivially destructible and <code>sizeof(status_code) &lt;= sizeof(status_code&lt;erased&lt;&gt;&gt;)</code>.</p>
+<p>Explicit construction from an erased status code. Available only if <code>value_type</code> is trivially copyable or move relocating, and <code>sizeof(status_code) &lt;= sizeof(status_code&lt;erased&lt;&gt;&gt;)</code>.</p>
 <p>Does not check if domains are equal.</p>
 <hr />
 <h3>Function <code>system_error2::status_code::operator=</code></h3>
@@ -449,37 +484,36 @@ doc_status_code
 <p>Return a reference to a string textually representing a code.</p>
 <hr />
 <hr />
+<p><span id="standardese-system_error2__traits"></span></p>
 <h3>Class <code>system_error2::status_code</code></h3>
 <p><span id="standardese-system_error2__status_code-ErasedType-"></span></p>
 <pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">&gt;</span>
 <span class="kwd">class</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span><span class="kwd">erased</span><span class="pun">&lt;</span><span class="kwd">ErasedType</span><span class="pun">&gt;</span>
-<span class="pun">:</span> <span class="kwd">public</span> <span class="typ dec var fun">status_code&lt;void&gt;</span>
+<span class="pun">:</span> <span class="kwd">public</span> <span class="typ dec var fun">mixins::mixin&lt;detail::status_code_storage&lt;erased&lt;ErasedType&gt;&gt;,erased&lt;ErasedType&gt;&gt;</span>
 <span class="pun">{</span>
 <span class="kwd">public</span><span class="pun">:</span>
     <span class="kwd">using</span> <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__domain_type"><span class="typ dec var fun">domain_type</span></a> <span class="pun">=</span> <span class="kwd">void</span><span class="pun">;</span>
 
     <span class="kwd">using</span> <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__value_type"><span class="typ dec var fun">value_type</span></a> <span class="pun">=</span> <span class="typ dec var fun">ErasedType</span><span class="pun">;</span>
 
-    <span class="kwd">using</span> <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__string_ref"><span class="typ dec var fun">string_ref</span></a> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-__string_ref"><span class="typ dec var fun">typename _base::string_ref</span></a><span class="pun">;</span>
+    <span class="kwd">using</span> <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__string_ref"><span class="typ dec var fun">string_ref</span></a> <span class="pun">=</span> typename _base::string_ref<span class="pun">;</span>
 
-<span class="kwd">protected</span><span class="pun">:</span>
-    <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__value_type"><span class="typ dec var fun">value_type</span></a> <span class="typ dec var fun">_value</span><span class="pun">;</span>
-
-<span class="kwd">public</span><span class="pun">:</span>
     <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__status_code--"><span class="typ dec var fun">status_code</span></a><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
 
-    <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__status_code-status_code-erased-type-parameter-0-0-true--const--"><span class="typ dec var fun">status_code</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+    <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__status_code-status_code-erased-type-parameter-0-0-true--const--"><span class="typ dec var fun">status_code</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">delete</span><span class="pun">;</span>
 
     <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__status_code-status_code-erased-type-parameter-0-0-true-----"><span class="typ dec var fun">status_code</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span><span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
 
-    <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span><span class="pun">&amp;</span> <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__operator--status_code-erased-type-parameter-0-0-true--const--"><span class="typ dec var fun">operator=</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+    <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span><span class="pun">&amp;</span> <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__operator--status_code-erased-type-parameter-0-0-true--const--"><span class="typ dec var fun">operator=</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">delete</span><span class="pun">;</span>
 
     <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span><span class="pun">&amp;</span> <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__operator--status_code-erased-type-parameter-0-0-true-----"><span class="typ dec var fun">operator=</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span><span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
 
-    <span class="typ dec var fun">~status_code</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+    <span class="typ dec var fun">~status_code</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+
+    <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span> <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__clone--const"><span class="typ dec var fun">clone</span></a><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span><span class="pun">;</span>
 
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">,</span> typename std::enable_if&lt;detail::type_erasure_is_safe&lt;value_type, typename DomainType::value_type&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
-    <span class="kwd">constexpr</span> <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__status_code-DomainType---status_code-DomainType-const--"><span class="typ dec var fun">status_code</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+    <span class="kwd">constexpr</span> <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__status_code-DomainType---status_code-DomainType----"><span class="typ dec var fun">status_code</span></a><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> <span class="kwd">class</span> <span class="pun">...</span> <span class="typ dec var fun">Args</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">MakeStatusCodeOutType</span> <span class="pun">=</span> decltype(make_status_code(std::declval&lt;T&gt;(),std::declval&lt;Args&gt;()...))<span class="pun">,</span> typename std::enable_if&lt;!std::is_same&lt;typename std::decay&lt;T&gt;::type, status_code&lt;erased&lt;type-parameter-0-0, true&gt; &gt; &gt;::value &amp;&amp; !std::is_same&lt;typename std::decay&lt;T&gt;::type, value_type&gt;::value &amp;&amp; is_status_code&lt;MakeStatusCodeOutType&gt;::value &amp;&amp; std::is_constructible&lt;status_code&lt;erased&lt;type-parameter-0-0, true&gt; &gt;, MakeStatusCodeOutType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
     <span class="kwd">constexpr</span> <a href="doc_status_code.html#standardese-system_error2__status_code-ErasedType-__status_code-T-Args-MakeStatusCodeOutType---T---Args------"><span class="typ dec var fun">status_code</span></a><span class="pun">(</span><span class="typ dec var fun">T</span><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">v</span><span class="pun">,</span> Args &amp;&amp;... <span class="typ dec var fun">args</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">(</span><span class="typ dec var fun">noexcept</span><span class="pun">(</span><span class="kwd">make_status_code</span><span class="pun">(</span><span class="kwd">std</span><span class="pun">::</span><span class="kwd">declval</span><span class="pun">&lt;</span><span class="kwd">T</span><span class="pun">&gt;</span><span class="pun">(</span><span class="pun">)</span><span class="pun">,</span> <span class="kwd">std</span><span class="pun">::</span><span class="kwd">declval</span><span class="pun">&lt;</span><span class="kwd">Args</span><span class="pun">&gt;</span><span class="pun">(</span><span class="pun">)</span><span class="pun">...</span><span class="pun">)</span><span class="pun">)</span><span class="pun">)</span><span class="pun">;</span>
@@ -490,7 +524,7 @@ doc_status_code
 <span class="pun">};</span>
 </code></pre>
 
-<p>Type erased status_code, but copyable/movable/destructible unlike <code>status_code&lt;void&gt;</code>. Available only if <code>erased&lt;&gt;</code> is available, which is when the domain’s type is trivially copyable, and if the size of the domain’s typed error code is less than or equal to this erased error code.</p>
+<p>Type erased, move-only status_code, unlike <code>status_code&lt;void&gt;</code> which cannot be moved nor destroyed. Available only if <code>erased&lt;&gt;</code> is available, which is when the domain’s type is trivially copyable or is move relocatable, and if the size of the domain’s typed error code is less than or equal to this erased error code. Copy construction is disabled, but if you want a copy call <code>.clone()</code>.</p>
 <p>An ADL discovered helper function <code>make_status_code(T, Args...)</code> is looked up by one of the constructors. If it is found, and it generates a status code compatible with this status code, implicit construction is made available.</p>
 <h3>Type alias <code>system_error2::status_code::domain_type</code></h3>
 <p><span id="standardese-system_error2__status_code-ErasedType-__domain_type"></span></p>
@@ -508,7 +542,7 @@ doc_status_code
 <hr />
 <h3>Type alias <code>system_error2::status_code::string_ref</code></h3>
 <p><span id="standardese-system_error2__status_code-ErasedType-__string_ref"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">string_ref</span> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-__string_ref"><span class="typ dec var fun">typename _base::string_ref</span></a><span class="pun">;</span>
+<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">string_ref</span> <span class="pun">=</span> typename _base::string_ref<span class="pun">;</span>
 </code></pre>
 
 <p>The type of a reference to a message string.</p>
@@ -522,7 +556,7 @@ doc_status_code
 <hr />
 <h3>Constructor <code>system_error2::status_code::status_code</code></h3>
 <p><span id="standardese-system_error2__status_code-ErasedType-__status_code-status_code-erased-type-parameter-0-0-true--const--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="typ dec var fun">status_code</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+<pre><code class="standardese-language-cpp"><span class="typ dec var fun">status_code</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">delete</span><span class="pun">;</span>
 </code></pre>
 
 <p>Copy constructor</p>
@@ -536,7 +570,7 @@ doc_status_code
 <hr />
 <h3>Function <code>system_error2::status_code::operator=</code></h3>
 <p><span id="standardese-system_error2__status_code-ErasedType-__operator--status_code-erased-type-parameter-0-0-true--const--"></span></p>
-<pre><code class="standardese-language-cpp"><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span><span class="pun">&amp;</span> <span class="typ dec var fun">operator=</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+<pre><code class="standardese-language-cpp"><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span><span class="pun">&amp;</span> <span class="typ dec var fun">operator=</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">delete</span><span class="pun">;</span>
 </code></pre>
 
 <p>Copy assignment</p>
@@ -548,13 +582,20 @@ doc_status_code
 
 <p>Move assignment</p>
 <hr />
-<h3>Constructor <code>system_error2::status_code::status_code</code></h3>
-<p><span id="standardese-system_error2__status_code-ErasedType-__status_code-DomainType---status_code-DomainType-const--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">,</span> typename std::enable_if&lt;detail::type_erasure_is_safe&lt;value_type, typename DomainType::value_type&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
-<span class="kwd">constexpr</span> <span class="typ dec var fun">status_code</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+<h3>Function <code>system_error2::status_code::clone</code></h3>
+<p><span id="standardese-system_error2__status_code-ErasedType-__clone--const"></span></p>
+<pre><code class="standardese-language-cpp"><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;type-parameter-0-0, true&gt;<span class="pun">&gt;</span> <span class="typ dec var fun">clone</span><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span><span class="pun">;</span>
 </code></pre>
 
-<p>Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage</p>
+<p>Return a copy of the erased code by asking the domain to perform the erased copy.</p>
+<hr />
+<h3>Constructor <code>system_error2::status_code::status_code</code></h3>
+<p><span id="standardese-system_error2__status_code-ErasedType-__status_code-DomainType---status_code-DomainType----"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">,</span> typename std::enable_if&lt;detail::type_erasure_is_safe&lt;value_type, typename DomainType::value_type&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
+<span class="kwd">constexpr</span> <span class="typ dec var fun">status_code</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>DomainType<span class="pun">&gt;</span><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+</code></pre>
+
+<p>Implicit move construction from any other status code if its value type is trivially copyable or move relocating and it would fit into our storage</p>
 <hr />
 <h3>Constructor <code>system_error2::status_code::status_code</code></h3>
 <p><span id="standardese-system_error2__status_code-ErasedType-__status_code-T-Args-MakeStatusCodeOutType---T---Args------"></span></p>
@@ -578,5 +619,6 @@ doc_status_code
 
 <p>Return the erased <code>value_type</code> by value.</p>
 <hr />
-<hr /></body>
+<hr />
+<p><span id="standardese-system_error2__traits"></span></p></body>
 </html>

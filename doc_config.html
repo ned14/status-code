@@ -24,6 +24,11 @@ doc_config
 
 <span class="kwd">namespace</span> <a href="index.html#standardese-system_error2"><span class="typ dec var fun">system_error2</span></a>
 <span class="pun">{</span>
+    <span class="kwd">namespace</span> <a href="index.html#standardese-system_error2__traits"><span class="typ dec var fun">traits</span></a>
+    <span class="pun">{</span>
+        <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">&gt;</span>
+        <span class="kwd">struct</span> <a href="doc_config.html#standardese-system_error2__traits__is_move_relocating-T-"><span class="typ dec var fun">is_move_relocating</span></a><span class="pun">;</span>
+    <span class="pun">}</span>
 <span class="pun">}</span>
 
 <span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
@@ -61,14 +66,19 @@ doc_config
 
 <p>Ends the system_error2 namespace.</p>
 <hr />
-<h2>Namespace <code>system_error2</code></h2>
 <p><span id="standardese-system_error2"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
+<p><span id="standardese-system_error2__traits"></span></p>
+<h3>Struct <code>system_error2::traits::is_move_relocating</code></h3>
+<p><span id="standardese-system_error2__traits__is_move_relocating-T-"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">&gt;</span>
+<span class="kwd">struct</span> <span class="typ dec var fun">is_move_relocating</span>
 <span class="pun">{</span>
-<span class="pun">}</span>
+    <span class="kwd">static</span> <span class="kwd">constexpr</span> <span class="kwd">bool</span> <span class="kwd">const</span> <span class="typ dec var fun">value</span><span class="pun">;</span>
+<span class="pun">};</span>
 </code></pre>
 
-<p>Namespace for the library</p>
+<p>Specialise to true if you guarantee that a type is move relocating (i.e.</p>
+<p>its move constructor equals copying bits from old to new, old is left in a default constructed state, and calling the destructor on a default constructed instance is trivial). All trivially copyable types are move relocating by definition, and that is the unspecialised implementation.</p>
 <hr />
 <p><span id="standardese-system_error2"></span></p>
 <h2>Macro <code>SYSTEM_ERROR2_FATAL</code></h2>

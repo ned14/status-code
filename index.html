@@ -245,7 +245,7 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_com_code.html#standardese-system_error2___com_code_domain"><code>_com_code_domain</code></a> &mdash; (Windows only) The implementation of the domain for COM error codes and/or <code>IErrorInfo</code>.</p>
 </li>
 <li>
-<p><a href="doc_std_error_code.html#standardese-system_error2___error_code_domain-error_code_type-"><code>_error_code_domain</code></a> &mdash; The implementation of the domain for <code>std::error_code</code> error codes.</p>
+<p><a href="doc_std_error_code.html#standardese-system_error2___error_code_domain-error_code_type-make_categories_type-"><code>_error_code_domain</code></a> &mdash; The implementation of the domain for <code>std::error_code</code> error codes.</p>
 </li>
 <li>
 <p><a href="doc_generic_code.html#standardese-system_error2___generic_code_domain"><code>_generic_code_domain</code></a> &mdash; The implementation of the domain for generic status codes, those mapped by <code>errc</code> (POSIX).</p>
@@ -293,7 +293,7 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_generic_code.html#standardese-system_error2__generic_error"><code>generic_error</code></a> &mdash; A specialisation of <code>status_error</code> for the generic code domain.</p>
 </li>
 <li>
-<p><a href="doc_win32_code.html#standardese-system_error2"><code>get</code></a></p>
+<p><a href="doc_std_error_code.html#standardese-system_error2"><code>get</code></a></p>
 </li>
 <li>
 <p><a href="doc_status_code.html#standardese-system_error2__in_place"><code>in_place</code></a> &mdash; Aliases <code>std::in_place</code> if on C++ 17 or later, else defined locally.</p>
@@ -306,6 +306,9 @@ code with fewer unintended portability problems.</p>
 </li>
 <li>
 <p><a href="doc_generic_code.html#standardese-system_error2"><code>make_status_code</code></a></p>
+</li>
+<li>
+<p><a href="doc_status_code_ptr.html#standardese-system_error2__make_status_code_ptr-T---T---"><code>make_status_code_ptr</code></a> &mdash; Make an erased status code which indirects to a dynamically allocated status code.</p>
 </li>
 <li>
 <h3>Namespace <code>system_error2::mixins</code></h3>
@@ -343,6 +346,9 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_posix_code.html#standardese-system_error2__posix_error"><code>posix_error</code></a> &mdash; A specialisation of <code>status_error</code> for the POSIX error code domain.</p>
 </li>
 <li>
+<p><a href="doc_status_code.html#standardese-system_error2__ptr-StatusCode-"><code>ptr</code></a> &mdash; A tag for an unique pointer to a <code>StatusCode</code>.</p>
+</li>
+<li>
 <p><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><code>status_code</code></a> &mdash; The main workhorse of the system_error2 library, can be typed (<code>status_code&lt;DomainType&gt;</code>), erased-immutable (<code>status_code&lt;void&gt;</code>) or erased-mutable (<code>status_code&lt;erased&lt;T&gt;&gt;</code>).</p>
 </li>
 <li>
@@ -355,13 +361,21 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_std_error_code.html#standardese-system_error2__std_error_code"><code>std_error_code</code></a> &mdash; A wrapper of <code>std::error_code</code>.</p>
 </li>
 <li>
-<p><a href="doc_std_error_code.html#standardese-system_error2__std_error_code_domain"><code>std_error_code_domain</code></a> &mdash; A constexpr source variable for the <code>std::error_code</code> code domain. Returned by <code>_error_code_domain&lt;error_code_type&gt;::get()</code>.</p>
+<p><a href="doc_std_error_code.html#standardese-system_error2__std_error_code_domain"><code>std_error_code_domain</code></a> &mdash; A constexpr source variable for the <code>std::error_code</code> code domain. Returned by <code>_error_code_domain&lt;error_code_type, detail::make_std_categoriesy&gt;::get()</code>.</p>
 </li>
 <li>
 <p><a href="doc_system_code.html#standardese-system_error2__system_code"><code>system_code</code></a> &mdash; An erased-mutable status code suitably large for all the system codes which can be returned on this system.</p>
 </li>
 <li>
 <p><a href="doc_system_code_from_exception.html#standardese-system_error2__system_code_from_exception-std__exception_ptr---system_error2__system_code-"><code>system_code_from_exception</code></a> &mdash; A utility function which returns the closest matching system_code to a supplied exception ptr.</p>
+</li>
+<li>
+<h3>Namespace <code>system_error2::traits</code></h3>
+<p><span id="standardese-system_error2__traits"></span></p>
+<p>Namespace for user specialised traits</p>
+<ul>
+<li><a href="doc_config.html#standardese-system_error2__traits__is_move_relocating-T-"><code>is_move_relocating</code></a> &mdash; Specialise to true if you guarantee that a type is move relocating (i.e.</li>
+</ul>
 </li>
 <li>
 <p><a href="doc_win32_code.html#standardese-system_error2__win32_code"><code>win32_code</code></a> &mdash; (Windows only) A Win32 error code, those returned by <code>GetLastError()</code>.</p>
