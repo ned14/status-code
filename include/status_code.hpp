@@ -70,26 +70,8 @@ struct erased
   using value_type = ErasedType;
 };
 
-/*! A tag for an unique pointer to a `StatusCode`.
-*/
-template <class StatusCode> struct ptr
-{
-  using value_type = StatusCode *;
-};
-
 namespace detail
 {
-#if 0
-  template <class T, class U,  //
-            typename std::enable_if<std::is_same<typename std::decay<decltype(make_status_code(std::declval<U>()))>::type, T>::value, bool>::type = true>
-  constexpr inline int has_make_status_code(U &&);
-  template <class T, class U> constexpr inline char has_make_status_code(...);
-  template <class T, class U> struct is_implicit_construction_enabled
-  {
-    static constexpr bool value = sizeof(has_make_status_code<T, U>(std::declval<U>())) == sizeof(int);
-  };
-#endif
-
   template <class T> struct is_status_code
   {
     static constexpr bool value = false;
@@ -106,6 +88,32 @@ namespace detail
   {
     static constexpr bool value = true;
   };
+
+  // From http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4436.pdf
+  namespace impl
+  {
+    template <typename... Ts> struct make_void
+    {
+      using type = void;
+    };
+    template <typename... Ts> using void_t = typename make_void<Ts...>::type;
+    template <class...> struct types
+    {
+      using type = types;
+    };
+    template <template <class...> class T, class types, class = void> struct test_apply
+    {
+      using type = void;
+    };
+    template <template <class...> class T, class... Ts> struct test_apply<T, types<Ts...>, void_t<T<Ts...>>>
+    {
+      using type = T<Ts...>;
+    };
+  };
+  template <template <class...> class T, class... Ts> using test_apply = impl::test_apply<T, impl::types<Ts...>>;
+
+  template <class T, class... Args> using get_make_status_code_result = decltype(make_status_code(std::declval<T>(), std::declval<Args>()...));
+  template <class... Args> using safe_get_make_status_code_result = test_apply<get_make_status_code_result, Args...>;
 }  // namespace detail
 
 //! Trait returning true if the type is a status code.
@@ -214,6 +222,7 @@ namespace detail
     using string_ref = typename domain_type::string_ref;
 
 #ifndef NDEBUG
+    static_assert(std::is_move_constructible<value_type>::value || std::is_copy_constructible<value_type>::value, "DomainType::value_type is neither move nor copy constructible!");
     static_assert(!std::is_default_constructible<value_type>::value || std::is_nothrow_default_constructible<value_type>::value, "DomainType::value_type is not nothrow default constructible!");
     static_assert(!std::is_move_constructible<value_type>::value || std::is_nothrow_move_constructible<value_type>::value, "DomainType::value_type is not nothrow move constructible!");
     static_assert(std::is_nothrow_destructible<value_type>::value, "DomainType::value_type is not nothrow destructible!");
@@ -310,11 +319,13 @@ public:
 
   /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
-  template <class T, class... Args,                                                                                //
-            class MakeStatusCodeOutType = decltype(make_status_code(std::declval<T>(), std::declval<Args>()...)),  // ADL enable
-            typename std::enable_if<!std::is_same<typename std::decay<T>::type, status_code>::value                // not copy/move of self
-                                    && is_status_code<MakeStatusCodeOutType>::value                                // ADL makes a status code
-                                    && std::is_constructible<status_code, MakeStatusCodeOutType>::value,           // ADLed status code is compatible
+  template <class T, class... Args,                                                                            //
+            class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type,  // Safe ADL lookup of make_status_code(), returns void if not found
+            typename std::enable_if<!std::is_same<typename std::decay<T>::type, status_code>::value            // not copy/move of self
+                                    && !std::is_same<typename std::decay<T>::type, in_place_t>::value          // not in_place_t
+                                    && is_status_code<MakeStatusCodeResult>::value                             // ADL makes a status code
+                                    && std::is_constructible<status_code, MakeStatusCodeResult>::value,        // ADLed status code is compatible
+
                                     bool>::type = true>
   constexpr status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...)))  // NOLINT
   : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
@@ -447,12 +458,12 @@ public:
     v._domain = nullptr;
   }
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
-  template <class T, class... Args,                                                                                //
-            class MakeStatusCodeOutType = decltype(make_status_code(std::declval<T>(), std::declval<Args>()...)),  // ADL enable
-            typename std::enable_if<!std::is_same<typename std::decay<T>::type, status_code>::value                // not copy/move of self
-                                    && !std::is_same<typename std::decay<T>::type, value_type>::value              // not copy/move of value type
-                                    && is_status_code<MakeStatusCodeOutType>::value                                // ADL makes a status code
-                                    && std::is_constructible<status_code, MakeStatusCodeOutType>::value,           // ADLed status code is compatible
+  template <class T, class... Args,                                                                            //
+            class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type,  // Safe ADL lookup of make_status_code(), returns void if not found
+            typename std::enable_if<!std::is_same<typename std::decay<T>::type, status_code>::value            // not copy/move of self
+                                    && !std::is_same<typename std::decay<T>::type, value_type>::value          // not copy/move of value type
+                                    && is_status_code<MakeStatusCodeResult>::value                             // ADL makes a status code
+                                    && std::is_constructible<status_code, MakeStatusCodeResult>::value,        // ADLed status code is compatible
                                     bool>::type = true>
   constexpr status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...)))  // NOLINT
   : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
