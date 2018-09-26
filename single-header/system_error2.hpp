@@ -1937,11 +1937,15 @@ namespace detail
     indirecting_domain &operator=(indirecting_domain &&) = default;
     ~indirecting_domain() = default;
 
-    static inline SYSTEM_ERROR2_CONSTEXPR14 const indirecting_domain &get()
+#if __cplusplus < 201402 && !defined(_MSC_VER)
+    static inline const indirecting_domain &get()
     {
-      static constexpr indirecting_domain v;
+      static indirecting_domain v;
       return v;
     }
+#else
+    static inline constexpr const indirecting_domain &get();
+#endif
 
     virtual string_ref name() const noexcept override { return typename StatusCode::domain_type().name(); } // NOLINT
   protected:
@@ -1994,6 +1998,10 @@ namespace detail
       delete c.value();
     }
   };
+#if __cplusplus >= 201402 || defined(_MSC_VER)
+  template <class StatusCode> constexpr indirecting_domain<StatusCode> _indirecting_domain{};
+  template <class StatusCode> inline constexpr const indirecting_domain<StatusCode> &indirecting_domain<StatusCode>::get() { return _indirecting_domain<StatusCode>; }
+#endif
 } // namespace detail
 
 /*! Make an erased status code which indirects to a dynamically allocated status code.
