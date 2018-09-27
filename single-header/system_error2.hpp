@@ -1930,7 +1930,7 @@ namespace detail
     using value_type = StatusCode *;
     using _base::string_ref;
 
-    constexpr indirecting_domain() noexcept : _base(~typename StatusCode::domain_type().id() /* unique-ish based on domain's unique id */) {}
+    constexpr indirecting_domain() noexcept : _base(0xc44f7bdeb2cc50e9 ^ typename StatusCode::domain_type().id() /* unique-ish based on domain's unique id */) {}
     indirecting_domain(const indirecting_domain &) = default;
     indirecting_domain(indirecting_domain &&) = default;
     indirecting_domain &operator=(const indirecting_domain &) = default;
@@ -2014,7 +2014,7 @@ function is compatible. Note that this function can throw due to `bad_alloc`.
 
 
 template <class T, typename std::enable_if<is_status_code<T>::value, bool>::type = true> //
-inline status_code<detail::indirecting_domain<typename std::decay<T>::type>> make_status_code_ptr(T &&v)
+inline status_code<erased<typename std::add_pointer<typename std::decay<T>::type>::type>> make_status_code_ptr(T &&v)
 {
   using status_code_type = typename std::decay<T>::type;
   return status_code<detail::indirecting_domain<status_code_type>>(in_place, new status_code_type(static_cast<T &&>(v)));
