@@ -78,7 +78,7 @@ inline constexpr const _arithmetic_errc_domain &_arithmetic_errc_domain::get()
 // Tell status code about the available implicit conversion
 inline arithmetic_errc_error make_status_code(arithmetic_errc e)
 {
-    return arithmetic_errc_error(e);
+    return arithmetic_errc_error(SYSTEM_ERROR2_NAMESPACE::in_place, e);
 }
 
 

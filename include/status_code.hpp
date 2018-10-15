@@ -119,7 +119,7 @@ namespace detail
 //! Trait returning true if the type is a status code.
 template <class T> struct is_status_code
 {
-  static constexpr bool value = detail::is_status_code<typename std::decay<T>::type>::value;
+  static constexpr bool value = detail::is_status_code<typename std::decay<T>::type>::value || detail::is_erased_status_code<typename std::decay<T>::type>::value;
 };
 
 /*! A type erased lightweight status code reflecting empty, success, or failure.
