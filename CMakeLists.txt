@@ -70,6 +70,13 @@ if(NOT PROJECT_IS_DEPENDENCY)
   )
   add_test(NAME test-status-code COMMAND $<TARGET_FILE:test-status-code>)
   
+  add_executable(test-status-code-p0709a "test/p0709a.cpp")
+  target_link_libraries(test-status-code-p0709a PRIVATE status-code)
+  set_target_properties(test-status-code-p0709a PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+  add_test(NAME test-status-code-p0709a COMMAND $<TARGET_FILE:test-status-code-p0709a>)
+  
   if(WIN32)
     add_executable(generate-tables "utils/generate-tables.cpp")
     target_link_libraries(test-status-code PRIVATE status-code)
