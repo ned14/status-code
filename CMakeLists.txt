@@ -52,7 +52,7 @@ if(NOT PROJECT_IS_DEPENDENCY)
         pcpp -o "${CMAKE_CURRENT_SOURCE_DIR}/single-header/system_error2.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/include/system_error2.hpp"
         --passthru-defines --passthru-unfound-includes --passthru-unknown-exprs
-        --passthru-comments --line-directive # --debug
+        --passthru-comments --line-directive --compress # --debug
         -U STANDARDESE_IS_IN_THE_HOUSE
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         COMMENT "Preprocessing ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}.hpp into ${CMAKE_CURRENT_SOURCE_DIR}/single-header/${PROJECT_NAME}.hpp ..."

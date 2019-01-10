@@ -12,7 +12,7 @@ library is EXPERIMENTAL and is subject to change as the committee evolves the de
 To fetch a drop-in standalone single file implementation:
 
 ```
-wget https://github.com/ned14/status-code/raw/develop/single-header/system_error2.hpp
+wget https://github.com/ned14/status-code/raw/master/single-header/system_error2.hpp
 ```
 
 ## Features:
