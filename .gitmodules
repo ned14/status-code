@@ -1,3 +1,4 @@
 [submodule "doc/html"]
 	path = doc/html
 	url = https://github.com/ned14/status-code.git
+	branch = gh-pages
