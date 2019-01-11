@@ -124,7 +124,7 @@ be compiled out as it is considered part of the domain's type.
   ~_thrown_exception_domain() = default;
 
   // Fetch a constexpr instance of this domain
-  static inline constexpr const _thrown_exception_domain *get();
+  static inline constexpr const _thrown_exception_domain &get();
 
   // Return the name of this domain
   virtual _base::string_ref name() const noexcept override final { return _base::string_ref("thrown exception"); }
@@ -211,7 +211,7 @@ will be used in two parts of the code domain's implementation shortly.
 
 ```c++
   // Always true, as exception_ptr always represents failure
-  virtual bool _failure(const status_code<void> &code) const noexcept override final
+  virtual bool _do_failure(const status_code<void> &code) const noexcept override final
   {
     assert(code.domain() == *this);
     return true;
@@ -226,7 +226,7 @@ exceptions represent failure. So we always return true.
 
 ```c++
   // True if the exception ptr is equivalent to some other status code
-  virtual bool _equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final
+  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const thrown_exception_code &>(code1);
@@ -290,7 +290,7 @@ is fairly self explanatory.
 
 ```c++
   // Extract the what() from the exception
-  virtual _base::string_ref _message(const status_code<void> &code) const noexcept override final
+  virtual _base::string_ref _do_message(const status_code<void> &code) const noexcept override final
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const thrown_exception_code &>(code);
@@ -322,7 +322,7 @@ A nicer fallback might be to extract the type of the exception from
 
 ```c++
   // Throw the code as a C++ exception
-  virtual void _throw_exception(const status_code<void> &code) const override final
+  virtual void _do_throw_exception(const status_code<void> &code) const override final
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const thrown_exception_code &>(code);
@@ -339,9 +339,9 @@ this is very easy, we rethrow the thrown exception.
 ```c++
 //! A constexpr source variable for the throw exception code domain to return via get()
 constexpr inline _thrown_exception_domain thrown_exception_domain;
-inline constexpr const _thrown_exception_domain *_thrown_exception_domain::get()
+inline constexpr const _thrown_exception_domain &_thrown_exception_domain::get()
 {
-  return &thrown_exception_domain;
+  return thrown_exception_domain;
 }
 
 // Helper to construct a thrown_exception_code from a std::exception_ptr
@@ -381,3 +381,5 @@ from `thrown_exception_code`. This allows your functions to return
 If you would like to see this custom status code and domain in action,
 you can find it in an online C++ compiler at
 [https://wandbox.org/permlink/cRDS3kWqcAmYHBD6](https://wandbox.org/permlink/cRDS3kWqcAmYHBD6).
+
+You can also find the source code for the above in example/thrown_exception.cpp.
