@@ -304,6 +304,33 @@ operator!=(const T &a, const errored_status_code<DomainType1> &b)
 }
 
 
+namespace detail
+{
+  template <class T> struct is_errored_status_code
+  {
+    static constexpr bool value = false;
+  };
+  template <class T> struct is_errored_status_code<errored_status_code<T>>
+  {
+    static constexpr bool value = true;
+  };
+  template <class T> struct is_erased_errored_status_code
+  {
+    static constexpr bool value = false;
+  };
+  template <class T> struct is_erased_errored_status_code<errored_status_code<erased<T>>>
+  {
+    static constexpr bool value = true;
+  };
+}
+
+//! Trait returning true if the type is an errored status code.
+template <class T> struct is_errored_status_code
+{
+  static constexpr bool value = detail::is_errored_status_code<typename std::decay<T>::type>::value || detail::is_erased_errored_status_code<typename std::decay<T>::type>::value;
+};
+
+
 SYSTEM_ERROR2_NAMESPACE_END
 
 #endif
