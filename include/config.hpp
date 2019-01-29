@@ -199,7 +199,11 @@ namespace detail
     static_assert(alignof(ErasedType) <= sizeof(ErasedType), "ErasedType must not be over-aligned");
     ErasedType value;
     char padding[N];
-    constexpr padded_erasure_object(const ErasedType &v) noexcept : value(v), padding{} {}
+    constexpr explicit padded_erasure_object(const ErasedType &v) noexcept
+        : value(v)
+        , padding{}
+    {
+    }
   };
 
   template <class To, class From, typename std::enable_if<is_erasure_castable<To, From>::value && (sizeof(To) == sizeof(From)), bool>::type = true> constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(from); }
@@ -217,7 +221,7 @@ namespace detail
   {
     return bit_cast<To>(padded_erasure_object<From, sizeof(To) - sizeof(From)>{from});
   }
-}
+}  // namespace detail
 SYSTEM_ERROR2_NAMESPACE_END
 
 #ifndef SYSTEM_ERROR2_FATAL

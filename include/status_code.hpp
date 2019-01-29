@@ -109,7 +109,7 @@ namespace detail
     {
       using type = T<Ts...>;
     };
-  };
+  }  // namespace impl
   template <template <class...> class T, class... Ts> using test_apply = impl::test_apply<T, impl::types<Ts...>>;
 
   template <class T, class... Args> using get_make_status_code_result = decltype(make_status_code(std::declval<T>(), std::declval<Args>()...));
@@ -179,10 +179,14 @@ public:
   template <class T> bool strictly_equivalent(const status_code<T> &o) const noexcept
   {
     if(_domain && o._domain)
+    {
       return _domain->_do_equivalent(*this, o);
+    }
     // If we are both empty, we are equivalent
     if(!_domain && !o._domain)
+    {
       return true;
+    }
     // Otherwise not equivalent
     return false;
   }
@@ -275,7 +279,7 @@ namespace detail
     {
     }
   };
-}
+}  // namespace detail
 
 /*! A lightweight, typed, status code reflecting empty, success, or failure.
 This is the main workhorse of the system_error2 library. Its characteristics reflect the value type
@@ -447,13 +451,15 @@ public:
                                     && std::is_trivially_copyable<typename DomainType::value_type>::value  //
                                     && detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
                                     bool>::type = true>
-  constexpr status_code(const status_code<DomainType> &v) noexcept : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
+  constexpr explicit status_code(const status_code<DomainType> &v) noexcept
+      : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
   {
   }
   //! Implicit move construction from any other status code if its value type is trivially copyable or move relocating and it would fit into our storage
   template <class DomainType,  //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
-  SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
+  SYSTEM_ERROR2_CONSTEXPR14 explicit status_code(status_code<DomainType> &&v) noexcept
+      : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
   {
     v._domain = nullptr;
   }

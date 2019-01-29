@@ -51,7 +51,7 @@ protected:
   //! Move assignment. Not publicly available
   status_error &operator=(status_error &&) = default;
   //! Destructor. Not publicly available.
-  ~status_error() = default;
+  ~status_error() override = default;
 
 public:
   //! The type of the status domain
