@@ -110,8 +110,8 @@ public:
     {
       (void) dest;
       (void) src;
-      assert(dest->_thunk == _checking_string_thunk);
-      assert(src == nullptr || src->_thunk == _checking_string_thunk);
+      assert(dest->_thunk == _checking_string_thunk);  // NOLINT
+      assert(src == nullptr || src->_thunk == _checking_string_thunk);  // NOLINT
       // do nothing
     }
 
@@ -239,11 +239,11 @@ public:
 
     static void _refcounted_string_thunk(string_ref *_dest, const string_ref *_src, _thunk_op op) noexcept
     {
-      auto dest = static_cast<atomic_refcounted_string_ref *>(_dest);
-      auto src = static_cast<const atomic_refcounted_string_ref *>(_src);
+      auto dest = static_cast<atomic_refcounted_string_ref *>(_dest);  // NOLINT
+      auto src = static_cast<const atomic_refcounted_string_ref *>(_src);  // NOLINT
       (void) src;
-      assert(dest->_thunk == _refcounted_string_thunk);
-      assert(src == nullptr || src->_thunk == _refcounted_string_thunk);
+      assert(dest->_thunk == _refcounted_string_thunk);  // NOLINT
+      assert(src == nullptr || src->_thunk == _refcounted_string_thunk);  // NOLINT
       switch(op)
       {
       case _thunk_op::copy:
@@ -252,14 +252,14 @@ public:
         {
           auto count = dest->_msg()->count.fetch_add(1, std::memory_order_relaxed);
           (void) count;
-          assert(count != 0);
+          assert(count != 0);  // NOLINT
         }
         return;
       }
       case _thunk_op::move:
       {
-        assert(src);
-        auto msrc = const_cast<atomic_refcounted_string_ref *>(src);
+        assert(src);  // NOLINT
+        auto msrc = const_cast<atomic_refcounted_string_ref *>(src);  // NOLINT
         msrc->_begin = msrc->_end = nullptr;
         msrc->_state[0] = msrc->_state[1] = msrc->_state[2] = nullptr;
         return;
@@ -273,7 +273,7 @@ public:
           {
             std::atomic_thread_fence(std::memory_order_acquire);
             free((void *) dest->_begin);  // NOLINT
-            delete dest->_msg();
+            delete dest->_msg();  // NOLINT
           }
         }
       }
@@ -345,9 +345,9 @@ protected:
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> & /*code*/) const { abort(); }
 #endif
   // For a `status_code<erased<T>>` only, copy from `src` to `dst`. Default implementation uses `memcpy()`.
-  virtual void _do_erased_copy(status_code<void> &dst, const status_code<void> &src, size_t bytes) const { memcpy(&dst, &src, bytes); }
+  virtual void _do_erased_copy(status_code<void> &dst, const status_code<void> &src, size_t bytes) const { memcpy(&dst, &src, bytes); }  // NOLINT
   // For a `status_code<erased<T>>` only, destroy the erased value type. Default implementation does nothing.
-  virtual void _do_erased_destroy(status_code<void> &code, size_t bytes) const noexcept
+  virtual void _do_erased_destroy(status_code<void> &code, size_t bytes) const noexcept  // NOLINT
   {
     (void) code;
     (void) bytes;

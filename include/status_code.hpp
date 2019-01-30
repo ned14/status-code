@@ -185,7 +185,7 @@ public:
     // If we are both empty, we are equivalent
     if(!_domain && !o._domain)
     {
-      return true;
+      return true;  // NOLINT
     }
     // Otherwise not equivalent
     return false;
@@ -451,14 +451,14 @@ public:
                                     && std::is_trivially_copyable<typename DomainType::value_type>::value  //
                                     && detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
                                     bool>::type = true>
-  constexpr explicit status_code(const status_code<DomainType> &v) noexcept
+  constexpr status_code(const status_code<DomainType> &v) noexcept  // NOLINT
       : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
   {
   }
   //! Implicit move construction from any other status code if its value type is trivially copyable or move relocating and it would fit into our storage
   template <class DomainType,  //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
-  SYSTEM_ERROR2_CONSTEXPR14 explicit status_code(status_code<DomainType> &&v) noexcept
+  SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept  // NOLINT
       : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
   {
     v._domain = nullptr;

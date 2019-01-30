@@ -51,22 +51,22 @@ class _posix_code_domain : public status_code_domain
 #ifdef _WIN32
     strerror_s(buffer, sizeof(buffer), c);
 #elif defined(__linux__)
-    char *s = strerror_r(c, buffer, sizeof(buffer));
+    char *s = strerror_r(c, buffer, sizeof(buffer));  // NOLINT
     if(s != nullptr)
     {
-      strncpy(buffer, s, sizeof(buffer));
+      strncpy(buffer, s, sizeof(buffer));  // NOLINT
       buffer[1023] = 0;
     }
 #else
     strerror_r(c, buffer, sizeof(buffer));
 #endif
-    size_t length = strlen(buffer);
+    size_t length = strlen(buffer);  // NOLINT
     auto *p = static_cast<char *>(malloc(length + 1));  // NOLINT
     if(p == nullptr)
     {
       return _base::string_ref("failed to get message from system");
     }
-    memcpy(p, buffer, length + 1);
+    memcpy(p, buffer, length + 1);  // NOLINT
     return _base::atomic_refcounted_string_ref(p, length);
   }
 
@@ -90,12 +90,12 @@ public:
 protected:
   virtual bool _do_failure(const status_code<void> &code) const noexcept override  // NOLINT
   {
-    assert(code.domain() == *this);
+    assert(code.domain() == *this);  // NOLINT
     return static_cast<const posix_code &>(code).value() != 0;  // NOLINT
   }
   virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override  // NOLINT
   {
-    assert(code1.domain() == *this);
+    assert(code1.domain() == *this);  // NOLINT
     const auto &c1 = static_cast<const posix_code &>(code1);  // NOLINT
     if(code2.domain() == *this)
     {
@@ -114,20 +114,20 @@ protected:
   }
   virtual generic_code _generic_code(const status_code<void> &code) const noexcept override  // NOLINT
   {
-    assert(code.domain() == *this);
+    assert(code.domain() == *this);  // NOLINT
     const auto &c = static_cast<const posix_code &>(code);  // NOLINT
     return generic_code(static_cast<errc>(c.value()));
   }
   virtual string_ref _do_message(const status_code<void> &code) const noexcept override  // NOLINT
   {
-    assert(code.domain() == *this);
+    assert(code.domain() == *this);  // NOLINT
     const auto &c = static_cast<const posix_code &>(code);  // NOLINT
     return _make_string_ref(c.value());
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override  // NOLINT
   {
-    assert(code.domain() == *this);
+    assert(code.domain() == *this);  // NOLINT
     const auto &c = static_cast<const posix_code &>(code);  // NOLINT
     throw status_error<_posix_code_domain>(c);
   }

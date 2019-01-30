@@ -64,11 +64,11 @@ public:
   //! Copy constructor.
   errored_status_code(const errored_status_code &) = default;
   //! Move constructor.
-  errored_status_code(errored_status_code &&) = default;
+  errored_status_code(errored_status_code &&) = default;  // NOLINT
   //! Copy assignment.
   errored_status_code &operator=(const errored_status_code &) = default;
   //! Move assignment.
-  errored_status_code &operator=(errored_status_code &&) = default;
+  errored_status_code &operator=(errored_status_code &&) = default;  // NOLINT
   ~errored_status_code() = default;
 
   //! Explicitly construct from any similarly erased status code
@@ -133,7 +133,7 @@ public:
   explicit errored_status_code(const status_code<erased<ErasedType>> &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
       : errored_status_code(detail::erasure_cast<value_type>(v.value()))  // NOLINT
   {
-    assert(v.domain() == this->domain());
+    assert(v.domain() == this->domain());  // NOLINT
     _check();
   }
 

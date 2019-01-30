@@ -42,9 +42,9 @@ namespace detail
 
     constexpr indirecting_domain() noexcept : _base(0xc44f7bdeb2cc50e9 ^ typename StatusCode::domain_type().id() /* unique-ish based on domain's unique id */) {}
     indirecting_domain(const indirecting_domain &) = default;
-    indirecting_domain(indirecting_domain &&) = default;
+    indirecting_domain(indirecting_domain &&) = default;  // NOLINT
     indirecting_domain &operator=(const indirecting_domain &) = default;
-    indirecting_domain &operator=(indirecting_domain &&) = default;
+    indirecting_domain &operator=(indirecting_domain &&) = default;  // NOLINT
     ~indirecting_domain() = default;
 
 #if __cplusplus < 201402L && !defined(_MSC_VER)
@@ -105,7 +105,7 @@ namespace detail
     {
       assert(code.domain() == *this);
       auto &c = static_cast<_mycode &>(code);  // NOLINT
-      delete c.value();
+      delete c.value();  // NOLINT
     }
   };
 #if __cplusplus >= 201402L || defined(_MSC_VER)
