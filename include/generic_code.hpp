@@ -120,7 +120,10 @@ namespace detail
 {
   struct generic_code_messages
   {
-    const char *msgs[256];
+    // libc++ defines missing errc macros to integers in the 9xxx range
+    // As much as 10,000 seems wasteful, bear in mind this is all constexpr
+    // and on C++ 14 or later this entire construct disappears.
+    const char *msgs[(ETIME >= 256) ? 10000 : 256];
     SYSTEM_ERROR2_CONSTEXPR14 size_t size() const { return sizeof(msgs) / sizeof(*msgs); }  // NOLINT
     SYSTEM_ERROR2_CONSTEXPR14 const char *operator[](int i) const { return (i < 0 || i >= static_cast<int>(size()) || nullptr == msgs[i]) ? "unknown" : msgs[i]; }  // NOLINT
     SYSTEM_ERROR2_CONSTEXPR14 generic_code_messages()

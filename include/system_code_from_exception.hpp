@@ -77,7 +77,16 @@ inline system_code system_code_from_exception(std::exception_ptr &&ep = std::cur
     {
       return generic_code(static_cast<errc>(static_cast<int>(e.code().value())));
     }
-    // Don't know this error code category, so fall through
+    if(e.code().category() == std::system_category())
+    {
+#ifdef _WIN32
+      return win32_code(e.code().value());
+#else
+      return posix_code(e.code().value());
+#endif
+    }
+    // Don't know this error code category, can't wrap it into std_error_code
+    // as its payload won't fit into system_code, so fall through.
   }
   catch(const std::overflow_error & /*unused*/)
   {
