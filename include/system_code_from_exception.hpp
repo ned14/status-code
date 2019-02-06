@@ -27,8 +27,9 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include "system_code.hpp"
 
-#include <exception>  // for exception_ptr
-#include <stdexcept>  // for the exception types
+#include <exception>     // for exception_ptr
+#include <stdexcept>     // for the exception types
+#include <system_error>  // for std::system_error
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
