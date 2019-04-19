@@ -305,17 +305,50 @@ namespace detail
   Our bit_cast is only guaranteed to be constexpr when both the input and output
   arguments are either integrals or enums. However, this covers most use cases
   since the vast majority of status_codes have an underlying type that is either
-  an integral or enum.
+  an integral or enum. We still attempt a constexpr union-based type pun for non-array
+  input types, which some compilers accept. For array inputs, we fall back to
+  non-constexpr memmove.
   */
   template <class T> using is_integral_or_enum = std::integral_constant<bool, std::is_integral<T>::value || std::is_enum<T>::value>;
   template <class To, class From> using is_static_castable = std::integral_constant<bool, is_integral_or_enum<To>::value && is_integral_or_enum<From>::value>;
+  template <class To, class From> using is_union_castable = std::integral_constant<bool, !is_static_castable<To, From>::value && !std::is_array<To>::value && !std::is_array<From>::value>;
   template <class To, class From> using is_bit_castable = std::integral_constant<bool, sizeof(To) == sizeof(From) && traits::is_move_relocating<To>::value && traits::is_move_relocating<From>::value>;
   template <class To, class From> union bit_cast_union {
     From source;
     To target;
   };
-  template <class To, class From, typename std::enable_if<is_bit_castable<To, From>::value && is_static_castable<To, From>::value, bool>::type = true> constexpr To bit_cast(const From &from) noexcept { return static_cast<To>(from); }
-  template <class To, class From, typename std::enable_if<is_bit_castable<To, From>::value && !is_static_castable<To, From>::value, bool>::type = true> constexpr To bit_cast(const From &from) noexcept { return bit_cast_union<To, From>{from}.target; }
+  template <class To, class From,
+            typename std::enable_if< //
+            is_bit_castable<To, From>::value //
+            && is_static_castable<To, From>::value //
+            && !is_union_castable<To, From>::value, //
+            bool>::type = true> //
+  constexpr To bit_cast(const From &from) noexcept
+  {
+    return static_cast<To>(from);
+  }
+  template <class To, class From,
+            typename std::enable_if< //
+            is_bit_castable<To, From>::value //
+            && !is_static_castable<To, From>::value //
+            && is_union_castable<To, From>::value, //
+            bool>::type = true> //
+  constexpr To bit_cast(const From &from) noexcept
+  {
+    return bit_cast_union<To, From>{from}.target;
+  }
+  template <class To, class From,
+            typename std::enable_if< //
+            is_bit_castable<To, From>::value //
+            && !is_static_castable<To, From>::value //
+            && !is_union_castable<To, From>::value, //
+            bool>::type = true> //
+  To bit_cast(const From &from) noexcept
+  {
+    bit_cast_union<To, From> ret;
+    memmove(&ret.source, &from, sizeof(ret.source));
+    return ret.target;
+  }
   /* erasure_cast performs a bit_cast with additional rules to handle types
   of differing sizes. For integral & enum types, it may perform a narrowing
   or widing conversion with static_cast if necessary, before doing the final
@@ -339,7 +372,11 @@ namespace detail
     static_assert(alignof(ErasedType) <= sizeof(ErasedType), "ErasedType must not be over-aligned");
     ErasedType value;
     char padding[N];
-    constexpr padded_erasure_object(const ErasedType &v) noexcept : value(v), padding{} {}
+    constexpr explicit padded_erasure_object(const ErasedType &v) noexcept
+        : value(v)
+        , padding{}
+    {
+    }
   };
   template <class To, class From, typename std::enable_if<is_erasure_castable<To, From>::value && (sizeof(To) == sizeof(From)), bool>::type = true> constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(from); }
   template <class To, class From, typename std::enable_if<is_erasure_castable<To, From>::value && is_static_castable<To, From>::value && (sizeof(To) < sizeof(From)), bool>::type = true> constexpr To erasure_cast(const From &from) noexcept { return static_cast<To>(bit_cast<erasure_integer_type<From, To>>(from)); }
@@ -352,7 +389,7 @@ namespace detail
   {
     return bit_cast<To>(padded_erasure_object<From, sizeof(To) - sizeof(From)>{from});
   }
-}
+} // namespace detail
 SYSTEM_ERROR2_NAMESPACE_END
 #ifndef SYSTEM_ERROR2_FATAL
 #include <cstdlib> // for abort
@@ -367,7 +404,7 @@ namespace detail
 #ifndef __APPLE__
     extern "C" ptrdiff_t write(int, const void *, size_t);
 #endif
-  }
+  } // namespace avoid_stdio_include
   inline void do_fatal_exit(const char *msg)
   {
     using namespace avoid_stdio_include;
@@ -458,8 +495,8 @@ public:
     {
       (void) dest;
       (void) src;
-      assert(dest->_thunk == _checking_string_thunk);
-      assert(src == nullptr || src->_thunk == _checking_string_thunk);
+      assert(dest->_thunk == _checking_string_thunk); // NOLINT
+      assert(src == nullptr || src->_thunk == _checking_string_thunk); // NOLINT
       // do nothing
     }
   protected:
@@ -581,11 +618,11 @@ public:
     const _allocated_msg *_msg() const noexcept { return reinterpret_cast<const _allocated_msg *>(this->_state[0]); } // NOLINT
     static void _refcounted_string_thunk(string_ref *_dest, const string_ref *_src, _thunk_op op) noexcept
     {
-      auto dest = static_cast<atomic_refcounted_string_ref *>(_dest);
-      auto src = static_cast<const atomic_refcounted_string_ref *>(_src);
+      auto dest = static_cast<atomic_refcounted_string_ref *>(_dest); // NOLINT
+      auto src = static_cast<const atomic_refcounted_string_ref *>(_src); // NOLINT
       (void) src;
-      assert(dest->_thunk == _refcounted_string_thunk);
-      assert(src == nullptr || src->_thunk == _refcounted_string_thunk);
+      assert(dest->_thunk == _refcounted_string_thunk); // NOLINT
+      assert(src == nullptr || src->_thunk == _refcounted_string_thunk); // NOLINT
       switch(op)
       {
       case _thunk_op::copy:
@@ -594,14 +631,14 @@ public:
         {
           auto count = dest->_msg()->count.fetch_add(1, std::memory_order_relaxed);
           (void) count;
-          assert(count != 0);
+          assert(count != 0); // NOLINT
         }
         return;
       }
       case _thunk_op::move:
       {
-        assert(src);
-        auto msrc = const_cast<atomic_refcounted_string_ref *>(src);
+        assert(src); // NOLINT
+        auto msrc = const_cast<atomic_refcounted_string_ref *>(src); // NOLINT
         msrc->_begin = msrc->_end = nullptr;
         msrc->_state[0] = msrc->_state[1] = msrc->_state[2] = nullptr;
         return;
@@ -615,7 +652,7 @@ public:
           {
             std::atomic_thread_fence(std::memory_order_acquire);
             free((void *) dest->_begin); // NOLINT
-            delete dest->_msg();
+            delete dest->_msg(); // NOLINT
           }
         }
       }
@@ -678,12 +715,12 @@ protected:
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const = 0;
 #else
   // Keep a vtable slot for binary compatibility
-  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const { abort(); }
+  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> & /*code*/) const { abort(); }
 #endif
   // For a `status_code<erased<T>>` only, copy from `src` to `dst`. Default implementation uses `memcpy()`.
-  virtual void _do_erased_copy(status_code<void> &dst, const status_code<void> &src, size_t bytes) const { memcpy(&dst, &src, bytes); }
+  virtual void _do_erased_copy(status_code<void> &dst, const status_code<void> &src, size_t bytes) const { memcpy(&dst, &src, bytes); } // NOLINT
   // For a `status_code<erased<T>>` only, destroy the erased value type. Default implementation does nothing.
-  virtual void _do_erased_destroy(status_code<void> &code, size_t bytes) const noexcept
+  virtual void _do_erased_destroy(status_code<void> &code, size_t bytes) const noexcept // NOLINT
   {
     (void) code;
     (void) bytes;
@@ -765,7 +802,7 @@ namespace detail
     {
       using type = T<Ts...>;
     };
-  };
+  } // namespace impl
   template <template <class...> class T, class... Ts> using test_apply = impl::test_apply<T, impl::types<Ts...>>;
   template <class T, class... Args> using get_make_status_code_result = decltype(make_status_code(std::declval<T>(), std::declval<Args>()...));
   template <class... Args> using safe_get_make_status_code_result = test_apply<get_make_status_code_result, Args...>;
@@ -826,10 +863,14 @@ public:
   template <class T> bool strictly_equivalent(const status_code<T> &o) const noexcept
   {
     if(_domain && o._domain)
+    {
       return _domain->_do_equivalent(*this, o);
+    }
     // If we are both empty, we are equivalent
     if(!_domain && !o._domain)
-      return true;
+    {
+      return true; // NOLINT
+    }
     // Otherwise not equivalent
     return false;
   }
@@ -914,7 +955,7 @@ namespace detail
     {
     }
   };
-}
+} // namespace detail
 /*! A lightweight, typed, status code reflecting empty, success, or failure.
 This is the main workhorse of the system_error2 library. Its characteristics reflect the value type
 set by its domain type, so if that value type is move-only or trivial, so is this.
@@ -1071,13 +1112,15 @@ public:
                                     && std::is_trivially_copyable<typename DomainType::value_type>::value //
                                     && detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
                                     bool>::type = true>
-  constexpr status_code(const status_code<DomainType> &v) noexcept : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
+  constexpr status_code(const status_code<DomainType> &v) noexcept // NOLINT
+      : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
   {
   }
   //! Implicit move construction from any other status code if its value type is trivially copyable or move relocating and it would fit into our storage
   template <class DomainType, //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
-  SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
+  SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept // NOLINT
+      : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
   {
     v._domain = nullptr;
   }
@@ -1129,7 +1172,7 @@ protected:
   //! Move assignment. Not publicly available
   status_error &operator=(status_error &&) = default;
   //! Destructor. Not publicly available.
-  ~status_error() = default;
+  ~status_error() override = default;
 public:
   //! The type of the status domain
   using domain_type = void;
@@ -1255,8 +1298,11 @@ namespace detail
 {
   struct generic_code_messages
   {
-    const char *msgs[256];
-    SYSTEM_ERROR2_CONSTEXPR14 size_t size() const { return sizeof(msgs) / sizeof(*msgs); }
+    // libc++ defines missing errc macros to integers in the 9xxx range
+    // As much as 10,000 seems wasteful, bear in mind this is all constexpr
+    // and on C++ 14 or later this entire construct disappears.
+    const char *msgs[(ETIME >= 256) ? 10000 : 256];
+    SYSTEM_ERROR2_CONSTEXPR14 size_t size() const { return sizeof(msgs) / sizeof(*msgs); } // NOLINT
     SYSTEM_ERROR2_CONSTEXPR14 const char *operator[](int i) const { return (i < 0 || i >= static_cast<int>(size()) || nullptr == msgs[i]) ? "unknown" : msgs[i]; } // NOLINT
     SYSTEM_ERROR2_CONSTEXPR14 generic_code_messages()
         : msgs{}
@@ -1367,12 +1413,12 @@ public:
 protected:
   virtual bool _do_failure(const status_code<void> &code) const noexcept override // NOLINT
   {
-    assert(code.domain() == *this);
+    assert(code.domain() == *this); // NOLINT
     return static_cast<const generic_code &>(code).value() != errc::success; // NOLINT
   }
   virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override // NOLINT
   {
-    assert(code1.domain() == *this);
+    assert(code1.domain() == *this); // NOLINT
     const auto &c1 = static_cast<const generic_code &>(code1); // NOLINT
     if(code2.domain() == *this)
     {
@@ -1383,12 +1429,12 @@ protected:
   }
   virtual generic_code _generic_code(const status_code<void> &code) const noexcept override // NOLINT
   {
-    assert(code.domain() == *this);
+    assert(code.domain() == *this); // NOLINT
     return static_cast<const generic_code &>(code); // NOLINT
   }
   virtual _base::string_ref _do_message(const status_code<void> &code) const noexcept override // NOLINT
   {
-    assert(code.domain() == *this);
+    assert(code.domain() == *this); // NOLINT
     const auto &c = static_cast<const generic_code &>(code); // NOLINT
     static SYSTEM_ERROR2_CONSTEXPR14 detail::generic_code_messages msgs;
     return string_ref(msgs[static_cast<int>(c.value())]);
@@ -1396,7 +1442,7 @@ protected:
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
-    assert(code.domain() == *this);
+    assert(code.domain() == *this); // NOLINT
     const auto &c = static_cast<const generic_code &>(code); // NOLINT
     throw status_error<_generic_code_domain>(c);
   }
@@ -1527,9 +1573,9 @@ namespace detail
     using _base::string_ref;
     constexpr indirecting_domain() noexcept : _base(0xc44f7bdeb2cc50e9 ^ typename StatusCode::domain_type().id() /* unique-ish based on domain's unique id */) {}
     indirecting_domain(const indirecting_domain &) = default;
-    indirecting_domain(indirecting_domain &&) = default;
+    indirecting_domain(indirecting_domain &&) = default; // NOLINT
     indirecting_domain &operator=(const indirecting_domain &) = default;
-    indirecting_domain &operator=(indirecting_domain &&) = default;
+    indirecting_domain &operator=(indirecting_domain &&) = default; // NOLINT
     ~indirecting_domain() = default;
 #if __cplusplus < 201402 && !defined(_MSC_VER)
     static inline const indirecting_domain &get()
@@ -1588,7 +1634,7 @@ namespace detail
     {
       assert(code.domain() == *this);
       auto &c = static_cast<_mycode &>(code); // NOLINT
-      delete c.value();
+      delete c.value(); // NOLINT
     }
   };
 #if __cplusplus >= 201402 || defined(_MSC_VER)
@@ -1641,11 +1687,11 @@ public:
   //! Copy constructor.
   errored_status_code(const errored_status_code &) = default;
   //! Move constructor.
-  errored_status_code(errored_status_code &&) = default;
+  errored_status_code(errored_status_code &&) = default; // NOLINT
   //! Copy assignment.
   errored_status_code &operator=(const errored_status_code &) = default;
   //! Move assignment.
-  errored_status_code &operator=(errored_status_code &&) = default;
+  errored_status_code &operator=(errored_status_code &&) = default; // NOLINT
   ~errored_status_code() = default;
   //! Explicitly construct from any similarly erased status code
   explicit errored_status_code(const _base &o) noexcept(std::is_nothrow_copy_constructible<_base>::value)
@@ -1708,7 +1754,7 @@ public:
   explicit errored_status_code(const status_code<erased<ErasedType>> &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
       : errored_status_code(detail::erasure_cast<value_type>(v.value())) // NOLINT
   {
-    assert(v.domain() == this->domain());
+    assert(v.domain() == this->domain()); // NOLINT
     _check();
   }
   //! Return a const reference to the `value_type`.
@@ -1866,6 +1912,30 @@ operator!=(const T &a, const errored_status_code<DomainType1> &b)
 {
   return !b.equivalent(make_status_code(a));
 }
+namespace detail
+{
+  template <class T> struct is_errored_status_code
+  {
+    static constexpr bool value = false;
+  };
+  template <class T> struct is_errored_status_code<errored_status_code<T>>
+  {
+    static constexpr bool value = true;
+  };
+  template <class T> struct is_erased_errored_status_code
+  {
+    static constexpr bool value = false;
+  };
+  template <class T> struct is_erased_errored_status_code<errored_status_code<erased<T>>>
+  {
+    static constexpr bool value = true;
+  };
+} // namespace detail
+//! Trait returning true if the type is an errored status code.
+template <class T> struct is_errored_status_code
+{
+  static constexpr bool value = detail::is_errored_status_code<typename std::decay<T>::type>::value || detail::is_erased_errored_status_code<typename std::decay<T>::type>::value;
+};
 SYSTEM_ERROR2_NAMESPACE_END
 #endif
 /* Proposed SG14 status_code
@@ -1938,22 +2008,22 @@ class _posix_code_domain : public status_code_domain
 #ifdef _WIN32
     strerror_s(buffer, sizeof(buffer), c);
 #elif defined(__linux__)
-    char *s = strerror_r(c, buffer, sizeof(buffer));
+    char *s = strerror_r(c, buffer, sizeof(buffer)); // NOLINT
     if(s != nullptr)
     {
-      strncpy(buffer, s, sizeof(buffer));
+      strncpy(buffer, s, sizeof(buffer)); // NOLINT
       buffer[1023] = 0;
     }
 #else
     strerror_r(c, buffer, sizeof(buffer));
 #endif
-    size_t length = strlen(buffer);
+    size_t length = strlen(buffer); // NOLINT
     auto *p = static_cast<char *>(malloc(length + 1)); // NOLINT
     if(p == nullptr)
     {
       return _base::string_ref("failed to get message from system");
     }
-    memcpy(p, buffer, length + 1);
+    memcpy(p, buffer, length + 1); // NOLINT
     return _base::atomic_refcounted_string_ref(p, length);
   }
 public:
@@ -1973,12 +2043,12 @@ public:
 protected:
   virtual bool _do_failure(const status_code<void> &code) const noexcept override // NOLINT
   {
-    assert(code.domain() == *this);
+    assert(code.domain() == *this); // NOLINT
     return static_cast<const posix_code &>(code).value() != 0; // NOLINT
   }
   virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override // NOLINT
   {
-    assert(code1.domain() == *this);
+    assert(code1.domain() == *this); // NOLINT
     const auto &c1 = static_cast<const posix_code &>(code1); // NOLINT
     if(code2.domain() == *this)
     {
@@ -1997,20 +2067,20 @@ protected:
   }
   virtual generic_code _generic_code(const status_code<void> &code) const noexcept override // NOLINT
   {
-    assert(code.domain() == *this);
+    assert(code.domain() == *this); // NOLINT
     const auto &c = static_cast<const posix_code &>(code); // NOLINT
     return generic_code(static_cast<errc>(c.value()));
   }
   virtual string_ref _do_message(const status_code<void> &code) const noexcept override // NOLINT
   {
-    assert(code.domain() == *this);
+    assert(code.domain() == *this); // NOLINT
     const auto &c = static_cast<const posix_code &>(code); // NOLINT
     return _make_string_ref(c.value());
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
-    assert(code.domain() == *this);
+    assert(code.domain() == *this); // NOLINT
     const auto &c = static_cast<const posix_code &>(code); // NOLINT
     throw status_error<_posix_code_domain>(c);
   }
