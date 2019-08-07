@@ -1,5 +1,5 @@
 /* Proposed SG14 status_code
-(C) 2018 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
+(C) 2018 - 2019 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
 File Created: Feb 2018
 
 
@@ -107,6 +107,15 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 #ifndef SYSTEM_ERROR2_NODISCARD
 #define SYSTEM_ERROR2_NODISCARD
+#endif
+
+#ifndef SYSTEM_ERROR2_TRIVIAL_ABI
+#if defined(STANDARDESE_IS_IN_THE_HOUSE) || __clang_major__ >= 7
+//! Defined to be `[[clang::trivial_abi]]` when on a new enough clang compiler. Usually automatic, can be overriden.
+#define SYSTEM_ERROR2_TRIVIAL_ABI [[clang::trivial_abi]]
+#else
+#define SYSTEM_ERROR2_TRIVIAL_ABI
+#endif
 #endif
 
 #ifndef SYSTEM_ERROR2_NAMESPACE

@@ -1,5 +1,5 @@
 /* Proposed SG14 status_code
-(C) 2018 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
+(C) 2018 - 2019 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
 File Created: Feb 2018
 
 
@@ -127,7 +127,7 @@ Differs from `status_code<erased<>>` by being always available irrespective of
 the domain's value type, but cannot be copied, moved, nor destructed. Thus one
 always passes this around by const lvalue reference.
 */
-template <> class status_code<void>
+template <> class SYSTEM_ERROR2_TRIVIAL_ABI status_code<void>
 {
   template <class T> friend class status_code;
 
@@ -157,7 +157,10 @@ protected:
   ~status_code() = default;
 
   //! Used to construct a non-empty type erased status code
-  constexpr explicit status_code(const status_code_domain *v) noexcept : _domain(v) {}
+  constexpr explicit status_code(const status_code_domain *v) noexcept
+      : _domain(v)
+  {
+  }
 
 public:
   //! Return the status code domain.
@@ -213,7 +216,7 @@ namespace detail
     using domain_type = status_code_domain;
     using value_type = ErasedType;
   };
-  template <class DomainType> class status_code_storage : public status_code<void>
+  template <class DomainType> class SYSTEM_ERROR2_TRIVIAL_ABI status_code_storage : public status_code<void>
   {
     using _base = status_code<void>;
 
@@ -258,7 +261,12 @@ namespace detail
   protected:
     status_code_storage() = default;
     status_code_storage(const status_code_storage &) = default;
-    SYSTEM_ERROR2_CONSTEXPR14 status_code_storage(status_code_storage &&o) noexcept : _base(static_cast<status_code_storage &&>(o)), _value(static_cast<status_code_storage &&>(o)._value) { o._domain = nullptr; }
+    SYSTEM_ERROR2_CONSTEXPR14 status_code_storage(status_code_storage &&o) noexcept
+        : _base(static_cast<status_code_storage &&>(o))
+        , _value(static_cast<status_code_storage &&>(o)._value)
+    {
+      o._domain = nullptr;
+    }
     status_code_storage &operator=(const status_code_storage &) = default;
     SYSTEM_ERROR2_CONSTEXPR14 status_code_storage &operator=(status_code_storage &&o) noexcept
     {
@@ -292,7 +300,7 @@ is made available.
 You may mix in custom member functions and member function overrides by injecting a specialisation of
 `mixins::mixin<Base, YourDomainType>`. Your mixin must inherit from `Base`.
 */
-template <class DomainType> class status_code : public mixins::mixin<detail::status_code_storage<DomainType>, DomainType>
+template <class DomainType> class SYSTEM_ERROR2_TRIVIAL_ABI status_code : public mixins::mixin<detail::status_code_storage<DomainType>, DomainType>
 {
   template <class T> friend class status_code;
   using _base = mixins::mixin<detail::status_code_storage<DomainType>, DomainType>;
@@ -332,7 +340,7 @@ public:
 
                                     bool>::type = true>
   constexpr status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...)))  // NOLINT
-  : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
+      : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
   }
   //! Explicit in-place construction.
@@ -400,7 +408,7 @@ An ADL discovered helper function `make_status_code(T, Args...)` is looked up by
 If it is found, and it generates a status code compatible with this status code, implicit construction
 is made available.
 */
-template <class ErasedType> class status_code<erased<ErasedType>> : public mixins::mixin<detail::status_code_storage<erased<ErasedType>>, erased<ErasedType>>
+template <class ErasedType> class SYSTEM_ERROR2_TRIVIAL_ABI status_code<erased<ErasedType>> : public mixins::mixin<detail::status_code_storage<erased<ErasedType>>, erased<ErasedType>>
 {
   template <class T> friend class status_code;
   using _base = mixins::mixin<detail::status_code_storage<erased<ErasedType>>, erased<ErasedType>>;
@@ -472,7 +480,7 @@ public:
                                     && std::is_constructible<status_code, MakeStatusCodeResult>::value,        // ADLed status code is compatible
                                     bool>::type = true>
   constexpr status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...)))  // NOLINT
-  : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
+      : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
   }
 
