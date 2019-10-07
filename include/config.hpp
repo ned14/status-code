@@ -110,7 +110,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #ifndef SYSTEM_ERROR2_TRIVIAL_ABI
-#if defined(STANDARDESE_IS_IN_THE_HOUSE) || __clang_major__ >= 7
+#if defined(STANDARDESE_IS_IN_THE_HOUSE) || (__clang_major__ >= 7 && !defined(__APPLE__))
 //! Defined to be `[[clang::trivial_abi]]` when on a new enough clang compiler. Usually automatic, can be overriden.
 #define SYSTEM_ERROR2_TRIVIAL_ABI [[clang::trivial_abi]]
 #else
