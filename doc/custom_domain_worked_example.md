@@ -145,7 +145,7 @@ of `status_code_domain` must implement.
 protected:
   // This internal routine maps an exception ptr onto a generic_code
   // It is surely hideously slow, but that's all relative in the end
-  static errc _to_generic_code(value_type c) noexcept
+  static errc _generic_code(value_type c) noexcept
   {
     try
     {
@@ -242,7 +242,7 @@ exceptions represent failure. So we always return true.
     if(code2.domain() == generic_code_domain)
     {
       const auto &c2 = static_cast<const generic_code &>(code2);
-      if(c2.value() == _to_generic_code(c1.value()))
+      if(c2.value() == _generic_code(c1.value()))
       {
         return true;
       }
@@ -281,7 +281,7 @@ you'd like to know more.
   {
     assert(code.domain() == *this);
     const auto &c1 = static_cast<const thrown_exception_code &>(code);
-    return generic_code(_to_generic_code(c1.value()));
+    return generic_code(_generic_code(c1.value()));
   }
 ```
 

@@ -172,7 +172,7 @@ protected:
     if(code2.domain() == generic_code_domain)
     {
       const auto &c2 = static_cast<const generic_code &>(code2);
-      if(c2.value() == _to_generic_code(c1.value()))
+      if(c2.value() == _generic_code(c1.value()))
       {
         return true;
       }
@@ -184,7 +184,7 @@ protected:
   {
     assert(code.domain() == *this);
     const auto &c1 = static_cast<const thrown_exception_code &>(code);
-    return generic_code(_to_generic_code(c1.value()));
+    return generic_code(_generic_code(c1.value()));
   }
   // Extract the what() from the exception
   virtual _base::string_ref _do_message(const status_code<void> &code) const noexcept override final
