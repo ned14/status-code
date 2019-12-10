@@ -8,6 +8,72 @@ else()
   set(PROJECT_IS_DEPENDENCY ON)
 endif()
 
+# On MSVC very annoyingly cmake puts /EHsc into the global flags which means you
+# get a warning when you try to disable exceptions. I hate to use this
+# globally imposed solution, but we are going to hack the global flags to use properties to
+# determine whether they are on or off
+#
+# Create custom properties called CXX_EXCEPTIONS and CXX_RTTI
+# These get placed at global, directory and target scopes
+foreach(scope GLOBAL DIRECTORY TARGET)
+  define_property(${scope} PROPERTY "CXX_EXCEPTIONS" INHERITED
+    BRIEF_DOCS "Enable C++ exceptions, defaults to ON at global scope"
+    FULL_DOCS "Not choosing ON nor OFF with exact capitalisation will lead to misoperation!"
+  )
+  define_property(${scope} PROPERTY "CXX_RTTI" INHERITED
+    BRIEF_DOCS "Enable C++ runtime type information, defaults to ON at global scope"
+    FULL_DOCS "Not choosing ON nor OFF with exact capitalisation will lead to misoperation!"
+  )
+endforeach()
+# Set the default for these properties at global scope. If they are not set per target or
+# whatever, the next highest scope will be looked up
+set_property(GLOBAL PROPERTY CXX_EXCEPTIONS ON)
+set_property(GLOBAL PROPERTY CXX_RTTI ON)
+if(MSVC)
+  # Purge unconditional use of these flags and remove all the ignored
+  # cruft which cmake adds for the LLVM-vs* toolset.
+  set(purgelist
+    "/EHsc"
+    "/GR"
+    "/Gm-"
+    "-fms-extensions"
+    "-fms-compatibility"
+    #"-Wall"
+    "-frtti"
+    "-fexceptions"
+    "-gline-tables-only"
+    "-fno-inline"
+    #"-O0"
+  )
+  foreach(flag
+          CMAKE_C_FLAGS                CMAKE_CXX_FLAGS
+          CMAKE_C_FLAGS_DEBUG          CMAKE_CXX_FLAGS_DEBUG
+          CMAKE_C_FLAGS_RELEASE        CMAKE_CXX_FLAGS_RELEASE
+          CMAKE_C_FLAGS_MINSIZEREL     CMAKE_CXX_FLAGS_MINSIZEREL
+          CMAKE_C_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_RELWITHDEBINFO
+          )
+    foreach(item ${purgelist})
+      string(REPLACE "${item}"  "" ${flag} "${${flag}}")
+    endforeach()
+    string(REPLACE "-O0"  "/O0" ${flag} "${${flag}}")
+    string(REPLACE "-O1"  "/O1" ${flag} "${${flag}}")
+    string(REPLACE "-O2"  "/O2" ${flag} "${${flag}}")
+    #message(STATUS "${flag} = ${${flag}}")
+  endforeach()
+  # Restore those same, but now selected by the properties
+  add_compile_options(
+    $<$<STREQUAL:$<TARGET_PROPERTY:CXX_EXCEPTIONS>,ON>:/EHsc>
+    $<$<STREQUAL:$<TARGET_PROPERTY:CXX_RTTI>,OFF>:/GR->
+  )
+else()
+  add_compile_options(
+    $<$<COMPILE_LANGUAGE:CXX>:$<$<STREQUAL:$<TARGET_PROPERTY:CXX_EXCEPTIONS>,ON>:-fexceptions>>
+    $<$<COMPILE_LANGUAGE:CXX>:$<$<STREQUAL:$<TARGET_PROPERTY:CXX_RTTI>,ON>:-frtti>>
+    $<$<COMPILE_LANGUAGE:CXX>:$<$<STREQUAL:$<TARGET_PROPERTY:CXX_EXCEPTIONS>,OFF>:-fno-exceptions>>
+    $<$<COMPILE_LANGUAGE:CXX>:$<$<STREQUAL:$<TARGET_PROPERTY:CXX_RTTI>,OFF>:-fno-rtti>>
+  )
+endif()
+
 add_library(status-code INTERFACE)
 target_compile_features(status-code INTERFACE cxx_std_11)
 target_include_directories(status-code INTERFACE "include")
@@ -69,6 +135,15 @@ if(NOT PROJECT_IS_DEPENDENCY)
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   )
   add_test(NAME test-status-code COMMAND $<TARGET_FILE:test-status-code>)
+  
+  add_executable(test-status-code-noexcept "test/main.cpp")
+  target_link_libraries(test-status-code-noexcept PRIVATE status-code)
+  set_target_properties(test-status-code-noexcept PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    CXX_EXCEPTIONS Off
+    CXX_RTTI Off
+  )
+  add_test(NAME test-status-code-noexcept COMMAND $<TARGET_FILE:test-status-code-noexcept>)
   
   add_executable(test-status-code-p0709a "test/p0709a.cpp")
   target_link_libraries(test-status-code-p0709a PRIVATE status-code)
