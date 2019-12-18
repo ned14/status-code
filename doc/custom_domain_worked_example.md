@@ -380,6 +380,6 @@ from `thrown_exception_code`. This allows your functions to return
 
 If you would like to see this custom status code and domain in action,
 you can find it in an online C++ compiler at
-[https://wandbox.org/permlink/cRDS3kWqcAmYHBD6](https://wandbox.org/permlink/cRDS3kWqcAmYHBD6).
+[https://wandbox.org/permlink/0BKDWa7yk62uIFXc](https://wandbox.org/permlink/0BKDWa7yk62uIFXc).
 
 You can also find the source code for the above in example/thrown_exception.cpp.
