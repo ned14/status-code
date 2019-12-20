@@ -279,8 +279,11 @@ namespace detail
 {
   namespace avoid_stdio_include
   {
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !defined(_MSC_VER)
     extern "C" ptrdiff_t write(int, const void *, size_t);
+#elif defined(_MSC_VER)
+    extern ptrdiff_t write(int, const void *, size_t);
+#pragma comment(linker, "/alternatename:?write@avoid_stdio_include@detail@system_error2@@YA_JHPEBX_K@Z=write")
 #endif
   }  // namespace avoid_stdio_include
   inline void do_fatal_exit(const char *msg)
