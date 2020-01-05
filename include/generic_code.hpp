@@ -250,7 +250,7 @@ namespace detail
       return "Owner died";
     case errc::permission_denied:
       return "Permission denied";
-    case errc::protcol_error:
+    case errc::protocol_error:
       return "Protocol error";
     case errc::protocol_not_supported:
       return "Protocol not supported";
