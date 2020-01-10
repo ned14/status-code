@@ -462,7 +462,7 @@ int main()
   printf("\n");
   printf("Indirected success code has domain %s value (%s) and errc::permission_denied == error = %d\n", success11.domain().name().c_str(), success11.message().c_str(), static_cast<int>(errc::permission_denied == success11));
   printf("Indirected failure code has domain %s value (%s) and errc::permission_denied == error = %d\n", failure11.domain().name().c_str(), failure11.message().c_str(), static_cast<int>(errc::permission_denied == failure11));
-  CHECK(get_if<posix_code>(&success11) == &success9);
+  CHECK(*get_if<posix_code>(&success11) == success9);
   CHECK(get_if<StatusCode>(&success11) == nullptr);
   CHECK(get_id(success11) == success9.domain().id());
 
