@@ -29,7 +29,7 @@ script:
 # - if [ "$CXX" = "clang++" ]; then export CXX=clang++-3.3; fi;
  - mkdir build
  - cd build
- - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-DSYSTEM_ERROR2_DISABLE_STD_IN_PLACE""
+ - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-DSYSTEM_ERROR2_DISABLE_STD_IN_PLACE"
  - cmake --build .
  - bin/test-status-code
  -
