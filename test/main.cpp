@@ -131,7 +131,10 @@ public:
       this->_end = p->data() + p->size();  // NOLINT
     }
   };
-  constexpr Code_domain_impl() noexcept : _base(0x430f120194fc06c7) {}
+  constexpr Code_domain_impl() noexcept
+      : _base(0x430f120194fc06c7)
+  {
+  }
   static inline constexpr const Code_domain_impl &get();
   virtual _base::string_ref name() const noexcept override final  // NOLINT
   {
@@ -397,7 +400,7 @@ int main()
       CHECK(c == e);
     }
   }
-  #else
+#else
   // Test getaddrinfo_code
   getaddrinfo_code gai(EAI_NONAME);
   CHECK(gai == errc::no_such_device_or_address);
@@ -459,6 +462,9 @@ int main()
   printf("\n");
   printf("Indirected success code has domain %s value (%s) and errc::permission_denied == error = %d\n", success11.domain().name().c_str(), success11.message().c_str(), static_cast<int>(errc::permission_denied == success11));
   printf("Indirected failure code has domain %s value (%s) and errc::permission_denied == error = %d\n", failure11.domain().name().c_str(), failure11.message().c_str(), static_cast<int>(errc::permission_denied == failure11));
+  CHECK(get_if<posix_code>(&success11) == &success9);
+  CHECK(get_if<StatusCode>(&success11) == nullptr);
+  CHECK(get_id(success11) == success9.domain().id());
 
   return retcode;
 }
