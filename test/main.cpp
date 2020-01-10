@@ -24,6 +24,8 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #ifdef _WIN32
 #include "com_code.hpp"
+#else
+#include "getaddrinfo_code.hpp"
 #endif
 
 #include "iostream_support.hpp"
@@ -395,6 +397,11 @@ int main()
       CHECK(c == e);
     }
   }
+  #else
+  // Test getaddrinfo_code
+  getaddrinfo_code gai(EAI_NONAME);
+  CHECK(gai == errc::no_such_device_or_address);
+  printf("\ngetaddrinfo_code says the string for EAI_NONAME is '%s'\n", gai.message().c_str());
 #endif
 
   // Test posix_code

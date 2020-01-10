@@ -409,8 +409,11 @@ namespace detail
 {
   namespace avoid_stdio_include
   {
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !defined(_MSC_VER)
     extern "C" ptrdiff_t write(int, const void *, size_t);
+#elif defined(_MSC_VER)
+    extern ptrdiff_t write(int, const void *, size_t);
+#pragma comment(linker, "/alternatename:?write@avoid_stdio_include@detail@system_error2@@YA_JHPEBX_K@Z=write")
 #endif
   } // namespace avoid_stdio_include
   inline void do_fatal_exit(const char *msg)
@@ -736,7 +739,7 @@ protected:
 };
 SYSTEM_ERROR2_NAMESPACE_END
 #endif
-#if __cplusplus >= 201700 || _HAS_CXX17
+#if (__cplusplus >= 201700 || _HAS_CXX17) && !defined(SYSTEM_ERROR2_DISABLE_STD_IN_PLACE)
 // 0.26
 #include <utility> // for in_place
 SYSTEM_ERROR2_NAMESPACE_BEGIN
@@ -1293,7 +1296,7 @@ enum class errc : int
   operation_would_block = EWOULDBLOCK,
   owner_dead = EOWNERDEAD,
   permission_denied = EACCES,
-  protcol_error = EPROTO,
+  protocol_error = EPROTO,
   protocol_not_supported = EPROTONOSUPPORT,
   read_only_file_system = EROFS,
   resource_deadlock_would_occur = EDEADLK,
@@ -1444,7 +1447,7 @@ namespace detail
       return "Owner died";
     case errc::permission_denied:
       return "Permission denied";
-    case errc::protcol_error:
+    case errc::protocol_error:
       return "Protocol error";
     case errc::protocol_not_supported:
       return "Protocol not supported";

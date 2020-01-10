@@ -27,7 +27,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include "status_code_domain.hpp"
 
-#if __cplusplus >= 201700 || _HAS_CXX17
+#if(__cplusplus >= 201700 || _HAS_CXX17) && !defined(SYSTEM_ERROR2_DISABLE_STD_IN_PLACE)
 // 0.26
 #include <utility>  // for in_place
 

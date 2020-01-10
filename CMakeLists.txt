@@ -83,6 +83,7 @@ target_sources(status-code INTERFACE
   "${CMAKE_CURRENT_SOURCE_DIR}/include/error.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/errored_status_code.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/generic_code.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/getaddrinfo_code.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/iostream_support.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/nt_code.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/posix_code.hpp"
