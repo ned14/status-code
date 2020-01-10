@@ -24,8 +24,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include "result.hpp"
 
-#if __cplusplus >= 201703L || _HAS_CXX17
-#if __has_include(<variant>)
+#if(__cplusplus >= 201703L || _HAS_CXX17) && __has_include(<variant>)
 
 #include <cstdio>
 #include <iostream>
@@ -307,7 +306,6 @@ int main()
   return retcode;
 }
 
-#endif
 #else
 int main(void)
 {
