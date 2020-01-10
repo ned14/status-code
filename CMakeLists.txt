@@ -130,13 +130,15 @@ if(NOT PROJECT_IS_DEPENDENCY)
     endif()
   endif()
 
-  add_executable(test-result "test/result.cpp")
-  target_compile_features(test-result PRIVATE cxx_std_17)
-  target_link_libraries(test-result PRIVATE status-code)
-  set_target_properties(test-result PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-  )
-  add_test(NAME test-result COMMAND $<TARGET_FILE:test-result>)
+  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "6.0")
+    add_executable(test-result "test/result.cpp")
+    target_compile_features(test-result PRIVATE cxx_std_17)
+    target_link_libraries(test-result PRIVATE status-code)
+    set_target_properties(test-result PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+    add_test(NAME test-result COMMAND $<TARGET_FILE:test-result>)
+  endif()
 
   add_executable(test-status-code "test/main.cpp")
   target_link_libraries(test-status-code PRIVATE status-code)
