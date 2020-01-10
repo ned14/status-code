@@ -24,9 +24,12 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include "result.hpp"
 
+#if __cplusplus >= 201703L || _HAS_CXX17
+#if __has_include(<variant>)
+
 #include <cstdio>
-#include <string>
 #include <iostream>
+#include <string>
 
 /* Most of this test suite was ported over from Boost.Outcome's
 experimental-core-result-status.cpp
@@ -84,7 +87,7 @@ int main()
     BOOST_CHECK(!m.has_value());
     BOOST_CHECK(m.has_error());
     // BOOST_CHECK(!m.has_exception());
-    //BOOST_CHECK_THROW(([&m]() -> void { return m.value(); }()), generic_error);
+    // BOOST_CHECK_THROW(([&m]() -> void { return m.value(); }()), generic_error);
     BOOST_CHECK_NO_THROW(m.error());
   }
   {  // valued int
@@ -138,12 +141,12 @@ int main()
     BOOST_CHECK_THROW(m.value(), generic_error);
     BOOST_CHECK(m.error() == ec);
   }
-//  if(false)  // NOLINT
-//  {          // void, void is permitted, but is not constructible
-//    result<void, void> *m = nullptr;
-//    m->value();
-//    m->error();
-//  }
+  //  if(false)  // NOLINT
+  //  {          // void, void is permitted, but is not constructible
+  //    result<void, void> *m = nullptr;
+  //    m->value();
+  //    m->error();
+  //  }
 
   {
     // Deliberately define non-trivial operations
@@ -200,7 +203,7 @@ int main()
     if(false)                             // NOLINT
     {
       b.assume_value();
-//      a.assume_error();
+      //      a.assume_error();
     }
 #ifdef __cpp_exceptions
     try
@@ -271,7 +274,7 @@ int main()
     BOOST_CHECK(i.has_error());
   }
 
-  #if 0
+#if 0
   // Test direct use of error code enum works
   {
     constexpr result<int, errc, OUTCOME_V2_NAMESPACE::policy::all_narrow> a(5), b(errc::invalid_argument);
@@ -299,7 +302,15 @@ int main()
     }
   }
 #endif
-  #endif
+#endif
 
   return retcode;
 }
+
+#endif
+#else
+int main(void)
+{
+  return 0;
+}
+#endif
