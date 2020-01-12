@@ -24,11 +24,12 @@ Distributed under the Boost Software License, Version 1.0.
 #ifndef SYSTEM_ERROR2_RESULT_HPP
 #define SYSTEM_ERROR2_RESULT_HPP
 
-#include "system_error2.hpp"
+#include "error.hpp"
 
 #if __cplusplus >= 201703L || _HAS_CXX17
 #if __has_include(<variant>)
 
+#include <exception>
 #include <variant>
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
@@ -43,6 +44,16 @@ template <class T> struct is_result : public std::false_type
 };
 template <class T> struct is_result<result<T>> : public std::true_type
 {
+};
+
+/*! \brief Exception type representing the failure to retrieve an error.
+ */
+class bad_result_access : public std::exception
+{
+public:
+  bad_result_access() = default;
+  //! Return an explanatory string
+  virtual const char *what() const noexcept override { return "bad result access"; }  // NOLINT
 };
 
 namespace detail
@@ -61,7 +72,7 @@ valueless by exception state. This implementation is therefore imperfect.
 */
 template <class T> class result : protected std::variant<SYSTEM_ERROR2_NAMESPACE::error, detail::devoid<T>>
 {
-  using _base = std::variant< SYSTEM_ERROR2_NAMESPACE::error, detail::devoid<T>>;
+  using _base = std::variant<SYSTEM_ERROR2_NAMESPACE::error, detail::devoid<T>>;
   static_assert(!std::is_reference_v<T>, "Type cannot be a reference");
   static_assert(!std::is_array_v<T>, "Type cannot be an array");
   static_assert(!std::is_same_v<T, SYSTEM_ERROR2_NAMESPACE::error>, "Type cannot be a std::error");
@@ -118,8 +129,8 @@ protected:
   }
 
 public:
-  _base &_internal() noexcept { return *this; }
-  const _base &_internal() const noexcept { return *this; }
+  constexpr _base &_internal() noexcept { return *this; }
+  constexpr const _base &_internal() const noexcept { return *this; }
 
   //! Default constructor is disabled
   result() = delete;
@@ -172,7 +183,8 @@ public:
   template <class Arg1, class Arg2, class... Args,                                                                                                    //
             std::enable_if_t<!(std::is_constructible_v<value_type, Arg1, Arg2, Args...> && std::is_constructible_v<error_type, Arg1, Arg2, Args...>)  //
                              &&std::is_constructible_v<error_type, Arg1, Arg2, Args...>,
-                             bool> = true, long = 5>
+                             bool> = true,
+            long = 5>
   constexpr result(Arg1 &&arg1, Arg2 &&arg2, Args &&... args) noexcept(std::is_nothrow_constructible_v<error_type, Arg1, Arg2, Args...>)
       : _base(std::in_place_index<0>, std::forward<Arg1>(arg1), std::forward<Arg2>(arg2), std::forward<Args>(args)...)
   {
@@ -182,9 +194,23 @@ public:
   template <class Arg1, class Arg2, class... Args,                                                                                                    //
             std::enable_if_t<!(std::is_constructible_v<value_type, Arg1, Arg2, Args...> && std::is_constructible_v<error_type, Arg1, Arg2, Args...>)  //
                              &&std::is_constructible_v<value_type, Arg1, Arg2, Args...>,
-                             bool> = true, int = 5>
+                             bool> = true,
+            int = 5>
   constexpr result(Arg1 &&arg1, Arg2 &&arg2, Args &&... args) noexcept(std::is_nothrow_constructible_v<value_type, Arg1, Arg2, Args...>)
       : _base(std::in_place_index<1>, std::forward<Arg1>(arg1), std::forward<Arg2>(arg2), std::forward<Args>(args)...)
+  {
+  }
+
+  //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
+  template <class U, class... Args,                                                                            //
+            class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<U, Args...>::type,  // Safe ADL lookup of make_status_code(), returns void if not found
+            typename std::enable_if<!std::is_same<typename std::decay<U>::type, result>::value            // not copy/move of self
+                                    && !std::is_same<typename std::decay<U>::type, value_type>::value          // not copy/move of value type
+                                    && is_status_code<MakeStatusCodeResult>::value                             // ADL makes a status code
+                                    && std::is_constructible<error_type, MakeStatusCodeResult>::value,        // ADLed status code is compatible
+                                    bool>::type = true>
+  constexpr result(U &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<U>(), std::declval<Args>()...)))  // NOLINT
+      : _base(std::in_place_index<0>, make_status_code(static_cast<U &&>(v), static_cast<Args &&>(args)...))
   {
   }
 
@@ -199,69 +225,85 @@ public:
   constexpr bool has_error() const noexcept { return _base::index() == 0; }
 
   //! Accesses the value if one exists, else calls `.error().throw_exception()`.
-  value_type_if_enabled &value() &
+  constexpr value_type_if_enabled &value() &
   {
     _check();
     return std::get<1>(*this);
   }
   //! Accesses the value if one exists, else calls `.error().throw_exception()`.
-  const value_type_if_enabled &value() const &
+  constexpr const value_type_if_enabled &value() const &
   {
     _check();
     return std::get<1>(*this);
   }
   //! Accesses the value if one exists, else calls `.error().throw_exception()`.
-  value_type_if_enabled &&value() &&
+  constexpr value_type_if_enabled &&value() &&
   {
     _check();
     return std::get<1>(std::move(*this));
   }
   //! Accesses the value if one exists, else calls `.error().throw_exception()`.
-  const value_type_if_enabled &&value() const &&
+  constexpr const value_type_if_enabled &&value() const &&
   {
     _check();
     return std::get<1>(std::move(*this));
   }
 
-  //! Accesses the error, being UB if none exists
-  error_type &error() & noexcept
+  //! Accesses the error if one exists, else throws `bad_result_access`.
+  constexpr error_type &error() &
   {
     if(!has_error())
     {
-      _ub();
+#ifdef __cpp_exceptions
+      throw bad_result_access();
+#else
+      abort();
+#endif
     }
     return *std::get_if<0>(this);
   }
-  //! Accesses the error, being UB if none exists
-  const error_type &error() const &noexcept
+  //! Accesses the error if one exists, else throws `bad_result_access`.
+  constexpr const error_type &error() const &
   {
     if(!has_error())
     {
-      _ub();
+#ifdef __cpp_exceptions
+      throw bad_result_access();
+#else
+      abort();
+#endif
     }
     return *std::get_if<0>(this);
   }
-  //! Accesses the error, being UB if none exists
-  error_type &&error() && noexcept
+  //! Accesses the error if one exists, else throws `bad_result_access`.
+  constexpr error_type &&error() &&
   {
     if(!has_error())
     {
-      _ub();
+#ifdef __cpp_exceptions
+      throw bad_result_access();
+#else
+      abort();
+#endif
     }
     return std::move(*std::get_if<0>(this));
   }
-  //! Accesses the error, being UB if none exists
-  const error_type &&error() const &&noexcept
+  //! Accesses the error if one exists, else throws `bad_result_access`.
+  constexpr const error_type &&error() const &&
   {
     if(!has_error())
     {
-      _ub();
+#ifdef __cpp_exceptions
+      throw bad_result_access();
+#else
+      abort();
+#endif
     }
     return std::move(*std::get_if<0>(this));
   }
 
   //! Accesses the value, being UB if none exists
-  value_type_if_enabled &assume_value() & noexcept
+  constexpr value_type_if_enabled &assume_value() & noexcept
   {
     if(!has_value())
     {
@@ -270,7 +312,7 @@ public:
     return *std::get_if<1>(this);
   }
   //! Accesses the error, being UB if none exists
-  const value_type_if_enabled &assume_value() const &noexcept
+  constexpr const value_type_if_enabled &assume_value() const &noexcept
   {
     if(!has_value())
     {
@@ -279,7 +321,7 @@ public:
     return *std::get_if<1>(this);
   }
   //! Accesses the error, being UB if none exists
-  value_type_if_enabled &&assume_value() && noexcept
+  constexpr value_type_if_enabled &&assume_value() && noexcept
   {
     if(!has_value())
     {
@@ -288,13 +330,50 @@ public:
     return std::move(*std::get_if<1>(this));
   }
   //! Accesses the error, being UB if none exists
-  const value_type_if_enabled &&assume_value() const &&noexcept
+  constexpr const value_type_if_enabled &&assume_value() const &&noexcept
   {
     if(!has_value())
     {
       _ub();
     }
     return std::move(*std::get_if<1>(this));
+  }
+
+  //! Accesses the error, being UB if none exists
+  constexpr error_type &assume_error() & noexcept
+  {
+    if(!has_error())
+    {
+      _ub();
+    }
+    return *std::get_if<0>(this);
+  }
+  //! Accesses the error, being UB if none exists
+  constexpr const error_type &assume_error() const &noexcept
+  {
+    if(!has_error())
+    {
+      _ub();
+    }
+    return *std::get_if<0>(this);
+  }
+  //! Accesses the error, being UB if none exists
+  constexpr error_type &&assume_error() && noexcept
+  {
+    if(!has_error())
+    {
+      _ub();
+    }
+    return std::move(*std::get_if<0>(this));
+  }
+  //! Accesses the error, being UB if none exists
+  constexpr const error_type &&assume_error() const &&noexcept
+  {
+    if(!has_error())
+    {
+      _ub();
+    }
+    return std::move(*std::get_if<0>(this));
   }
 };
 

@@ -202,7 +202,7 @@ int main()
     if(false)                             // NOLINT
     {
       b.assume_value();
-      //      a.assume_error();
+      a.assume_error();
     }
 #ifdef __cpp_exceptions
     try
@@ -219,14 +219,11 @@ int main()
     static_assert(!std::is_default_constructible<decltype(a)>::value, "");
     static_assert(!std::is_nothrow_default_constructible<decltype(a)>::value, "");
     static_assert(!std::is_copy_constructible<decltype(a)>::value, "");
-// Quality of implementation of std::optional is poor :(
-#ifndef TESTING_WG21_EXPERIMENTAL_RESULT
     static_assert(!std::is_trivially_copy_constructible<decltype(a)>::value, "");
     static_assert(!std::is_nothrow_copy_constructible<decltype(a)>::value, "");
     static_assert(!std::is_copy_assignable<decltype(a)>::value, "");
     static_assert(!std::is_trivially_copy_assignable<decltype(a)>::value, "");
     static_assert(!std::is_nothrow_copy_assignable<decltype(a)>::value, "");
-#endif
     static_assert(!std::is_trivially_destructible<decltype(a)>::value, "");
     static_assert(std::is_nothrow_destructible<decltype(a)>::value, "");
 
@@ -273,14 +270,14 @@ int main()
     BOOST_CHECK(i.has_error());
   }
 
-#if 0
   // Test direct use of error code enum works
   {
-    constexpr result<int, errc, OUTCOME_V2_NAMESPACE::policy::all_narrow> a(5), b(errc::invalid_argument);
-    static_assert(a.value() == 5, "a is not 5");
-    static_assert(b.error() == errc::invalid_argument, "b is not errored");
+    /*constexpr*/ result<int> a(5), b(errc::invalid_argument);
+    BOOST_CHECK(a.value() == 5);
+    BOOST_CHECK(b.error() == errc::invalid_argument);
   }
 
+#if 0
 #ifdef __cpp_exceptions
   // Test payload facility
   {
