@@ -25,7 +25,9 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_SYSTEM_CODE_HPP
 #define SYSTEM_ERROR2_SYSTEM_CODE_HPP
 
+#if defined(__linux__) || defined(__unix__)
 #include "posix_code.hpp"
+#endif
 
 #if defined(_WIN32) || defined(STANDARDESE_IS_IN_THE_HOUSE)
 #include "nt_code.hpp"
