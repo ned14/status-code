@@ -203,7 +203,7 @@ public:
   SYSTEM_ERROR2_NORETURN void throw_exception() const
   {
     _domain->_do_throw_exception(*this);
-    abort();
+    abort();  // suppress buggy GCC warning
   }
 #endif
 };
@@ -370,7 +370,7 @@ public:
   {
   }
   /*! Explicit construction from an erased status code. Available only if
-  `value_type` is trivially copyable or move relocating, and `sizeof(status_code) <= sizeof(status_code<erased<>>)`.
+  `value_type` is trivially copyable or move bitcopying, and `sizeof(status_code) <= sizeof(status_code<erased<>>)`.
   Does not check if domains are equal.
   */
   template <class ErasedType,  //
@@ -467,7 +467,7 @@ public:
       : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
   {
   }
-  //! Implicit move construction from any other status code if its value type is trivially copyable or move relocating and it would fit into our storage
+  //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying and it would fit into our storage
   template <class DomainType,  //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
   SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept  // NOLINT

@@ -135,10 +135,10 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 //! Namespace for user specialised traits
 namespace traits
 {
-  /*! Specialise to true if you guarantee that a type is move relocating (i.e.
+  /*! Specialise to true if you guarantee that a type is move bitcopying (i.e.
   its move constructor equals copying bits from old to new, old is left in a
   default constructed state, and calling the destructor on a default constructed
-  instance is trivial). All trivially copyable types are move relocating by
+  instance is trivial). All trivially copyable types are move bitcopying by
   definition, and that is the unspecialised implementation.
   */
   template <class T> struct is_move_bitcopying

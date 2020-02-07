@@ -202,7 +202,7 @@ public:
   {
     _check();
   }
-  //! Implicit move construction from any other status code if its value type is trivially copyable or move relocating and it would fit into our storage
+  //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying and it would fit into our storage
   template <class DomainType,  //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
                                     bool>::type = true>

@@ -45,7 +45,7 @@ the program is terminated as this is a logic error)
 - Is immutable.
 
 As with `system_code`, it remains guaranteed to be two CPU registers in size,
-and move relocating.
+and move bitcopying.
 */
 using error = errored_status_code<erased<system_code::value_type>>;
 
