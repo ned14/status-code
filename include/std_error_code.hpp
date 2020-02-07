@@ -25,7 +25,9 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_STD_ERROR_CODE_HPP
 #define SYSTEM_ERROR2_STD_ERROR_CODE_HPP
 
+#ifndef SYSTEM_ERROR2_NOT_POSIX
 #include "posix_code.hpp"
+#endif
 
 #if defined(_WIN32) || defined(STANDARDESE_IS_IN_THE_HOUSE)
 #include "win32_code.hpp"
@@ -132,10 +134,11 @@ protected:
 // Convert to POSIX or Win32 code, and compare that
 #ifdef _WIN32
       win32_code _c1((win32::DWORD) c1.value().value());
-#else
-      posix_code _c1(c1.value().value());
-#endif
       return _c1 == code2;
+#elif !defined(SYSTEM_ERROR2_NOT_POSIX)
+      posix_code _c1(c1.value().value());
+      return _c1 == code2;
+#endif
     }
     return false;
   }

@@ -143,9 +143,9 @@ public:
 
 namespace traits
 {
-  template <class DomainType> struct is_move_relocating<errored_status_code<DomainType>>
+  template <class DomainType> struct is_move_bitcopying<errored_status_code<DomainType>>
   {
-    static constexpr bool value = is_move_relocating<typename DomainType::value_type>::value;
+    static constexpr bool value = is_move_bitcopying<typename DomainType::value_type>::value;
   };
 }  // namespace traits
 
@@ -229,7 +229,7 @@ public:
 
 namespace traits
 {
-  template <class ErasedType> struct is_move_relocating<errored_status_code<erased<ErasedType>>>
+  template <class ErasedType> struct is_move_bitcopying<errored_status_code<erased<ErasedType>>>
   {
     static constexpr bool value = true;
   };

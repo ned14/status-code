@@ -32,6 +32,8 @@ status code domains.
 across huge codebases.
 - Minimum compile time load, making it suitable for use in the global headers of
 multi-million line codebases.
+- Has a 'not POSIX' configuration `SYSTEM_ERROR2_NOT_POSIX`, suitable for using this
+library on non-POSIX non-Windows platforms.
 
 ## Example of use:
 

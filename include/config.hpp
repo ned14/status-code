@@ -141,7 +141,7 @@ namespace traits
   instance is trivial). All trivially copyable types are move relocating by
   definition, and that is the unspecialised implementation.
   */
-  template <class T> struct is_move_relocating
+  template <class T> struct is_move_bitcopying
   {
     static constexpr bool value = std::is_trivially_copyable<T>::value;
   };
@@ -174,7 +174,7 @@ namespace detail
 
   template <class To, class From> using is_union_castable = std::integral_constant<bool, !is_static_castable<To, From>::value && !std::is_array<To>::value && !std::is_array<From>::value>;
 
-  template <class To, class From> using is_bit_castable = std::integral_constant<bool, sizeof(To) == sizeof(From) && traits::is_move_relocating<To>::value && traits::is_move_relocating<From>::value>;
+  template <class To, class From> using is_bit_castable = std::integral_constant<bool, sizeof(To) == sizeof(From) && traits::is_move_bitcopying<To>::value && traits::is_move_bitcopying<From>::value>;
 
   template <class To, class From> union bit_cast_union {
     From source;
@@ -223,7 +223,7 @@ namespace detail
   types it may insert the value into another object with extra padding bytes
   to satisfy bit_cast's preconditions that both types have the same size. */
 
-  template <class To, class From> using is_erasure_castable = std::integral_constant<bool, traits::is_move_relocating<To>::value && traits::is_move_relocating<From>::value>;
+  template <class To, class From> using is_erasure_castable = std::integral_constant<bool, traits::is_move_bitcopying<To>::value && traits::is_move_bitcopying<From>::value>;
 
   template <class T, bool = std::is_enum<T>::value> struct identity_or_underlying_type
   {
@@ -239,7 +239,7 @@ namespace detail
 
   template <class ErasedType, std::size_t N> struct padded_erasure_object
   {
-    static_assert(traits::is_move_relocating<ErasedType>::value, "ErasedType must be TriviallyCopyable or MoveRelocating");
+    static_assert(traits::is_move_bitcopying<ErasedType>::value, "ErasedType must be TriviallyCopyable or MoveBitcopying");
     static_assert(alignof(ErasedType) <= sizeof(ErasedType), "ErasedType must not be over-aligned");
     ErasedType value;
     char padding[N];
@@ -269,6 +269,9 @@ namespace detail
 SYSTEM_ERROR2_NAMESPACE_END
 
 #ifndef SYSTEM_ERROR2_FATAL
+#ifdef SYSTEM_ERROR2_NOT_POSIX
+#error If SYSTEM_ERROR2_NOT_POSIX is defined, you must define your own SYSTEM_ERROR2_FATAL implementation!
+#endif
 #include <cstdlib>  // for abort
 #ifdef __APPLE__
 #include <unistd.h>  // for write

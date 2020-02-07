@@ -51,7 +51,7 @@ using error = errored_status_code<erased<system_code::value_type>>;
 
 #ifndef NDEBUG
 static_assert(sizeof(error) == 2 * sizeof(void *), "error is not exactly two pointers in size!");
-static_assert(traits::is_move_relocating<error>::value, "error is not move relocating!");
+static_assert(traits::is_move_bitcopying<error>::value, "error is not move bitcopying!");
 #endif
 
 SYSTEM_ERROR2_NAMESPACE_END

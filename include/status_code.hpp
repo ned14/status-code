@@ -61,10 +61,10 @@ namespace mixins
 }  // namespace mixins
 
 /*! A tag for an erased value type for `status_code<D>`.
-Available only if `ErasedType` satisfies `traits::is_move_relocating<ErasedType>::value`.
+Available only if `ErasedType` satisfies `traits::is_move_bitcopying<ErasedType>::value`.
 */
 template <class ErasedType,  //
-          typename std::enable_if<traits::is_move_relocating<ErasedType>::value, bool>::type = true>
+          typename std::enable_if<traits::is_move_bitcopying<ErasedType>::value, bool>::type = true>
 struct erased
 {
   using value_type = ErasedType;
@@ -200,7 +200,11 @@ public:
   template <class T> inline bool equivalent(const status_code<T> &o) const noexcept;
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   //! Throw a code as a C++ exception.
-  SYSTEM_ERROR2_NORETURN void throw_exception() const { _domain->_do_throw_exception(*this); }
+  SYSTEM_ERROR2_NORETURN void throw_exception() const
+  {
+    _domain->_do_throw_exception(*this);
+    abort();
+  }
 #endif
 };
 
@@ -392,9 +396,9 @@ public:
 
 namespace traits
 {
-  template <class DomainType> struct is_move_relocating<status_code<DomainType>>
+  template <class DomainType> struct is_move_bitcopying<status_code<DomainType>>
   {
-    static constexpr bool value = is_move_relocating<typename DomainType::value_type>::value;
+    static constexpr bool value = is_move_bitcopying<typename DomainType::value_type>::value;
   };
 }  // namespace traits
 
@@ -493,7 +497,7 @@ public:
 
 namespace traits
 {
-  template <class ErasedType> struct is_move_relocating<status_code<erased<ErasedType>>>
+  template <class ErasedType> struct is_move_bitcopying<status_code<erased<ErasedType>>>
   {
     static constexpr bool value = true;
   };

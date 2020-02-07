@@ -157,6 +157,14 @@ if(NOT PROJECT_IS_DEPENDENCY)
   )
   add_test(NAME test-status-code-noexcept COMMAND $<TARGET_FILE:test-status-code-noexcept>)
   
+  add_executable(test-status-code-not-posix "test/main.cpp")
+  target_compile_definitions(test-status-code-not-posix PRIVATE SYSTEM_ERROR2_NOT_POSIX=1 SYSTEM_ERROR2_FATAL="::abort()")
+  target_link_libraries(test-status-code-not-posix PRIVATE status-code)
+  set_target_properties(test-status-code-not-posix PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+  add_test(NAME test-status-code-not-posix COMMAND $<TARGET_FILE:test-status-code-not-posix>)
+  
   add_executable(test-status-code-p0709a "test/p0709a.cpp")
   target_link_libraries(test-status-code-p0709a PRIVATE status-code)
   set_target_properties(test-status-code-p0709a PROPERTIES

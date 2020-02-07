@@ -407,6 +407,7 @@ int main()
   printf("\ngetaddrinfo_code says the string for EAI_NONAME is '%s'\n", gai.message().c_str());
 #endif
 
+#ifndef SYSTEM_ERROR2_NOT_POSIX
   // Test posix_code
   constexpr posix_code success9(0), failure9(EACCES);
   CHECK(success9.success());
@@ -431,6 +432,7 @@ int main()
     printf("error[%zu] has domain %s value %zd (%s) and errc::permission_denied == error = %d\n", n, errors[n].domain().name().c_str(), errors[n].value(), errors[n].message().c_str(), static_cast<int>(errc::permission_denied == errors[n]));
     CHECK(errors[n] == errc::permission_denied);
   }
+#endif
 
   // Test ADL implicit construction
   StatusCode sc1(make_status_code(ADLHelper1{})), sc2(make_status_code(ADLHelper1{}, ADLHelper2{}));
@@ -457,6 +459,7 @@ int main()
     CHECK(n != 0 || ec == errc::permission_denied);
   }
 
+#ifndef SYSTEM_ERROR2_NOT_POSIX
   // Test status_code_ptr
   system_code success11(make_status_code_ptr(success9)), failure11(make_status_code_ptr(failure9));
   printf("\n");
@@ -465,6 +468,7 @@ int main()
   CHECK(*get_if<posix_code>(&success11) == success9);
   CHECK(get_if<StatusCode>(&success11) == nullptr);
   CHECK(get_id(success11) == success9.domain().id());
+#endif
 
   return retcode;
 }
