@@ -54,7 +54,7 @@ namespace detail
   };
   template <class To, class From> struct type_erasure_is_safe
   {
-    static constexpr bool value = traits::is_move_relocating<From>::value  //
+    static constexpr bool value = traits::is_move_bitcopying<From>::value  //
                                   && (sizeof(status_code_sizer<From>) <= sizeof(status_code_sizer<To>));
   };
 }  // namespace detail

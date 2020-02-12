@@ -25,7 +25,9 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_SYSTEM_CODE_HPP
 #define SYSTEM_ERROR2_SYSTEM_CODE_HPP
 
+#ifndef SYSTEM_ERROR2_NOT_POSIX
 #include "posix_code.hpp"
+#endif
 
 #if defined(_WIN32) || defined(STANDARDESE_IS_IN_THE_HOUSE)
 #include "nt_code.hpp"
@@ -52,7 +54,7 @@ using system_code = status_code<erased<intptr_t>>;
 
 #ifndef NDEBUG
 static_assert(sizeof(system_code) == 2 * sizeof(void *), "system_code is not exactly two pointers in size!");
-static_assert(traits::is_move_relocating<system_code>::value, "system_code is not move relocating!");
+static_assert(traits::is_move_bitcopying<system_code>::value, "system_code is not move bitcopying!");
 #endif
 
 SYSTEM_ERROR2_NAMESPACE_END

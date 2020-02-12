@@ -61,10 +61,10 @@ namespace mixins
 }  // namespace mixins
 
 /*! A tag for an erased value type for `status_code<D>`.
-Available only if `ErasedType` satisfies `traits::is_move_relocating<ErasedType>::value`.
+Available only if `ErasedType` satisfies `traits::is_move_bitcopying<ErasedType>::value`.
 */
 template <class ErasedType,  //
-          typename std::enable_if<traits::is_move_relocating<ErasedType>::value, bool>::type = true>
+          typename std::enable_if<traits::is_move_bitcopying<ErasedType>::value, bool>::type = true>
 struct erased
 {
   using value_type = ErasedType;
@@ -200,7 +200,11 @@ public:
   template <class T> inline bool equivalent(const status_code<T> &o) const noexcept;
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   //! Throw a code as a C++ exception.
-  SYSTEM_ERROR2_NORETURN void throw_exception() const { _domain->_do_throw_exception(*this); }
+  SYSTEM_ERROR2_NORETURN void throw_exception() const
+  {
+    _domain->_do_throw_exception(*this);
+    abort();  // suppress buggy GCC warning
+  }
 #endif
 };
 
@@ -366,7 +370,7 @@ public:
   {
   }
   /*! Explicit construction from an erased status code. Available only if
-  `value_type` is trivially copyable or move relocating, and `sizeof(status_code) <= sizeof(status_code<erased<>>)`.
+  `value_type` is trivially copyable or move bitcopying, and `sizeof(status_code) <= sizeof(status_code<erased<>>)`.
   Does not check if domains are equal.
   */
   template <class ErasedType,  //
@@ -392,9 +396,9 @@ public:
 
 namespace traits
 {
-  template <class DomainType> struct is_move_relocating<status_code<DomainType>>
+  template <class DomainType> struct is_move_bitcopying<status_code<DomainType>>
   {
-    static constexpr bool value = is_move_relocating<typename DomainType::value_type>::value;
+    static constexpr bool value = is_move_bitcopying<typename DomainType::value_type>::value;
   };
 }  // namespace traits
 
@@ -463,7 +467,7 @@ public:
       : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
   {
   }
-  //! Implicit move construction from any other status code if its value type is trivially copyable or move relocating and it would fit into our storage
+  //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying and it would fit into our storage
   template <class DomainType,  //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
   SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept  // NOLINT
@@ -493,7 +497,7 @@ public:
 
 namespace traits
 {
-  template <class ErasedType> struct is_move_relocating<status_code<erased<ErasedType>>>
+  template <class ErasedType> struct is_move_bitcopying<status_code<erased<ErasedType>>>
   {
     static constexpr bool value = true;
   };
