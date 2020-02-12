@@ -135,11 +135,11 @@ public:
   //! Default constructor is disabled
   result() = delete;
   //! Copy constructor
-  result(const result &) = default;
+  result(const result &) = delete;
   //! Move constructor
   result(result &&) = default;
   //! Copy assignment
-  result &operator=(const result &) = default;
+  result &operator=(const result &) = delete;
   //! Move assignment
   result &operator=(result &&) = default;
   //! Destructor
@@ -204,10 +204,10 @@ public:
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
   template <class U, class... Args,                                                                            //
             class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<U, Args...>::type,  // Safe ADL lookup of make_status_code(), returns void if not found
-            typename std::enable_if<!std::is_same<typename std::decay<U>::type, result>::value            // not copy/move of self
+            typename std::enable_if<!std::is_same<typename std::decay<U>::type, result>::value                 // not copy/move of self
                                     && !std::is_same<typename std::decay<U>::type, value_type>::value          // not copy/move of value type
                                     && is_status_code<MakeStatusCodeResult>::value                             // ADL makes a status code
-                                    && std::is_constructible<error_type, MakeStatusCodeResult>::value,        // ADLed status code is compatible
+                                    && std::is_constructible<error_type, MakeStatusCodeResult>::value,         // ADLed status code is compatible
                                     bool>::type = true>
   constexpr result(U &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<U>(), std::declval<Args>()...)))  // NOLINT
       : _base(std::in_place_index<0>, make_status_code(static_cast<U &&>(v), static_cast<Args &&>(args)...))
@@ -216,6 +216,9 @@ public:
 
   //! Swap with another result
   constexpr void swap(result &o) noexcept(std::is_nothrow_swappable_v<_base>) { _base::swap(o); }
+
+  //! Clone the result
+  constexpr result clone() const { return has_value() ? result(value()) : result(error().clone()); }
 
   //! True if result has a value
   constexpr bool has_value() const noexcept { return _base::index() == 1; }
