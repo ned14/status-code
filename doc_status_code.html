@@ -27,7 +27,7 @@ doc_status_code
         <span class="kwd">struct</span> <span class="typ dec var fun">mixin</span><span class="pun">;</span>
     <span class="pun">}</span>
 
-    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">,</span> typename std::enable_if&lt;traits::is_move_relocating&lt;ErasedType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">,</span> typename std::enable_if&lt;traits::is_move_bitcopying&lt;ErasedType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
     <span class="kwd">struct</span> <a href="doc_status_code.html#standardese-system_error2__erased-ErasedType--"><span class="typ dec var fun">erased</span></a><span class="pun">;</span>
 
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">StatusCode</span><span class="pun">&gt;</span>
@@ -45,7 +45,7 @@ doc_status_code
     <span class="kwd">namespace</span> <span class="typ dec var fun">traits</span>
     <span class="pun">{</span>
         <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">DomainType</span><span class="pun">&gt;</span>
-        <span class="kwd">struct</span> <a href="doc_config.html#standardese-system_error2__traits__is_move_relocating-T-"><span class="typ dec var fun">is_move_relocating</span></a><span class="pun">&lt;</span><span class="kwd">status_code</span><span class="pun">&lt;</span><span class="kwd">DomainType</span><span class="pun">&gt;</span><span class="pun">;</span>
+        <span class="kwd">struct</span> <a href="doc_config.html#standardese-system_error2__traits__is_move_bitcopying-T-"><span class="typ dec var fun">is_move_bitcopying</span></a><span class="pun">&lt;</span><span class="kwd">status_code</span><span class="pun">&lt;</span><span class="kwd">DomainType</span><span class="pun">&gt;</span><span class="pun">;</span>
     <span class="pun">}</span>
 
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">&gt;</span>
@@ -91,7 +91,7 @@ doc_status_code
 <hr />
 <h3>Struct <code>system_error2::erased</code></h3>
 <p><span id="standardese-system_error2__erased-ErasedType--"></span></p>
-<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">,</span> typename std::enable_if&lt;traits::is_move_relocating&lt;ErasedType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">ErasedType</span><span class="pun">,</span> typename std::enable_if&lt;traits::is_move_bitcopying&lt;ErasedType&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
 <span class="kwd">struct</span> <span class="typ dec var fun">erased</span>
 <span class="pun">{</span>
     <span class="kwd">using</span> <span class="typ dec var fun">value_type</span> <span class="pun">=</span> <span class="typ dec var fun">ErasedType</span><span class="pun">;</span>
@@ -99,7 +99,7 @@ doc_status_code
 </code></pre>
 
 <p>A tag for an erased value type for <code>status_code&lt;D&gt;</code>.</p>
-<p>Available only if <code>ErasedType</code> satisfies <code>traits::is_move_relocating&lt;ErasedType&gt;::value</code>.</p>
+<p>Available only if <code>ErasedType</code> satisfies <code>traits::is_move_bitcopying&lt;ErasedType&gt;::value</code>.</p>
 <hr />
 <h3>Struct <code>system_error2::ptr</code></h3>
 <p><span id="standardese-system_error2__ptr-StatusCode-"></span></p>

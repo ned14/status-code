@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>
+doc_getaddrinfo_code
+</title>
+</head>
+<body>
+
+<h1>Header file <code>getaddrinfo_code.hpp</code></h1>
+<p><span id="standardese-getaddrinfo_code-hpp"></span></p>
+<pre><code class="standardese-language-cpp"><span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_generic_code.html#standardese-generic_code-hpp"><span class="typ dec var fun">generic_code.hpp</span></a><span class="pre">&quot;</span>
+
+<span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
+<span class="pun">{</span>
+    <span class="kwd">using</span> <a href="doc_getaddrinfo_code.html#standardese-system_error2__getaddrinfo_code"><span class="typ dec var fun">getaddrinfo_code</span></a> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>system_error2::_getaddrinfo_code_domain<span class="pun">&gt;</span><span class="pun">;</span>
+
+    <span class="kwd">using</span> <a href="doc_getaddrinfo_code.html#standardese-system_error2__getaddrinfo_error"><span class="typ dec var fun">getaddrinfo_error</span></a> <span class="pun">=</span> <a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-"><span class="typ dec var fun">status_error</span></a><span class="pun">&lt;</span>system_error2::_getaddrinfo_code_domain<span class="pun">&gt;</span><span class="pun">;</span>
+
+    <span class="kwd">class</span> <a href="doc_getaddrinfo_code.html#standardese-system_error2___getaddrinfo_code_domain"><span class="typ dec var fun">_getaddrinfo_code_domain</span></a><span class="pun">;</span>
+
+    <span class="kwd">constexpr</span> <a href="doc_getaddrinfo_code.html#standardese-system_error2___getaddrinfo_code_domain"><span class="typ dec var fun">system_error2::_getaddrinfo_code_domain</span></a> <span class="kwd">const</span> <a href="doc_getaddrinfo_code.html#standardese-system_error2__getaddrinfo_code_domain"><span class="typ dec var fun">getaddrinfo_code_domain</span></a><span class="pun">;</span>
+
+    <span class="kwd">static</span> <span class="kwd">constexpr</span> <a href="doc_getaddrinfo_code.html#standardese-system_error2___getaddrinfo_code_domain"><span class="typ dec var fun">system_error2::_getaddrinfo_code_domain</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">_getaddrinfo_code_domain::</span><span class="typ dec var fun">get</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+<span class="pun">}</span>
+</code></pre>
+
+<p><span id="standardese-system_error2"></span></p>
+<h3>Type alias <code>system_error2::getaddrinfo_code</code></h3>
+<p><span id="standardese-system_error2__getaddrinfo_code"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">getaddrinfo_code</span> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>system_error2::_getaddrinfo_code_domain<span class="pun">&gt;</span><span class="pun">;</span>
+</code></pre>
+
+<p>A getaddrinfo error code, those returned by <code>getaddrinfo()</code>.</p>
+<hr />
+<h3>Type alias <code>system_error2::getaddrinfo_error</code></h3>
+<p><span id="standardese-system_error2__getaddrinfo_error"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">getaddrinfo_error</span> <span class="pun">=</span> <a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-"><span class="typ dec var fun">status_error</span></a><span class="pun">&lt;</span>system_error2::_getaddrinfo_code_domain<span class="pun">&gt;</span><span class="pun">;</span>
+</code></pre>
+
+<p>A specialisation of <code>status_error</code> for the <code>getaddrinfo()</code> error code domain.</p>
+<hr />
+<h3>Class <code>system_error2::_getaddrinfo_code_domain</code></h3>
+<p><span id="standardese-system_error2___getaddrinfo_code_domain"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">class</span> <span class="typ dec var fun">_getaddrinfo_code_domain</span>
+<span class="pun">:</span> <span class="kwd">public</span> <span class="typ dec var fun">status_code_domain</span>
+<span class="pun">{</span>
+<span class="kwd">public</span><span class="pun">:</span>
+    <span class="kwd">using</span> <a href="doc_getaddrinfo_code.html#standardese-system_error2___getaddrinfo_code_domain__value_type"><span class="typ dec var fun">value_type</span></a> <span class="pun">=</span> <span class="kwd">int</span><span class="pun">;</span>
+
+    <span class="kwd">constexpr</span> <a href="doc_getaddrinfo_code.html#standardese-system_error2___getaddrinfo_code_domain___getaddrinfo_code_domain-typename_base__unique_id_type-"><span class="typ dec var fun">_getaddrinfo_code_domain</span></a><span class="pun">(</span><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__unique_id_type"><span class="typ dec var fun">typename _base::unique_id_type</span></a> <span class="typ dec var fun">id</span> <span class="pun">=</span> <span class="lit">0x5b24b2de470ff7b6</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+    <span class="typ dec var fun">_getaddrinfo_code_domain</span><span class="pun">(</span><span class="typ dec var fun">system_error2::_getaddrinfo_code_domain</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    <span class="typ dec var fun">_getaddrinfo_code_domain</span><span class="pun">(</span><span class="typ dec var fun">system_error2::_getaddrinfo_code_domain</span><span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    <span class="typ dec var fun">system_error2::_getaddrinfo_code_domain</span><span class="pun">&amp;</span> <span class="typ dec var fun">operator=</span><span class="pun">(</span><span class="typ dec var fun">system_error2::_getaddrinfo_code_domain</span> <span class="kwd">const</span><span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    <span class="typ dec var fun">system_error2::_getaddrinfo_code_domain</span><span class="pun">&amp;</span> <span class="typ dec var fun">operator=</span><span class="pun">(</span><span class="typ dec var fun">system_error2::_getaddrinfo_code_domain</span><span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    <span class="typ dec var fun">~_getaddrinfo_code_domain</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    <span class="kwd">static</span> <span class="kwd">constexpr</span> <span class="typ dec var fun">system_error2::_getaddrinfo_code_domain</span> <span class="kwd">const</span><span class="pun">&amp;</span> <a href="doc_getaddrinfo_code.html#standardese-system_error2___getaddrinfo_code_domain__get--"><span class="typ dec var fun">get</span></a><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+
+    <span class="kwd">virtual</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span></a> <span class="typ dec var fun">name</span><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+<span class="kwd">protected</span><span class="pun">:</span>
+    <span class="kwd">virtual</span> <span class="kwd">bool</span> <span class="typ dec var fun">_do_failure</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+    <span class="kwd">virtual</span> <span class="kwd">bool</span> <span class="typ dec var fun">_do_equivalent</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code1</span><span class="pun">,</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code2</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+    <span class="kwd">virtual</span> <a href="doc_status_code_domain.html#standardese-system_error2__generic_code"><span class="typ dec var fun">system_error2::generic_code</span></a> <span class="typ dec var fun">_generic_code</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+    <span class="kwd">virtual</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span></a> <span class="typ dec var fun">_do_message</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+    <span class="kwd">virtual</span> <span class="kwd">void</span> <span class="typ dec var fun">_do_throw_exception</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code</span><span class="pun">)</span> <span class="kwd">const</span><span class="pun">;</span>
+<span class="pun">};</span>
+</code></pre>
+
+<p>The implementation of the domain for <code>getaddrinfo()</code> error codes, those returned by <code>getaddrinfo()</code>.</p>
+<h3>Type alias <code>system_error2::_getaddrinfo_code_domain::value_type</code></h3>
+<p><span id="standardese-system_error2___getaddrinfo_code_domain__value_type"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">value_type</span> <span class="pun">=</span> <span class="kwd">int</span><span class="pun">;</span>
+</code></pre>
+
+<p>The value type of the <code>getaddrinfo()</code> code, which is an <code>int</code></p>
+<hr />
+<h3>Constructor <code>system_error2::_getaddrinfo_code_domain::_getaddrinfo_code_domain</code></h3>
+<p><span id="standardese-system_error2___getaddrinfo_code_domain___getaddrinfo_code_domain-typename_base__unique_id_type-"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">constexpr</span> <span class="typ dec var fun">_getaddrinfo_code_domain</span><span class="pun">(</span><a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__unique_id_type"><span class="typ dec var fun">typename _base::unique_id_type</span></a> <span class="typ dec var fun">id</span> <span class="pun">=</span> <span class="lit">0x5b24b2de470ff7b6</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+</code></pre>
+
+<p>Default constructor</p>
+<hr />
+<h3>Function <code>system_error2::_getaddrinfo_code_domain::get</code></h3>
+<p><span id="standardese-system_error2___getaddrinfo_code_domain__get--"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">static</span> <span class="kwd">constexpr</span> <a href="doc_getaddrinfo_code.html#standardese-system_error2___getaddrinfo_code_domain"><span class="typ dec var fun">system_error2::_getaddrinfo_code_domain</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">get</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+</code></pre>
+
+<p>Constexpr singleton getter. Returns constexpr getaddrinfo_code_domain variable.</p>
+<hr />
+<hr />
+<h3>Variable <code>system_error2::getaddrinfo_code_domain</code></h3>
+<p><span id="standardese-system_error2__getaddrinfo_code_domain"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">constexpr</span> <a href="doc_getaddrinfo_code.html#standardese-system_error2___getaddrinfo_code_domain"><span class="typ dec var fun">system_error2::_getaddrinfo_code_domain</span></a> <span class="kwd">const</span> <span class="typ dec var fun">getaddrinfo_code_domain</span><span class="pun">;</span>
+</code></pre>
+
+<p>A constexpr source variable for the <code>getaddrinfo()</code> code domain, which is that of <code>getaddrinfo()</code>. Returned by <code>_getaddrinfo_code_domain::get()</code>.</p>
+<hr /></body>
+</html>

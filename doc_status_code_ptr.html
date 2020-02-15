@@ -15,18 +15,51 @@ doc_status_code_ptr
 <span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
 <span class="pun">{</span>
     <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> typename std::enable_if&lt;is_status_code&lt;T&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
-    <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;typename std::add_pointer&lt;typename std::decay&lt;T&gt;::type::value_type&gt;::type&gt;<span class="pun">&gt;</span> <a href="doc_status_code_ptr.html#standardese-system_error2__make_status_code_ptr-T---T---"><span class="typ dec var fun">make_status_code_ptr</span></a><span class="pun">(</span><span class="typ dec var fun">T</span><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span><span class="pun">;</span>
+    <span class="kwd">int</span> <a href="doc_status_code_ptr.html#standardese-system_error2__make_status_code_ptr-T----"><span class="typ dec var fun">make_status_code_ptr</span></a><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">StatusCode</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">U</span><span class="pun">,</span> typename std::enable_if&lt;is_status_code&lt;StatusCode&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
+    <span class="typ dec var fun">StatusCode</span><span class="pun">*</span> <a href="doc_status_code_ptr.html#standardese-system_error2__get_if-StatusCode-U---int--"><span class="typ dec var fun">get_if</span></a><span class="pun">(</span><span class="kwd">int</span><span class="pun">*</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">StatusCode</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">U</span><span class="pun">,</span> typename std::enable_if&lt;is_status_code&lt;StatusCode&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
+    <span class="typ dec var fun">StatusCode</span> <span class="kwd">const</span><span class="pun">*</span> <a href="doc_status_code_ptr.html#standardese-system_error2__get_if-StatusCode-U---intconst--"><span class="typ dec var fun">get_if</span></a><span class="pun">(</span><span class="kwd">int</span> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">U</span><span class="pun">&gt;</span>
+    <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__unique_id_type"><span class="typ dec var fun">typename status_code_domain::unique_id_type</span></a> <a href="doc_status_code_ptr.html#standardese-system_error2__get_id-U--intconst--"><span class="typ dec var fun">get_id</span></a><span class="pun">(</span><span class="kwd">int</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
 <span class="pun">}</span>
 </code></pre>
 
 <p><span id="standardese-system_error2"></span></p>
 <h3>Function <code>system_error2::make_status_code_ptr</code></h3>
-<p><span id="standardese-system_error2__make_status_code_ptr-T---T---"></span></p>
+<p><span id="standardese-system_error2__make_status_code_ptr-T----"></span></p>
 <pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> typename std::enable_if&lt;is_status_code&lt;T&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
-<a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>erased&lt;typename std::add_pointer&lt;typename std::decay&lt;T&gt;::type::value_type&gt;::type&gt;<span class="pun">&gt;</span> <span class="typ dec var fun">make_status_code_ptr</span><span class="pun">(</span><span class="typ dec var fun">T</span><span class="pun">&amp;&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span><span class="pun">;</span>
+<span class="kwd">int</span> <span class="typ dec var fun">make_status_code_ptr</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
 </code></pre>
 
 <p>Make an erased status code which indirects to a dynamically allocated status code.</p>
 <p>This is useful for shoehorning a rich status code with large value type into a small erased status code like <code>system_code</code>, with which the status code generated by this function is compatible. Note that this function can throw due to <code>bad_alloc</code>.</p>
+<hr />
+<h3>Function <code>system_error2::get_if</code></h3>
+<p><span id="standardese-system_error2__get_if-StatusCode-U---int--"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">StatusCode</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">U</span><span class="pun">,</span> typename std::enable_if&lt;is_status_code&lt;StatusCode&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
+<span class="typ dec var fun">StatusCode</span><span class="pun">*</span> <span class="typ dec var fun">get_if</span><span class="pun">(</span><span class="kwd">int</span><span class="pun">*</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+</code></pre>
+
+<p>If a status code refers to a <code>status_code_ptr</code> which indirects to a status code of type <code>StatusCode</code>, return a pointer to that <code>StatusCode</code>. Otherwise return null.</p>
+<hr />
+<h3>Function <code>system_error2::get_if</code></h3>
+<p><span id="standardese-system_error2__get_if-StatusCode-U---intconst--"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">StatusCode</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">U</span><span class="pun">,</span> typename std::enable_if&lt;is_status_code&lt;StatusCode&gt;::value, bool&gt;::type <span class="pun">=</span> <span class="typ dec var fun">true</span><span class="pun">&gt;</span>
+<span class="typ dec var fun">StatusCode</span> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">get_if</span><span class="pun">(</span><span class="kwd">int</span> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+</code></pre>
+
+<p>(error while parsing comment text: unkown command \overload)</p>
+<hr />
+<h3>Function <code>system_error2::get_id</code></h3>
+<p><span id="standardese-system_error2__get_id-U--intconst--"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">U</span><span class="pun">&gt;</span>
+<a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__unique_id_type"><span class="typ dec var fun">typename status_code_domain::unique_id_type</span></a> <span class="typ dec var fun">get_id</span><span class="pun">(</span><span class="kwd">int</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+</code></pre>
+
+<p>If a status code refers to a <code>status_code_ptr</code>, return the id of the erased status code’s domain. Otherwise return a meaningless number.</p>
 <hr /></body>
 </html>
