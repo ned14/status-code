@@ -132,7 +132,7 @@ public:
     }
   };
   constexpr Code_domain_impl() noexcept
-      : _base(0x430f120194fc06c7)
+      : _base("430f1201-94fc-06c7-430f-120194fc06c7")
   {
   }
   static inline constexpr const Code_domain_impl &get();
