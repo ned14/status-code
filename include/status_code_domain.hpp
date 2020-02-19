@@ -57,16 +57,38 @@ namespace detail
     static constexpr bool value = traits::is_move_bitcopying<From>::value  //
                                   && (sizeof(status_code_sizer<From>) <= sizeof(status_code_sizer<To>));
   };
-  constexpr inline unsigned long long parse_hex_byte(char c) { return ('0' <= c && c <= '9') ? (c - '0') : ('a' <= c && c <= 'f') ? (10 + c - 'a') : ('A' <= c && c <= 'F') ? (10 + c - 'A') : throw "invalid character in UUID"; }
+  /* We are severely limited by needing to retain C++ 11 compatibility when doing
+  constexpr string parsing. MSVC lets you throw exceptions within a constexpr
+  evaluation context when exceptions are globally disabled, but won't let you
+  divide by zero, even if never evaluated, ever in constexpr. GCC and clang won't
+  let you throw exceptions, ever, if exceptions are globally disabled. So let's
+  use the trick of divide by zero in constexpr on GCC and clang if and only if
+  exceptions are globally disabled.
+  */
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdiv-by-zero"
+#endif
+#if defined(__cpp_exceptions) || (defined(_MSC_VER) && !defined(__clang__))
+#define SYSTEM_ERROR2_FAIL_CONSTEXPR(msg) throw msg
+#else
+#define SYSTEM_ERROR2_FAIL_CONSTEXPR(msg) ((void) msg, 1 / 0)
+#endif
+  constexpr inline unsigned long long parse_hex_byte(char c) { return ('0' <= c && c <= '9') ? (c - '0') : ('a' <= c && c <= 'f') ? (10 + c - 'a') : ('A' <= c && c <= 'F') ? (10 + c - 'A') : SYSTEM_ERROR2_FAIL_CONSTEXPR("Invalid character in UUID"); }
   constexpr inline unsigned long long parse_uuid2(const char *s)
   {
-    return ((parse_hex_byte(s[0]) << 0) | (parse_hex_byte(s[1]) << 4) | (parse_hex_byte(s[2]) << 8) | (parse_hex_byte(s[3]) << 12) | (parse_hex_byte(s[4]) << 16) | (parse_hex_byte(s[5]) << 20) | (parse_hex_byte(s[6]) << 24) | (parse_hex_byte(s[7]) << 28) | (parse_hex_byte(s[9]) << 32) |
-            (parse_hex_byte(s[10]) << 36) | (parse_hex_byte(s[11]) << 40) | (parse_hex_byte(s[12]) << 44) | (parse_hex_byte(s[14]) << 48) | (parse_hex_byte(s[15]) << 52) | (parse_hex_byte(s[16]) << 56) | (parse_hex_byte(s[17]) << 60))  //
-           ^                                                                                                                                                                                                                                       //
+    return ((parse_hex_byte(s[0]) << 0) | (parse_hex_byte(s[1]) << 4) | (parse_hex_byte(s[2]) << 8) | (parse_hex_byte(s[3]) << 12) | (parse_hex_byte(s[4]) << 16) | (parse_hex_byte(s[5]) << 20) | (parse_hex_byte(s[6]) << 24) | (parse_hex_byte(s[7]) << 28) | (parse_hex_byte(s[9]) << 32) | (parse_hex_byte(s[10]) << 36) |
+            (parse_hex_byte(s[11]) << 40) | (parse_hex_byte(s[12]) << 44) | (parse_hex_byte(s[14]) << 48) | (parse_hex_byte(s[15]) << 52) | (parse_hex_byte(s[16]) << 56) | (parse_hex_byte(s[17]) << 60))  //
+           ^                                                                                                                                                                                                //
            ((parse_hex_byte(s[19]) << 0) | (parse_hex_byte(s[20]) << 4) | (parse_hex_byte(s[21]) << 8) | (parse_hex_byte(s[22]) << 12) | (parse_hex_byte(s[24]) << 16) | (parse_hex_byte(s[25]) << 20) | (parse_hex_byte(s[26]) << 24) | (parse_hex_byte(s[27]) << 28) | (parse_hex_byte(s[28]) << 32) |
             (parse_hex_byte(s[29]) << 36) | (parse_hex_byte(s[30]) << 40) | (parse_hex_byte(s[31]) << 44) | (parse_hex_byte(s[32]) << 48) | (parse_hex_byte(s[33]) << 52) | (parse_hex_byte(s[34]) << 56) | (parse_hex_byte(s[35]) << 60));
   }
-  template <size_t N> constexpr inline unsigned long long parse_uuid(const char (&uuid)[N]) { return (N == 37) ? parse_uuid2(uuid) : ((N == 39) ? parse_uuid2(uuid + 1) : throw "UUID does not have correct length"); }
+  template <size_t N> constexpr inline unsigned long long parse_uuid(const char (&uuid)[N]) { return (N == 37) ? parse_uuid2(uuid) : ((N == 39) ? parse_uuid2(uuid + 1) : SYSTEM_ERROR2_FAIL_CONSTEXPR("UUID does not have correct length")); }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+  static constexpr unsigned long long test_uuid_parse = parse_uuid("430f1201-94fc-06c7-430f-120194fc06c7");
+  //static constexpr unsigned long long test_uuid_parse2 = parse_uuid("x30f1201-94fc-06c7-430f-120194fc06c7");
 }  // namespace detail
 
 /*! Abstract base class for a coding domain of a status code.
