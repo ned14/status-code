@@ -182,11 +182,11 @@ namespace detail
   };
 
   template <class To, class From,
-            typename std::enable_if<                //
-            is_bit_castable<To, From>::value        //
-            && is_static_castable<To, From>::value  //
+            typename std::enable_if<                 //
+            is_bit_castable<To, From>::value         //
+            && is_static_castable<To, From>::value   //
             && !is_union_castable<To, From>::value,  //
-            bool>::type = true>  //
+            bool>::type = true>                      //
   constexpr To bit_cast(const From &from) noexcept
   {
     return static_cast<To>(from);
@@ -196,8 +196,8 @@ namespace detail
             typename std::enable_if<                 //
             is_bit_castable<To, From>::value         //
             && !is_static_castable<To, From>::value  //
-            && is_union_castable<To, From>::value,    //
-            bool>::type = true>  //
+            && is_union_castable<To, From>::value,   //
+            bool>::type = true>                      //
   constexpr To bit_cast(const From &from) noexcept
   {
     return bit_cast_union<To, From>{from}.target;
@@ -207,8 +207,8 @@ namespace detail
             typename std::enable_if<                 //
             is_bit_castable<To, From>::value         //
             && !is_static_castable<To, From>::value  //
-            && !is_union_castable<To, From>::value,   //
-            bool>::type = true>  //
+            && !is_union_castable<To, From>::value,  //
+            bool>::type = true>                      //
   To bit_cast(const From &from) noexcept
   {
     bit_cast_union<To, From> ret;
@@ -286,7 +286,11 @@ namespace detail
     extern "C" ptrdiff_t write(int, const void *, size_t);
 #elif defined(_MSC_VER)
     extern ptrdiff_t write(int, const void *, size_t);
+#if defined(_WIN64)
 #pragma comment(linker, "/alternatename:?write@avoid_stdio_include@detail@system_error2@@YA_JHPEBX_K@Z=write")
+#else
+#pragma comment(linker, "/alternatename:?write@avoid_stdio_include@detail@system_error2@@YAHHPBXI@Z=_write")
+#endif
 #endif
   }  // namespace avoid_stdio_include
   inline void do_fatal_exit(const char *msg)
