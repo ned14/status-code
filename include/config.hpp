@@ -1,5 +1,5 @@
 /* Proposed SG14 status_code
-(C) 2018 - 2019 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
+(C) 2018 - 2020 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
 File Created: Feb 2018
 
 
@@ -192,6 +192,10 @@ namespace detail
     return static_cast<To>(from);
   }
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
   template <class To, class From,
             typename std::enable_if<                 //
             is_bit_castable<To, From>::value         //
@@ -202,6 +206,9 @@ namespace detail
   {
     return bit_cast_union<To, From>{from}.target;
   }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
   template <class To, class From,
             typename std::enable_if<                 //
