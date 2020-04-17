@@ -192,7 +192,7 @@ namespace detail
     return static_cast<To>(from);
   }
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
@@ -206,7 +206,7 @@ namespace detail
   {
     return bit_cast_union<To, From>{from}.target;
   }
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
 
