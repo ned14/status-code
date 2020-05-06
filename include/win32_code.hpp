@@ -63,6 +63,17 @@ using win32_code = status_code<_win32_code_domain>;
 //! (Windows only) A specialisation of `status_error` for the Win32 error code domain.
 using win32_error = status_error<_win32_code_domain>;
 
+namespace mixins
+{
+  template <class Base> struct mixin<Base, _win32_code_domain> : public Base
+  {
+    using Base::Base;
+
+    //! Returns a `win32_code` for the current value of `GetLastError()`.
+    static inline win32_code current() noexcept;
+  };
+}  // namespace mixins
+
 /*! (Windows only) The implementation of the domain for Win32 error codes, those returned by `GetLastError()`.
  */
 class _win32_code_domain : public status_code_domain
@@ -193,6 +204,11 @@ inline constexpr const _win32_code_domain &_win32_code_domain::get()
 {
   return win32_code_domain;
 }
+
+namespace mixins
+{
+  template <class Base> inline win32_code mixin<Base, _win32_code_domain>::current() noexcept { return win32_code(win32::GetLastError()); }
+}  // namespace mixins
 
 SYSTEM_ERROR2_NAMESPACE_END
 

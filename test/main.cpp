@@ -349,6 +349,13 @@ int main()
   CHECK(failure6 == failure1);
   CHECK(failure6 == failure2);
 
+  // Test mixin
+  {
+    SetLastError(99);
+    win32_code m = win32_code::current();
+    CHECK(m.value() == 99);
+  }
+
   // Test nt_code
   constexpr nt_code success7(1 /* positive */), failure7(0xC0000022 /*STATUS_ACCESS_DENIED*/);
   CHECK(success7.success());
@@ -431,6 +438,13 @@ int main()
   {
     printf("error[%zu] has domain %s value %zd (%s) and errc::permission_denied == error = %d\n", n, errors[n].domain().name().c_str(), errors[n].value(), errors[n].message().c_str(), static_cast<int>(errc::permission_denied == errors[n]));
     CHECK(errors[n] == errc::permission_denied);
+  }
+
+  // Test mixin
+  {
+    errno = 99;
+    posix_code m = posix_code::current();
+    CHECK(m.value() == 99);
   }
 #endif
 
