@@ -1,7 +1,7 @@
 #!/bin/bash
 rm -rf doc/html/*
 cd doc/html
-../../../standardese --output.format=commonmark_html --input.blacklist_namespace=detail -DSTANDARDESE_IS_IN_THE_HOUSE=1 ../../include/*.hpp
+../../../standardese --output.format=commonmark_html --input.blacklist_namespace=detail -DSTANDARDESE_IS_IN_THE_HOUSE=1 -D__cplusplus=202000L ../../include/*.hpp
 cp ../../Readme.md index.md
 cat standardese_entities.md >> index.md
 rm standardese_*.md

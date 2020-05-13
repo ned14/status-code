@@ -29,7 +29,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #error <posix_code.hpp> is not includable when SYSTEM_ERROR2_NOT_POSIX is defined!
 #endif
 
-#include "generic_code.hpp"
+#include "quick_status_code_from_enum.hpp"
 
 #include <cstring>  // for strchr and strerror_r
 

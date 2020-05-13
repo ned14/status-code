@@ -60,6 +60,8 @@ inline std::ostream &operator<<(std::ostream &s, Code v)
 {
   return s << static_cast<size_t>(v);
 }
+
+// "Full fat" custom status code domain
 class Code_domain_impl;
 using StatusCode = system_error2::status_code<Code_domain_impl>;
 // Category for Code
@@ -252,6 +254,43 @@ inline StatusCode make_status_code(ADLHelper1, ADLHelper2)
   return StatusCode(Code::goaway);
 }
 
+#if __cplusplus >= 201400L || _MSC_VER >= 1910
+// "Initialiser list" custom status code domain
+enum class AnotherCode : size_t
+{
+  success1,
+  goaway,
+  success2,
+  error2
+};
+SYSTEM_ERROR2_NAMESPACE_BEGIN
+template <> struct quick_status_code_from_enum<AnotherCode> : quick_status_code_from_enum_defaults<AnotherCode>
+{
+  // Text name of the enum
+  static constexpr const auto domain_name = "Another Code";
+  // Unique UUID for the enum. PLEASE use https://www.random.org/cgi-bin/randbyte?nbytes=16&format=h
+  static constexpr const auto domain_uuid = "{be201f65-3962-dd0e-1266-a72e63776a42}";
+  // Map of each enum value to its text string, and list of semantically equivalent errc's
+  static const auto &value_mappings()
+  {
+    static const std::initializer_list<mapping> v = {
+    // Format is: { enum value, "string representation", { list of errc mappings ... } }
+    {AnotherCode::success1, "Success 1", {errc::success}},        //
+    {AnotherCode::goaway, "Go away", {errc::permission_denied}},  //
+    {AnotherCode::success2, "Success 2", {errc::success}},        //
+    {AnotherCode::error2, "Error 2", {}},                         //
+    };
+    return v;
+  }
+  // Completely optional definition of mixin for the status code synthesised from `Enum`. It can be omitted.
+  template <class Base> struct mixin : Base
+  {
+    using Base::Base;
+    constexpr int custom_method() const { return 42; }
+  };
+};
+SYSTEM_ERROR2_NAMESPACE_END
+#endif
 
 int main()
 {
@@ -290,6 +329,34 @@ int main()
   CHECK(failure1 != success2);
   CHECK(failure1 == failure2);
 
+#if __cplusplus >= 201400L || _MSC_VER >= 1910
+  // Test the quick enumeration facility
+  constexpr quick_status_code_from_domain_enum_code<AnotherCode> empty2a, success2a(AnotherCode::success1), failure2a(AnotherCode::goaway);
+  CHECK(success2a.success());
+  CHECK(failure2a.failure());
+  printf("\nStatusCode empty has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(empty2a.value()), empty2a.message().c_str(), static_cast<int>(empty2a.success()), static_cast<int>(empty2a.failure()));
+  printf("StatusCode success has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(success2a.value()), success2a.message().c_str(), static_cast<int>(success2a.success()), static_cast<int>(success2a.failure()));
+  printf("StatusCode failure has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(failure2a.value()), failure2a.message().c_str(), static_cast<int>(failure2a.success()), static_cast<int>(failure2a.failure()));
+
+  printf("\n(empty1 == empty2) = %d\n", static_cast<int>(empty1 == empty2a));        // True, empty ec's always compare equal no matter the type
+  printf("(success1 == success2) = %d\n", static_cast<int>(success1 == success2a));  // True, success maps onto success
+  printf("(success1 == failure2) = %d\n", static_cast<int>(success1 == failure2a));  // False, success does not map onto failure
+  printf("(failure1 == success2) = %d\n", static_cast<int>(failure1 == success2a));  // False, failure does not map onto success
+  printf("(failure1 == failure2) = %d\n", static_cast<int>(failure1 == failure2a));  // True, filename_too_long maps onto nospace
+  CHECK(empty1 == empty2a);
+  CHECK(success1 == success2a);
+  CHECK(success1 != failure2a);
+  CHECK(failure1 != success2a);
+  CHECK(failure1 == failure2a);
+  CHECK(success2a.custom_method() == 42);
+  {
+    constexpr auto v = make_status_code(AnotherCode::error2);
+    CHECK(v.value() == AnotherCode::error2);
+    CHECK(v.custom_method() == 42);
+  }
+#else
+  printf("\nSkipping quick enumeration facility due to __cplusplus = %ld\n", __cplusplus);
+#endif
 
   // Test status code erasure
   status_code<erased<int>> success3(success1), failure3(failure1);

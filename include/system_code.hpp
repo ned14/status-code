@@ -27,6 +27,8 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #ifndef SYSTEM_ERROR2_NOT_POSIX
 #include "posix_code.hpp"
+#else
+#include "quick_status_code_from_enum.hpp"
 #endif
 
 #if defined(_WIN32) || defined(STANDARDESE_IS_IN_THE_HOUSE)

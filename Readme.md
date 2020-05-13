@@ -104,6 +104,68 @@ if(sc.failure())
 </tr>
 </table>
 
+### Quick synthesis of a custom status code domain for any arbitrary enumeration type:
+
+Defining a custom status code domain requires writing a lot of tedious boilerplate. End users
+Jesse Towner suggested a simplified declarative API so arbitrary enumeration types can
+be wrapped into a custom status code domain with a minimum of effort.
+
+Note that this support requires a minimum of C++ 14 in the compiler. It is not defined if
+in C++ 11.
+
+<pre><code class="c++">
+// This is some third party enumeration type
+enum class AnotherCode : size_t
+{
+  success1,
+  goaway,
+  success2,
+  error2
+};
+
+// To synthesise a custom status code domain for `AnotherCode`, inject the following
+// template specialisation:
+SYSTEM_ERROR2_NAMESPACE_BEGIN
+template <> struct quick_status_code_from_enum<AnotherCode>
+  : quick_status_code_from_enum_defaults<AnotherCode>
+{
+  // Text name of the enum
+  static constexpr const auto domain_name = "Another Code";
+
+  // Unique UUID for the enum. PLEASE use https://www.random.org/cgi-bin/randbyte?nbytes=16&format=h
+  static constexpr const auto domain_uuid = "{be201f65-3962-dd0e-1266-a72e63776a42}";
+
+  // Map of each enum value to its text string, and list of semantically equivalent errc's
+  static const auto &value_mappings()
+  {
+    static const std::initializer_list<mapping> v = {
+    // Format is: { enum value, "string representation", { list of errc mappings ... } }
+    {AnotherCode::success1, "Success 1", {errc::success}},        //
+    {AnotherCode::goaway, "Go away", {errc::permission_denied}},  //
+    {AnotherCode::success2, "Success 2", {errc::success}},        //
+    {AnotherCode::error2, "Error 2", {}},                         //
+    };
+    return v;
+  }
+
+  // Completely optional definition of mixin for the status code synthesised from `Enum`.
+  // It can be omitted.
+  template <class Base> struct mixin : Base
+  {
+    using Base::Base;
+    
+    // A custom method on the synthesised status code
+    constexpr int custom_method() const { return 42; }
+  };
+};
+SYSTEM_ERROR2_NAMESPACE_END
+
+// Make a status code of the synthesised code domain for `AnotherCode`
+constexpr auto v = make_status_code(AnotherCode::error2);
+assert(v.value() == AnotherCode::error2);
+assert(v.custom_method() == 42);
+</code></pre>
+
 
 ## Problems with `<system_error>` solved:
 
