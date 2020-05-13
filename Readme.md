@@ -106,15 +106,14 @@ if(sc.failure())
 
 ### Quick synthesis of a custom status code domain for any arbitrary enumeration type:
 
-Defining a custom status code domain requires writing a lot of tedious boilerplate. End users
+Defining a custom status code domain requires writing a lot of tedious boilerplate. End user
 Jesse Towner suggested a simplified declarative API so arbitrary enumeration types can
 be wrapped into a custom status code domain with a minimum of effort.
 
 Note that this support requires a minimum of C++ 14 in the compiler. It is not defined if
 in C++ 11.
 
-<pre><code class="c++">
-// This is some third party enumeration type
+<pre><code class="c++">// This is some third party enumeration type
 enum class AnotherCode : size_t
 {
   success1,
@@ -126,8 +125,8 @@ enum class AnotherCode : size_t
 // To synthesise a custom status code domain for `AnotherCode`, inject the following
 // template specialisation:
 SYSTEM_ERROR2_NAMESPACE_BEGIN
-template <> struct quick_status_code_from_enum<AnotherCode>
-  : quick_status_code_from_enum_defaults<AnotherCode>
+template &lt;&gt; struct quick_status_code_from_enum&lt;AnotherCode&gt;
+  : quick_status_code_from_enum_defaults&lt;AnotherCode&gt;
 {
   // Text name of the enum
   static constexpr const auto domain_name = "Another Code";
@@ -138,7 +137,7 @@ template <> struct quick_status_code_from_enum<AnotherCode>
   // Map of each enum value to its text string, and list of semantically equivalent errc's
   static const auto &value_mappings()
   {
-    static const std::initializer_list<mapping> v = {
+    static const std::initializer_list&lt;mapping&gt; v = {
     // Format is: { enum value, "string representation", { list of errc mappings ... } }
     {AnotherCode::success1, "Success 1", {errc::success}},        //
     {AnotherCode::goaway, "Go away", {errc::permission_denied}},  //
@@ -150,7 +149,7 @@ template <> struct quick_status_code_from_enum<AnotherCode>
 
   // Completely optional definition of mixin for the status code synthesised from `Enum`.
   // It can be omitted.
-  template <class Base> struct mixin : Base
+  template &lt;class Base&gt; struct mixin : Base
   {
     using Base::Base;
     
