@@ -317,6 +317,9 @@ public:
   //! The type of a reference to a message string.
   using string_ref = typename domain_type::string_ref;
 
+protected:
+  using _base::_base;
+
 public:
   //! Default construction to empty
   status_code() = default;
@@ -347,24 +350,24 @@ public:
       : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
   }
-  //! Explicit in-place construction.
+  //! Explicit in-place construction. Disables if `domain_type::get()` is not a valid expression.
   template <class... Args>
   constexpr explicit status_code(in_place_t /*unused */, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, Args &&...>::value)
       : _base(typename _base::_value_type_constructor{}, &domain_type::get(), static_cast<Args &&>(args)...)
   {
   }
-  //! Explicit in-place construction from initialiser list.
+  //! Explicit in-place construction from initialiser list. Disables if `domain_type::get()` is not a valid expression.
   template <class T, class... Args>
   constexpr explicit status_code(in_place_t /*unused */, std::initializer_list<T> il, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, std::initializer_list<T>, Args &&...>::value)
       : _base(typename _base::_value_type_constructor{}, &domain_type::get(), il, static_cast<Args &&>(args)...)
   {
   }
-  //! Explicit copy construction from a `value_type`.
+  //! Explicit copy construction from a `value_type`. Disables if `domain_type::get()` is not a valid expression.
   constexpr explicit status_code(const value_type &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
       : _base(typename _base::_value_type_constructor{}, &domain_type::get(), v)
   {
   }
-  //! Explicit move construction from a `value_type`.
+  //! Explicit move construction from a `value_type`. Disables if `domain_type::get()` is not a valid expression.
   constexpr explicit status_code(value_type &&v) noexcept(std::is_nothrow_move_constructible<value_type>::value)
       : _base(typename _base::_value_type_constructor{}, &domain_type::get(), static_cast<value_type &&>(v))
   {

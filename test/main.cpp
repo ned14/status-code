@@ -254,7 +254,6 @@ inline StatusCode make_status_code(ADLHelper1, ADLHelper2)
   return StatusCode(Code::goaway);
 }
 
-#if __cplusplus >= 201400L || _MSC_VER >= 1910
 // "Initialiser list" custom status code domain
 enum class AnotherCode : size_t
 {
@@ -271,7 +270,7 @@ template <> struct quick_status_code_from_enum<AnotherCode> : quick_status_code_
   // Unique UUID for the enum. PLEASE use https://www.random.org/cgi-bin/randbyte?nbytes=16&format=h
   static constexpr const auto domain_uuid = "{be201f65-3962-dd0e-1266-a72e63776a42}";
   // Map of each enum value to its text string, and list of semantically equivalent errc's
-  static const auto &value_mappings()
+  static const std::initializer_list<mapping> &value_mappings()
   {
     static const std::initializer_list<mapping> v = {
     // Format is: { enum value, "string representation", { list of errc mappings ... } }
@@ -290,7 +289,6 @@ template <> struct quick_status_code_from_enum<AnotherCode> : quick_status_code_
   };
 };
 SYSTEM_ERROR2_NAMESPACE_END
-#endif
 
 int main()
 {
@@ -329,9 +327,8 @@ int main()
   CHECK(failure1 != success2);
   CHECK(failure1 == failure2);
 
-#if __cplusplus >= 201400L || _MSC_VER >= 1910
   // Test the quick enumeration facility
-  constexpr quick_status_code_from_domain_enum_code<AnotherCode> empty2a, success2a(AnotherCode::success1), failure2a(AnotherCode::goaway);
+  SYSTEM_ERROR2_CONSTEXPR14 quick_status_code_from_domain_enum_code<AnotherCode> empty2a, success2a(AnotherCode::success1), failure2a(AnotherCode::goaway);
   CHECK(success2a.success());
   CHECK(failure2a.failure());
   printf("\nStatusCode empty has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(empty2a.value()), empty2a.message().c_str(), static_cast<int>(empty2a.success()), static_cast<int>(empty2a.failure()));
@@ -350,13 +347,10 @@ int main()
   CHECK(failure1 == failure2a);
   CHECK(success2a.custom_method() == 42);
   {
-    constexpr auto v = make_status_code(AnotherCode::error2);
+    SYSTEM_ERROR2_CONSTEXPR14 auto v = make_status_code(AnotherCode::error2);
     CHECK(v.value() == AnotherCode::error2);
     CHECK(v.custom_method() == 42);
   }
-#else
-  printf("\nSkipping quick enumeration facility due to __cplusplus = %ld\n", __cplusplus);
-#endif
 
   // Test status code erasure
   status_code<erased<int>> success3(success1), failure3(failure1);
@@ -539,6 +533,9 @@ int main()
     printf("error_code[%zu] has domain %s value (%s) and errc::permission_denied == error = %d\n", n, ec.domain().name().c_str(), ec.message().c_str(), static_cast<int>(errc::permission_denied == ec));
     CHECK(n != 0 || ec == errc::permission_denied);
   }
+  system_code ec1(error_codes[0]), ec2(error_codes[1]);
+  CHECK(ec1 == errc::permission_denied);
+  CHECK(ec2 == errc::result_out_of_range);
 
 #ifndef SYSTEM_ERROR2_NOT_POSIX
   // Test status_code_ptr

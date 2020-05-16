@@ -29,7 +29,6 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
-#if __cplusplus >= 201400L || _MSC_VER >= 1910
 /*! Specialise this template to quickly wrap a third party enumeration into a
 custom status code domain. C++ 14 or later is required.
 
@@ -44,7 +43,7 @@ template <> struct quick_status_code_from_enum<AnotherCode> : quick_status_code_
   // Unique UUID for the enum. PLEASE use https://www.random.org/cgi-bin/randbyte?nbytes=16&format=h
   static constexpr const auto domain_uuid = "{be201f65-3962-dd0e-1266-a72e63776a42}";
   // Map of each enum value to its text string, and list of semantically equivalent errc's
-  static const auto &value_mappings()
+  static const std::initializer_list<mapping> &value_mappings()
   {
     static const std::initializer_list<mapping<AnotherCode>> v = {
     // Format is: { enum value, "string representation", { list of errc mappings ... } }
@@ -91,7 +90,7 @@ template <class Enum> struct quick_status_code_from_enum_defaults
     const std::initializer_list<errc> code_mappings;
   };
   //! Used within `quick_status_code_from_enum` to define mixins for the status code wrapping `Enum`
-  template<class Base> struct mixin : Base
+  template <class Base> struct mixin : Base
   {
     using Base::Base;
   };
@@ -124,7 +123,15 @@ public:
   _quick_status_code_from_enum_domain &operator=(_quick_status_code_from_enum_domain &&) = default;
   ~_quick_status_code_from_enum_domain() = default;
 
+#if __cplusplus < 201402L && !defined(_MSC_VER)
+  static inline const _quick_status_code_from_enum_domain &get()
+  {
+    static _quick_status_code_from_enum_domain v;
+    return v;
+  }
+#else
   static inline constexpr const _quick_status_code_from_enum_domain &get();
+#endif
 
   virtual string_ref name() const noexcept override { return string_ref(_src::domain_name); }
 
@@ -230,11 +237,13 @@ namespace detail
   };
 }  // namespace detail
 
+#if __cplusplus >= 201402L || defined(_MSC_VER)
 template <class Enum> constexpr _quick_status_code_from_enum_domain<Enum> quick_status_code_from_enum_domain = {};
 template <class Enum> inline constexpr const _quick_status_code_from_enum_domain<Enum> &_quick_status_code_from_enum_domain<Enum>::get()
 {
   return quick_status_code_from_enum_domain<Enum>;
 }
+#endif
 
 //! Declare an implicit conversion from `Enum` into `quick_status_code_from_domain_enum_code<Enum>`.
 template <class Enum, typename = decltype(quick_status_code_from_enum<Enum>::domain_name)>  //
@@ -250,7 +259,6 @@ namespace mixins
     using quick_status_code_from_enum<Enum>::template mixin<Base>::mixin;
   };
 }  // namespace mixins
-#endif
 
 SYSTEM_ERROR2_NAMESPACE_END
 
