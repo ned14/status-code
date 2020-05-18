@@ -70,6 +70,51 @@ struct erased
   using value_type = ErasedType;
 };
 
+/*! Specialise this template to quickly wrap a third party enumeration into a
+custom status code domain.
+
+Use like this:
+
+```c++
+SYSTEM_ERROR2_NAMESPACE_BEGIN
+template <> struct quick_status_code_from_enum<AnotherCode> : quick_status_code_from_enum_defaults<AnotherCode>
+{
+  // Text name of the enum
+  static constexpr const auto domain_name = "Another Code";
+  // Unique UUID for the enum. PLEASE use https://www.random.org/cgi-bin/randbyte?nbytes=16&format=h
+  static constexpr const auto domain_uuid = "{be201f65-3962-dd0e-1266-a72e63776a42}";
+  // Map of each enum value to its text string, and list of semantically equivalent errc's
+  static const std::initializer_list<mapping> &value_mappings()
+  {
+    static const std::initializer_list<mapping<AnotherCode>> v = {
+    // Format is: { enum value, "string representation", { list of errc mappings ... } }
+    {AnotherCode::success1, "Success 1", {errc::success}},        //
+    {AnotherCode::goaway, "Go away", {errc::permission_denied}},  //
+    {AnotherCode::success2, "Success 2", {errc::success}},        //
+    {AnotherCode::error2, "Error 2", {}},                         //
+    };
+    return v;
+  }
+  // Completely optional definition of mixin for the status code synthesised from `Enum`. It can be omitted.
+  template <class Base> struct mixin : Base
+  {
+    using Base::Base;
+    constexpr int custom_method() const { return 42; }
+  };
+};
+SYSTEM_ERROR2_NAMESPACE_END
+```
+
+Note that if the `errc` mapping contains `errc::success`, then
+the enumeration value is considered to be a successful value.
+Otherwise it is considered to be a failure value.
+
+The first value in the `errc` mapping is the one chosen as the
+`generic_code` conversion. Other values are used during equivalence
+comparisons.
+*/
+template <class Enum> struct quick_status_code_from_enum;
+
 namespace detail
 {
   template <class T> struct is_status_code
@@ -350,6 +395,16 @@ public:
       : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
   }
+  //! Implicit construction from any `quick_status_code_from_enum<Enum>` enumerated type.
+  template <class Enum,                                                                              //
+            class QuickStatusCodeType = typename quick_status_code_from_enum<Enum>::code_type,       // Enumeration has been activated
+            typename std::enable_if<std::is_constructible<status_code, QuickStatusCodeType>::value,  // Its status code is compatible
+
+                                    bool>::type = true>
+  constexpr status_code(Enum &&v) noexcept(std::is_nothrow_constructible<status_code, QuickStatusCodeType>::value)  // NOLINT
+      : status_code(QuickStatusCodeType(static_cast<Enum &&>(v)))
+  {
+  }
   //! Explicit in-place construction. Disables if `domain_type::get()` is not a valid expression.
   template <class... Args>
   constexpr explicit status_code(in_place_t /*unused */, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, Args &&...>::value)
@@ -481,6 +536,16 @@ public:
                                     bool>::type = true>
   constexpr status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...)))  // NOLINT
       : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
+  {
+  }
+  //! Implicit construction from any `quick_status_code_from_enum<Enum>` enumerated type.
+  template <class Enum,                                                                              //
+            class QuickStatusCodeType = typename quick_status_code_from_enum<Enum>::code_type,       // Enumeration has been activated
+            typename std::enable_if<std::is_constructible<status_code, QuickStatusCodeType>::value,  // Its status code is compatible
+
+                                    bool>::type = true>
+  constexpr status_code(Enum &&v) noexcept(std::is_nothrow_constructible<status_code, QuickStatusCodeType>::value)  // NOLINT
+      : status_code(QuickStatusCodeType(static_cast<Enum &&>(v)))
   {
   }
 

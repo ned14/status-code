@@ -29,53 +29,15 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
-/*! Specialise this template to quickly wrap a third party enumeration into a
-custom status code domain. C++ 14 or later is required.
+template <class Enum> class _quick_status_code_from_enum_domain;
+//! A status code wrapping `Enum` generated from `quick_status_code_from_enum`.
+template <class Enum> using quick_status_code_from_domain_enum_code = status_code<_quick_status_code_from_enum_domain<Enum>>;
 
-Use like this:
-
-```c++
-SYSTEM_ERROR2_NAMESPACE_BEGIN
-template <> struct quick_status_code_from_enum<AnotherCode> : quick_status_code_from_enum_defaults<AnotherCode>
-{
-  // Text name of the enum
-  static constexpr const auto domain_name = "Another Code";
-  // Unique UUID for the enum. PLEASE use https://www.random.org/cgi-bin/randbyte?nbytes=16&format=h
-  static constexpr const auto domain_uuid = "{be201f65-3962-dd0e-1266-a72e63776a42}";
-  // Map of each enum value to its text string, and list of semantically equivalent errc's
-  static const std::initializer_list<mapping> &value_mappings()
-  {
-    static const std::initializer_list<mapping<AnotherCode>> v = {
-    // Format is: { enum value, "string representation", { list of errc mappings ... } }
-    {AnotherCode::success1, "Success 1", {errc::success}},        //
-    {AnotherCode::goaway, "Go away", {errc::permission_denied}},  //
-    {AnotherCode::success2, "Success 2", {errc::success}},        //
-    {AnotherCode::error2, "Error 2", {}},                         //
-    };
-    return v;
-  }
-  // Completely optional definition of mixin for the status code synthesised from `Enum`. It can be omitted.
-  template <class Base> struct mixin : Base
-  {
-    using Base::Base;
-    constexpr int custom_method() const { return 42; }
-  };
-};
-SYSTEM_ERROR2_NAMESPACE_END
-```
-
-Note that if the `errc` mapping contains `errc::success`, then
-the enumeration value is considered to be a successful value.
-Otherwise it is considered to be a failure value.
-
-The first value in the `errc` mapping is the one chosen as the
-`generic_code` conversion. Other values are used during equivalence
-comparisons.
-*/
-template <class Enum> struct quick_status_code_from_enum;
 //! Defaults for an implementation of `quick_status_code_from_enum<Enum>`
 template <class Enum> struct quick_status_code_from_enum_defaults
 {
+  //! The type of the resulting code
+  using code_type = quick_status_code_from_domain_enum_code<Enum>;
   //! Used within `quick_status_code_from_enum` to define a mapping of enumeration value with its status code
   struct mapping
   {
@@ -95,9 +57,6 @@ template <class Enum> struct quick_status_code_from_enum_defaults
     using Base::Base;
   };
 };
-template <class Enum> class _quick_status_code_from_enum_domain;
-//! A status code wrapping `Enum` generated from `quick_status_code_from_enum`.
-template <class Enum> using quick_status_code_from_domain_enum_code = status_code<_quick_status_code_from_enum_domain<Enum>>;
 
 /*! The implementation of the domain for status codes wrapping `Enum` generated from `quick_status_code_from_enum`.
  */
@@ -230,13 +189,6 @@ protected:
 #endif
 };
 
-namespace detail
-{
-  struct quick_status_code_from_enum_tag
-  {
-  };
-}  // namespace detail
-
 #if __cplusplus >= 201402L || defined(_MSC_VER)
 template <class Enum> constexpr _quick_status_code_from_enum_domain<Enum> quick_status_code_from_enum_domain = {};
 template <class Enum> inline constexpr const _quick_status_code_from_enum_domain<Enum> &_quick_status_code_from_enum_domain<Enum>::get()
@@ -244,13 +196,6 @@ template <class Enum> inline constexpr const _quick_status_code_from_enum_domain
   return quick_status_code_from_enum_domain<Enum>;
 }
 #endif
-
-//! Declare an implicit conversion from `Enum` into `quick_status_code_from_domain_enum_code<Enum>`.
-template <class Enum, typename = decltype(quick_status_code_from_enum<Enum>::domain_name)>  //
-constexpr inline quick_status_code_from_domain_enum_code<Enum> make_status_code(Enum c, detail::quick_status_code_from_enum_tag = {}) noexcept
-{
-  return quick_status_code_from_domain_enum_code<Enum>(c);
-}
 
 namespace mixins
 {

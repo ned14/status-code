@@ -254,16 +254,19 @@ inline StatusCode make_status_code(ADLHelper1, ADLHelper2)
   return StatusCode(Code::goaway);
 }
 
-// "Initialiser list" custom status code domain
-enum class AnotherCode : size_t
+namespace another_namespace
 {
-  success1,
-  goaway,
-  success2,
-  error2
-};
+  // "Initialiser list" custom status code domain
+  enum class AnotherCode : size_t
+  {
+    success1,
+    goaway,
+    success2,
+    error2
+  };
+}  // namespace another_namespace
 SYSTEM_ERROR2_NAMESPACE_BEGIN
-template <> struct quick_status_code_from_enum<AnotherCode> : quick_status_code_from_enum_defaults<AnotherCode>
+template <> struct quick_status_code_from_enum<another_namespace::AnotherCode> : quick_status_code_from_enum_defaults<another_namespace::AnotherCode>
 {
   // Text name of the enum
   static constexpr const auto domain_name = "Another Code";
@@ -274,10 +277,10 @@ template <> struct quick_status_code_from_enum<AnotherCode> : quick_status_code_
   {
     static const std::initializer_list<mapping> v = {
     // Format is: { enum value, "string representation", { list of errc mappings ... } }
-    {AnotherCode::success1, "Success 1", {errc::success}},        //
-    {AnotherCode::goaway, "Go away", {errc::permission_denied}},  //
-    {AnotherCode::success2, "Success 2", {errc::success}},        //
-    {AnotherCode::error2, "Error 2", {}},                         //
+    {another_namespace::AnotherCode::success1, "Success 1", {errc::success}},        //
+    {another_namespace::AnotherCode::goaway, "Go away", {errc::permission_denied}},  //
+    {another_namespace::AnotherCode::success2, "Success 2", {errc::success}},        //
+    {another_namespace::AnotherCode::error2, "Error 2", {}},                         //
     };
     return v;
   }
@@ -289,6 +292,16 @@ template <> struct quick_status_code_from_enum<AnotherCode> : quick_status_code_
   };
 };
 SYSTEM_ERROR2_NAMESPACE_END
+
+inline int out_of_namespace_quick_status_code_test()
+{
+  int retcode = 0;
+  {
+    SYSTEM_ERROR2_NAMESPACE::status_code<SYSTEM_ERROR2_NAMESPACE::erased<size_t>> v(another_namespace::AnotherCode::error2);
+    CHECK(v.value() == (size_t) another_namespace::AnotherCode::error2);
+  }
+  return retcode;
+}
 
 int main()
 {
@@ -328,7 +341,7 @@ int main()
   CHECK(failure1 == failure2);
 
   // Test the quick enumeration facility
-  SYSTEM_ERROR2_CONSTEXPR14 quick_status_code_from_domain_enum_code<AnotherCode> empty2a, success2a(AnotherCode::success1), failure2a(AnotherCode::goaway);
+  SYSTEM_ERROR2_CONSTEXPR14 quick_status_code_from_domain_enum_code<another_namespace::AnotherCode> empty2a, success2a(another_namespace::AnotherCode::success1), failure2a(another_namespace::AnotherCode::goaway);
   CHECK(success2a.success());
   CHECK(failure2a.failure());
   printf("\nStatusCode empty has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(empty2a.value()), empty2a.message().c_str(), static_cast<int>(empty2a.success()), static_cast<int>(empty2a.failure()));
@@ -346,11 +359,7 @@ int main()
   CHECK(failure1 != success2a);
   CHECK(failure1 == failure2a);
   CHECK(success2a.custom_method() == 42);
-  {
-    SYSTEM_ERROR2_CONSTEXPR14 auto v = make_status_code(AnotherCode::error2);
-    CHECK(v.value() == AnotherCode::error2);
-    CHECK(v.custom_method() == 42);
-  }
+  retcode += out_of_namespace_quick_status_code_test();
 
   // Test status code erasure
   status_code<erased<int>> success3(success1), failure3(failure1);
@@ -536,6 +545,14 @@ int main()
   system_code ec1(error_codes[0]), ec2(error_codes[1]);
   CHECK(ec1 == errc::permission_denied);
   CHECK(ec2 == errc::result_out_of_range);
+  {
+    struct error_info
+    {
+      system_code::value_type system_code;
+      char bytes[16];
+    };
+    static_assert(std::is_constructible<status_code<erased<error_info>>, std::error_code>::value, "An erased status code is not constructible from a std::error_code");
+  }
 
 #ifndef SYSTEM_ERROR2_NOT_POSIX
   // Test status_code_ptr
