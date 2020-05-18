@@ -34,6 +34,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include <cstdio>
 #include <cstring>  // for strdup, strlen
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -379,6 +380,7 @@ int main()
   std::cout << "\ngeneric_code failure: " << failure1 << std::endl;
   std::cout << "StatusCode failure: " << failure2 << std::endl;
   std::cout << "erased<int> failure: " << failure3 << std::endl;
+  std::cout << "erased<int> message failure: " << failure3.message() << std::endl;
 
   // Test atomic_refcounted_string_ref (used by Windows status codes)
   {
