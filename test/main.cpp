@@ -375,6 +375,19 @@ int main()
   CHECK(success4.domain() == success1.domain());
   CHECK(failure4.value() == failure1.value());
   CHECK(failure4.domain() == failure1.domain());
+  {
+    struct Foo1
+    {
+      int a[3];
+    };
+    struct Foo2
+    {
+      int a[2];
+    };
+    status_code<erased<Foo2>> test1;
+    status_code<erased<Foo1>> test2(test1);
+    (void) test2;
+  }
 
   // ostream printers
   std::cout << "\ngeneric_code failure: " << failure1 << std::endl;

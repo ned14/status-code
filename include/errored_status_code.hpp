@@ -204,13 +204,22 @@ public:
 
   /***** KEEP THESE IN SYNC WITH STATUS_CODE *****/
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
-  template <class DomainType,                                                                              //
-            typename std::enable_if<!detail::is_erased_status_code<status_code<DomainType>>::value         //
-                                    && std::is_trivially_copyable<typename DomainType::value_type>::value  //
+  template <class DomainType,                                                                           //
+            typename std::enable_if<std::is_trivially_copyable<typename DomainType::value_type>::value  //
                                     && detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
                                     bool>::type = true>
   errored_status_code(const status_code<DomainType> &v) noexcept
       : _base(v)  // NOLINT
+  {
+    _check();
+  }
+  //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
+  template <class DomainType,                                                                           //
+            typename std::enable_if<std::is_trivially_copyable<typename DomainType::value_type>::value  //
+                                    && detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
+                                    bool>::type = true>
+  errored_status_code(const errored_status_code<DomainType> &v) noexcept
+      : _base(static_cast<const status_code<DomainType> &>(v))  // NOLINT
   {
     _check();
   }
@@ -219,6 +228,15 @@ public:
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
                                     bool>::type = true>
   errored_status_code(status_code<DomainType> &&v) noexcept
+      : _base(static_cast<status_code<DomainType> &&>(v))  // NOLINT
+  {
+    _check();
+  }
+  //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying and it would fit into our storage
+  template <class DomainType,  //
+            typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
+                                    bool>::type = true>
+  errored_status_code(errored_status_code<DomainType> &&v) noexcept
       : _base(static_cast<status_code<DomainType> &&>(v))  // NOLINT
   {
     _check();

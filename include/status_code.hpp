@@ -509,9 +509,8 @@ public:
 
   /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
-  template <class DomainType,                                                                              //
-            typename std::enable_if<!detail::is_erased_status_code<status_code<DomainType>>::value         //
-                                    && std::is_trivially_copyable<typename DomainType::value_type>::value  //
+  template <class DomainType,                                                                           //
+            typename std::enable_if<std::is_trivially_copyable<typename DomainType::value_type>::value  //
                                     && detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
                                     bool>::type = true>
   constexpr status_code(const status_code<DomainType> &v) noexcept  // NOLINT
