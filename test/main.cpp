@@ -293,6 +293,11 @@ template <> struct quick_status_code_from_enum<another_namespace::AnotherCode> :
   };
 };
 SYSTEM_ERROR2_NAMESPACE_END
+namespace another_namespace
+{
+  // ADL discovered, must be in same namespace as AnotherCode
+  constexpr inline SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode> make_status_code(AnotherCode c) { return c; }
+}  // namespace another_namespace
 
 inline int out_of_namespace_quick_status_code_test()
 {
@@ -300,6 +305,11 @@ inline int out_of_namespace_quick_status_code_test()
   {
     SYSTEM_ERROR2_NAMESPACE::status_code<SYSTEM_ERROR2_NAMESPACE::erased<size_t>> v(another_namespace::AnotherCode::error2);
     CHECK(v.value() == (size_t) another_namespace::AnotherCode::error2);
+  }
+  {
+    constexpr auto v = make_status_code(another_namespace::AnotherCode::error2);
+    assert(v.value() == another_namespace::AnotherCode::error2);
+    assert(v.custom_method() == 42);
   }
   return retcode;
 }
@@ -342,7 +352,7 @@ int main()
   CHECK(failure1 == failure2);
 
   // Test the quick enumeration facility
-  SYSTEM_ERROR2_CONSTEXPR14 quick_status_code_from_domain_enum_code<another_namespace::AnotherCode> empty2a, success2a(another_namespace::AnotherCode::success1), failure2a(another_namespace::AnotherCode::goaway);
+  SYSTEM_ERROR2_CONSTEXPR14 quick_status_code_from_enum_code<another_namespace::AnotherCode> empty2a, success2a(another_namespace::AnotherCode::success1), failure2a(another_namespace::AnotherCode::goaway);
   CHECK(success2a.success());
   CHECK(failure2a.failure());
   printf("\nStatusCode empty has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(empty2a.value()), empty2a.message().c_str(), static_cast<int>(empty2a.success()), static_cast<int>(empty2a.failure()));

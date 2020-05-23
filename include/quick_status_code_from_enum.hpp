@@ -31,13 +31,13 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 template <class Enum> class _quick_status_code_from_enum_domain;
 //! A status code wrapping `Enum` generated from `quick_status_code_from_enum`.
-template <class Enum> using quick_status_code_from_domain_enum_code = status_code<_quick_status_code_from_enum_domain<Enum>>;
+template <class Enum> using quick_status_code_from_enum_code = status_code<_quick_status_code_from_enum_domain<Enum>>;
 
 //! Defaults for an implementation of `quick_status_code_from_enum<Enum>`
 template <class Enum> struct quick_status_code_from_enum_defaults
 {
   //! The type of the resulting code
-  using code_type = quick_status_code_from_domain_enum_code<Enum>;
+  using code_type = quick_status_code_from_enum_code<Enum>;
   //! Used within `quick_status_code_from_enum` to define a mapping of enumeration value with its status code
   struct mapping
   {
@@ -113,7 +113,7 @@ protected:
   {
     assert(code.domain() == *this);  // NOLINT
     // If `errc::success` is in the generic code mapping, it is not a failure
-    const auto *mapping = _find_mapping(static_cast<const quick_status_code_from_domain_enum_code<value_type> &>(code).value());
+    const auto *mapping = _find_mapping(static_cast<const quick_status_code_from_enum_code<value_type> &>(code).value());
     assert(mapping != nullptr);
     if(mapping != nullptr)
     {
@@ -130,10 +130,10 @@ protected:
   virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override
   {
     assert(code1.domain() == *this);                                                                   // NOLINT
-    const auto &c1 = static_cast<const quick_status_code_from_domain_enum_code<value_type> &>(code1);  // NOLINT
+    const auto &c1 = static_cast<const quick_status_code_from_enum_code<value_type> &>(code1);  // NOLINT
     if(code2.domain() == *this)
     {
-      const auto &c2 = static_cast<const quick_status_code_from_domain_enum_code<value_type> &>(code2);  // NOLINT
+      const auto &c2 = static_cast<const quick_status_code_from_enum_code<value_type> &>(code2);  // NOLINT
       return c1.value() == c2.value();
     }
     if(code2.domain() == generic_code_domain)
@@ -157,7 +157,7 @@ protected:
   virtual generic_code _generic_code(const status_code<void> &code) const noexcept override
   {
     assert(code.domain() == *this);  // NOLINT
-    const auto *mapping = _find_mapping(static_cast<const quick_status_code_from_domain_enum_code<value_type> &>(code).value());
+    const auto *mapping = _find_mapping(static_cast<const quick_status_code_from_enum_code<value_type> &>(code).value());
     assert(mapping != nullptr);
     if(mapping != nullptr)
     {
@@ -171,7 +171,7 @@ protected:
   virtual string_ref _do_message(const status_code<void> &code) const noexcept override
   {
     assert(code.domain() == *this);  // NOLINT
-    const auto *mapping = _find_mapping(static_cast<const quick_status_code_from_domain_enum_code<value_type> &>(code).value());
+    const auto *mapping = _find_mapping(static_cast<const quick_status_code_from_enum_code<value_type> &>(code).value());
     assert(mapping != nullptr);
     if(mapping != nullptr)
     {
@@ -183,7 +183,7 @@ protected:
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override
   {
     assert(code.domain() == *this);                                                                  // NOLINT
-    const auto &c = static_cast<const quick_status_code_from_domain_enum_code<value_type> &>(code);  // NOLINT
+    const auto &c = static_cast<const quick_status_code_from_enum_code<value_type> &>(code);  // NOLINT
     throw status_error<_quick_status_code_from_enum_domain>(c);
   }
 #endif

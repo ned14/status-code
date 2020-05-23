@@ -113,20 +113,25 @@ be wrapped into a custom status code domain with a minimum of effort.
 Note that this support requires a minimum of C++ 14 in the compiler. It is not defined if
 in C++ 11.
 
-<pre><code class="c++">// This is some third party enumeration type
-enum class AnotherCode : size_t
+<pre><code class="c++">// This is some third party enumeration type in another namespace
+namespace another_namespace
 {
-  success1,
-  goaway,
-  success2,
-  error2
-};
+  // "Initialiser list" custom status code domain
+  enum class AnotherCode : size_t
+  {
+    success1,
+    goaway,
+    success2,
+    error2
+  };
+}  // namespace another_namespace
 
 // To synthesise a custom status code domain for `AnotherCode`, inject the following
 // template specialisation:
 SYSTEM_ERROR2_NAMESPACE_BEGIN
-template &lt;&gt; struct quick_status_code_from_enum&lt;AnotherCode&gt;
-  : quick_status_code_from_enum_defaults&lt;AnotherCode&gt;
+template &lt;&gt;
+struct quick_status_code_from_enum&lt;another_namespace::AnotherCode&gt;
+  : quick_status_code_from_enum_defaults&lt;another_namespace::AnotherCode&gt;
 {
   // Text name of the enum
   static constexpr const auto domain_name = "Another Code";
@@ -135,7 +140,7 @@ template &lt;&gt; struct quick_status_code_from_enum&lt;AnotherCode&gt;
   static constexpr const auto domain_uuid = "{be201f65-3962-dd0e-1266-a72e63776a42}";
 
   // Map of each enum value to its text string, and list of semantically equivalent errc's
-  static const auto &value_mappings()
+  static const std::initializer_list<mapping> &value_mappings()
   {
     static const std::initializer_list&lt;mapping&gt; v = {
     // Format is: { enum value, "string representation", { list of errc mappings ... } }
@@ -158,6 +163,17 @@ template &lt;&gt; struct quick_status_code_from_enum&lt;AnotherCode&gt;
   };
 };
 SYSTEM_ERROR2_NAMESPACE_END
+
+// If you wish make_status_code() to "just work", inject an implementation
+// into the same namespace as AnotherCode
+namespace another_namespace
+{
+  // ADL discovered, must be in same namespace as AnotherCode
+  constexpr inline
+  SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode>
+  make_status_code(AnotherCode c) { return c; }
+}  // namespace another_namespace
+
 
 // Make a status code of the synthesised code domain for `AnotherCode`
 constexpr auto v = make_status_code(AnotherCode::error2);
