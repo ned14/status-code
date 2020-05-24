@@ -296,18 +296,18 @@ SYSTEM_ERROR2_NAMESPACE_END
 namespace another_namespace
 {
   // ADL discovered, must be in same namespace as AnotherCode
-  constexpr inline SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode> status_code(AnotherCode c) { return c; }
+  SYSTEM_ERROR2_CONSTEXPR14 inline SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode> status_code(AnotherCode c) { return c; }
 }  // namespace another_namespace
 
 inline int out_of_namespace_quick_status_code_test()
 {
   int retcode = 0;
   {
-    SYSTEM_ERROR2_NAMESPACE::status_code<SYSTEM_ERROR2_NAMESPACE::erased<size_t>> v(another_namespace::AnotherCode::error2);
-    CHECK(v.value() == (size_t) another_namespace::AnotherCode::error2);
+    SYSTEM_ERROR2_NAMESPACE::system_code v(another_namespace::AnotherCode::error2);
+    CHECK(v.value() == (intptr_t) another_namespace::AnotherCode::error2);
   }
   {
-    constexpr auto v = status_code(another_namespace::AnotherCode::error2);
+    SYSTEM_ERROR2_CONSTEXPR14 auto v = status_code(another_namespace::AnotherCode::error2);
     assert(v.value() == another_namespace::AnotherCode::error2);
     assert(v.custom_method() == 42);
   }

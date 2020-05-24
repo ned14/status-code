@@ -175,13 +175,13 @@ namespace another_namespace
 
 
 // Make a status code of the synthesised code domain for `AnotherCode`
-constexpr auto v = status_code(another_namespace::AnotherCode::error2);
+SYSTEM_ERROR2_CONSTEXPR14 auto v = status_code(another_namespace::AnotherCode::error2);
 assert(v.value() == another_namespace::AnotherCode::error2);
 assert(v.custom_method() == 42);
 
 // If you don't need custom methods, just use system_code, all erased
 // status codes recognise quick_status_code_from_enum<Enum>
-constexpr SYSTEM_ERROR2_NAMESPACE::system_code v2(another_namespace::AnotherCode::error2)
+SYSTEM_ERROR2_NAMESPACE::system_code v2(another_namespace::AnotherCode::error2)
 </code></pre>
 
 
