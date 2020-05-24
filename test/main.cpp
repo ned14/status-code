@@ -296,7 +296,7 @@ SYSTEM_ERROR2_NAMESPACE_END
 namespace another_namespace
 {
   // ADL discovered, must be in same namespace as AnotherCode
-  constexpr inline SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode> make_status_code(AnotherCode c) { return c; }
+  constexpr inline SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode> status_code(AnotherCode c) { return c; }
 }  // namespace another_namespace
 
 inline int out_of_namespace_quick_status_code_test()
@@ -307,7 +307,7 @@ inline int out_of_namespace_quick_status_code_test()
     CHECK(v.value() == (size_t) another_namespace::AnotherCode::error2);
   }
   {
-    constexpr auto v = make_status_code(another_namespace::AnotherCode::error2);
+    constexpr auto v = status_code(another_namespace::AnotherCode::error2);
     assert(v.value() == another_namespace::AnotherCode::error2);
     assert(v.custom_method() == 42);
   }
@@ -573,7 +573,7 @@ int main()
   {
     struct error_info
     {
-      system_code::value_type system_code;
+      system_code::value_type _system_code;
       char bytes[16];
     };
     static_assert(std::is_constructible<status_code<erased<error_info>>, std::error_code>::value, "An erased status code is not constructible from a std::error_code");
