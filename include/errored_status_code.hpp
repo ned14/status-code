@@ -104,7 +104,7 @@ public:
             typename std::enable_if<std::is_constructible<errored_status_code, QuickStatusCodeType>::value,  // Its status code is compatible
 
                                     bool>::type = true>
-  constexpr errored_status_code(Enum &&v) noexcept(std::is_nothrow_constructible<errored_status_code, QuickStatusCodeType>::value)  // NOLINT
+  errored_status_code(Enum &&v) noexcept(std::is_nothrow_constructible<errored_status_code, QuickStatusCodeType>::value)  // NOLINT
       : errored_status_code(QuickStatusCodeType(static_cast<Enum &&>(v)))
   {
     _check();
@@ -260,7 +260,7 @@ public:
             typename std::enable_if<std::is_constructible<errored_status_code, QuickStatusCodeType>::value,  // Its status code is compatible
 
                                     bool>::type = true>
-  constexpr errored_status_code(Enum &&v) noexcept(std::is_nothrow_constructible<errored_status_code, QuickStatusCodeType>::value)  // NOLINT
+  errored_status_code(Enum &&v) noexcept(std::is_nothrow_constructible<errored_status_code, QuickStatusCodeType>::value)  // NOLINT
       : errored_status_code(QuickStatusCodeType(static_cast<Enum &&>(v)))
   {
     _check();
