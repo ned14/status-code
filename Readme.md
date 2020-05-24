@@ -176,8 +176,8 @@ namespace another_namespace
 
 
 // Make a status code of the synthesised code domain for `AnotherCode`
-constexpr auto v = make_status_code(AnotherCode::error2);
-assert(v.value() == AnotherCode::error2);
+constexpr auto v = make_status_code(another_namespace::AnotherCode::error2);
+assert(v.value() == another_namespace::AnotherCode::error2);
 assert(v.custom_method() == 42);
 </code></pre>
 
