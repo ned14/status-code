@@ -296,7 +296,14 @@ SYSTEM_ERROR2_NAMESPACE_END
 namespace another_namespace
 {
   // ADL discovered, must be in same namespace as AnotherCode
-  SYSTEM_ERROR2_CONSTEXPR14 inline SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode> status_code(AnotherCode c) { return c; }
+  SYSTEM_ERROR2_CONSTEXPR14 inline SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode> status_code(AnotherCode c)
+  {
+#if __GNUC__ == 5
+    return SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode>(c);
+#else
+    return c;
+#endif
+  }
 }  // namespace another_namespace
 
 inline int out_of_namespace_quick_status_code_test()
