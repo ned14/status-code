@@ -340,6 +340,38 @@ inline bool operator!=(const T &a, const errored_status_code<DomainType1> &b)
 {
   return !b.equivalent(make_status_code(a));
 }
+//! True if the status code's are semantically equal via `equivalent()` to `quick_status_code_from_enum<T>::code_type(b)`.
+template <class DomainType1, class T,                                                     //
+          class QuickStatusCodeType = typename quick_status_code_from_enum<T>::code_type  // Enumeration has been activated
+          >
+inline bool operator==(const errored_status_code<DomainType1> &a, const T &b)
+{
+  return a.equivalent(QuickStatusCodeType(b));
+}
+//! True if the status code's are semantically equal via `equivalent()` to `quick_status_code_from_enum<T>::code_type(a)`.
+template <class T, class DomainType1,                                                     //
+          class QuickStatusCodeType = typename quick_status_code_from_enum<T>::code_type  // Enumeration has been activated
+          >
+inline bool operator==(const T &a, const errored_status_code<DomainType1> &b)
+{
+  return b.equivalent(QuickStatusCodeType(a));
+}
+//! True if the status code's are not semantically equal via `equivalent()` to `quick_status_code_from_enum<T>::code_type(b)`.
+template <class DomainType1, class T,                                                     //
+          class QuickStatusCodeType = typename quick_status_code_from_enum<T>::code_type  // Enumeration has been activated
+          >
+inline bool operator!=(const errored_status_code<DomainType1> &a, const T &b)
+{
+  return !a.equivalent(QuickStatusCodeType(b));
+}
+//! True if the status code's are not semantically equal via `equivalent()` to `quick_status_code_from_enum<T>::code_type(a)`.
+template <class T, class DomainType1,                                                     //
+          class QuickStatusCodeType = typename quick_status_code_from_enum<T>::code_type  // Enumeration has been activated
+          >
+inline bool operator!=(const T &a, const errored_status_code<DomainType1> &b)
+{
+  return !b.equivalent(QuickStatusCodeType(a));
+}
 
 
 namespace detail
