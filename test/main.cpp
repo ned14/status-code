@@ -265,6 +265,19 @@ namespace another_namespace
     success2,
     error2
   };
+  struct AnotherCodeWithPayload
+  {
+    AnotherCode code;
+    size_t additional_payload{0};
+    constexpr AnotherCodeWithPayload(AnotherCode _code, size_t additional = 0)
+        : code(_code)
+        , additional_payload(additional)
+    {
+    }
+    // Comparisons ignore payload
+    constexpr bool operator==(const AnotherCodeWithPayload &o) const noexcept { return code == o.code; }
+    constexpr bool operator!=(const AnotherCodeWithPayload &o) const noexcept { return code != o.code; }
+  };
 }  // namespace another_namespace
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 template <> struct quick_status_code_from_enum<another_namespace::AnotherCode> : quick_status_code_from_enum_defaults<another_namespace::AnotherCode>
@@ -292,6 +305,31 @@ template <> struct quick_status_code_from_enum<another_namespace::AnotherCode> :
     constexpr int custom_method() const { return 42; }
   };
 };
+template <> struct quick_status_code_from_enum<another_namespace::AnotherCodeWithPayload> : quick_status_code_from_enum_defaults<another_namespace::AnotherCodeWithPayload>
+{
+  // Text name of the enum
+  static constexpr const auto domain_name = "Another Code With Payload";
+  // Unique UUID for the enum. PLEASE use https://www.random.org/cgi-bin/randbyte?nbytes=16&format=h
+  static constexpr const auto domain_uuid = "{388f6e96-7baf-f941-4ee3-46a8238c76fd}";
+  // Map of each enum value to its text string, and list of semantically equivalent errc's
+  static const std::initializer_list<mapping> &value_mappings()
+  {
+    static const std::initializer_list<mapping> v = {
+    // Format is: { enum value, "string representation", { list of errc mappings ... } }
+    {another_namespace::AnotherCode::success1, "Success 1", {errc::success}},        //
+    {another_namespace::AnotherCode::goaway, "Go away", {errc::permission_denied}},  //
+    {another_namespace::AnotherCode::success2, "Success 2", {errc::success}},        //
+    {another_namespace::AnotherCode::error2, "Error 2", {}},                         //
+    };
+    return v;
+  }
+  // Completely optional definition of mixin for the status code synthesised from `Enum`. It can be omitted.
+  template <class Base> struct mixin : Base
+  {
+    using Base::Base;
+    constexpr size_t payload() const { return this->value().additional_payload; }
+  };
+};
 SYSTEM_ERROR2_NAMESPACE_END
 namespace another_namespace
 {
@@ -300,6 +338,14 @@ namespace another_namespace
   {
 #if __GNUC__ == 5
     return SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode>(c);
+#else
+    return c;
+#endif
+  }
+  SYSTEM_ERROR2_CONSTEXPR14 inline SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCodeWithPayload> status_code(AnotherCodeWithPayload c)
+  {
+#if __GNUC__ == 5
+    return SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCodeWithPayload>(c);
 #else
     return c;
 #endif
@@ -317,6 +363,11 @@ inline int out_of_namespace_quick_status_code_test()
     SYSTEM_ERROR2_CONSTEXPR14 auto v = status_code(another_namespace::AnotherCode::error2);
     assert(v.value() == another_namespace::AnotherCode::error2);
     assert(v.custom_method() == 42);
+  }
+  {
+    SYSTEM_ERROR2_CONSTEXPR14 auto v = status_code(another_namespace::AnotherCodeWithPayload(another_namespace::AnotherCode::error2, 99));
+    assert(v.value().code == another_namespace::AnotherCode::error2);
+    assert(v.payload() == 99);
   }
   return retcode;
 }
@@ -377,6 +428,7 @@ int main()
   CHECK(failure1 != success2a);
   CHECK(failure1 == failure2a);
   CHECK(success2a.custom_method() == 42);
+  CHECK(success2a == another_namespace::AnotherCode::success1);
   retcode += out_of_namespace_quick_status_code_test();
 
   // Test status code erasure
