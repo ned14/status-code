@@ -11,5 +11,86 @@ doc_result
 <h1>Header file <code>result.hpp</code></h1>
 <p><span id="standardese-result-hpp"></span></p>
 <pre><code class="standardese-language-cpp"><span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_error.html#standardese-error-hpp"><span class="typ dec var fun">error.hpp</span></a><span class="pre">&quot;</span>
-</code></pre></body>
+
+<span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
+<span class="pun">{</span>
+    <span class="typ dec var fun">template</span> <span class="pun">&lt;</span><span class="typ dec var fun">class</span> <span class="kwd">T</span><span class="pun">&gt;</span><span class="typ dec var fun">inline</span> <span class="typ dec var fun">constexpr</span> <span class="kwd">std</span><span class="pun">::</span><span class="kwd">in_place_type_t</span><span class="pun">&lt;</span><span class="kwd">T</span><span class="pun">&gt;</span><span class="kwd">in_place_type</span><span class="pun">{</span><span class="pun">}</span><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">&gt;</span>
+    <span class="kwd">struct</span> <a href="doc_result.html#standardese-system_error2"><span class="typ dec var fun">is_result</span></a><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">&gt;</span>
+    <span class="kwd">struct</span> <a href="doc_result.html#standardese-system_error2"><span class="typ dec var fun">is_result</span></a><span class="pun">&lt;</span><span class="kwd">result</span><span class="pun">&lt;</span><span class="kwd">T</span><span class="pun">&gt;</span><span class="pun">;</span>
+
+    <span class="kwd">class</span> <a href="doc_result.html#standardese-system_error2__bad_result_access"><span class="typ dec var fun">bad_result_access</span></a><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">&gt;</span>
+    <span class="kwd">class</span> <a href="doc_result.html#standardese-system_error2__result-T-"><span class="typ dec var fun">result</span></a><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">U</span><span class="pun">,</span> <span class="kwd">typename</span> <span class="pun">=</span> decltype(std::declval&lt;T&gt;()==std::declval&lt;U&gt;())<span class="pun">&gt;</span>
+    <span class="kwd">constexpr</span> <span class="kwd">bool</span> <a href="doc_result.html#standardese-system_error2__operator---T-U---result-T-const--result-U-const--"><span class="typ dec var fun">operator==</span></a><span class="pun">(</span><a href="doc_result.html#standardese-system_error2__result-T-"><span class="typ dec var fun">result</span></a><span class="pun">&lt;</span>T<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_result.html#standardese-system_error2__result-T-"><span class="typ dec var fun">result</span></a><span class="pun">&lt;</span>U<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">U</span><span class="pun">,</span> <span class="kwd">typename</span> <span class="pun">=</span> decltype(std::declval&lt;T&gt;()!=std::declval&lt;U&gt;())<span class="pun">&gt;</span>
+    <span class="kwd">constexpr</span> <span class="kwd">bool</span> <a href="doc_result.html#standardese-system_error2__operator---T-U---result-T-const--result-U-const--"><span class="typ dec var fun">operator!=</span></a><span class="pun">(</span><a href="doc_result.html#standardese-system_error2__result-T-"><span class="typ dec var fun">result</span></a><span class="pun">&lt;</span>T<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_result.html#standardese-system_error2__result-T-"><span class="typ dec var fun">result</span></a><span class="pun">&lt;</span>U<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+<span class="pun">}</span>
+</code></pre>
+
+<p><span id="standardese-system_error2"></span></p>
+<h3>Struct <code>system_error2::is_result</code></h3>
+<p><span id="standardese-system_error2__is_result-T-"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">&gt;</span>
+<span class="kwd">struct</span> <span class="typ dec var fun">is_result</span>
+<span class="pun">{</span>
+<span class="pun">};</span>
+</code></pre>
+
+<p>A trait for detecting result types</p>
+<hr />
+<h3>Class <code>system_error2::bad_result_access</code></h3>
+<p><span id="standardese-system_error2__bad_result_access"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">class</span> <span class="typ dec var fun">bad_result_access</span>
+<span class="pun">:</span> <span class="kwd">public</span> <span class="typ dec var fun">std::exception</span>
+<span class="pun">{</span>
+<span class="kwd">public</span><span class="pun">:</span>
+    <span class="typ dec var fun">bad_result_access</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    <span class="kwd">virtual</span> <span class="kwd">char</span> <span class="kwd">const</span><span class="pun">*</span> <a href="doc_result.html#standardese-system_error2__bad_result_access__what--const"><span class="typ dec var fun">what</span></a><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+<span class="pun">};</span>
+</code></pre>
+
+<p>Exception type representing the failure to retrieve an error.</p>
+<h3>Function <code>system_error2::bad_result_access::what</code></h3>
+<p><span id="standardese-system_error2__bad_result_access__what--const"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">virtual</span> <span class="kwd">char</span> <span class="kwd">const</span><span class="pun">*</span> <span class="typ dec var fun">what</span><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+</code></pre>
+
+<p>Return an explanatory string</p>
+<hr />
+<hr />
+<h3>Class <code>system_error2::result</code></h3>
+<p><span id="standardese-system_error2__result-T-"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">&gt;</span>
+<span class="kwd">class</span> <span class="typ dec var fun">result</span>
+<span class="pun">{</span>
+<span class="pun">};</span>
+</code></pre>
+
+<p>(error while parsing comment text: unkown command \class)</p>
+<hr />
+<h3>Function <code>system_error2::operator==</code></h3>
+<p><span id="standardese-system_error2__operator---T-U---result-T-const--result-U-const--"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">U</span><span class="pun">,</span> <span class="kwd">typename</span> <span class="pun">=</span> decltype(std::declval&lt;T&gt;()==std::declval&lt;U&gt;())<span class="pun">&gt;</span>
+<span class="kwd">constexpr</span> <span class="kwd">bool</span> <span class="typ dec var fun">operator==</span><span class="pun">(</span><a href="doc_result.html#standardese-system_error2__result-T-"><span class="typ dec var fun">result</span></a><span class="pun">&lt;</span>T<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_result.html#standardese-system_error2__result-T-"><span class="typ dec var fun">result</span></a><span class="pun">&lt;</span>U<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+</code></pre>
+
+<p>True if the two results compare equal.</p>
+<hr />
+<h3>Function <code>system_error2::operator!=</code></h3>
+<p><span id="standardese-system_error2__operator---T-U---result-T-const--result-U-const--"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">T</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">U</span><span class="pun">,</span> <span class="kwd">typename</span> <span class="pun">=</span> decltype(std::declval&lt;T&gt;()!=std::declval&lt;U&gt;())<span class="pun">&gt;</span>
+<span class="kwd">constexpr</span> <span class="kwd">bool</span> <span class="typ dec var fun">operator!=</span><span class="pun">(</span><a href="doc_result.html#standardese-system_error2__result-T-"><span class="typ dec var fun">result</span></a><span class="pun">&lt;</span>T<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">a</span><span class="pun">,</span> <a href="doc_result.html#standardese-system_error2__result-T-"><span class="typ dec var fun">result</span></a><span class="pun">&lt;</span>U<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">b</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+</code></pre>
+
+<p>True if the two results compare unequal.</p>
+<hr /></body>
 </html>

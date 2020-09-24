@@ -10,7 +10,7 @@ doc_win32_code
 
 <h1>Header file <code>win32_code.hpp</code></h1>
 <p><span id="standardese-win32_code-hpp"></span></p>
-<pre><code class="standardese-language-cpp"><span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_generic_code.html#standardese-generic_code-hpp"><span class="typ dec var fun">generic_code.hpp</span></a><span class="pre">&quot;</span>
+<pre><code class="standardese-language-cpp"><span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_quick_status_code_from_enum.html#standardese-quick_status_code_from_enum-hpp"><span class="typ dec var fun">quick_status_code_from_enum.hpp</span></a><span class="pre">&quot;</span>
 
 <span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
 <span class="pun">{</span>
@@ -18,11 +18,22 @@ doc_win32_code
 
     <span class="kwd">using</span> <a href="doc_win32_code.html#standardese-system_error2__win32_error"><span class="typ dec var fun">win32_error</span></a> <span class="pun">=</span> <a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-"><span class="typ dec var fun">status_error</span></a><span class="pun">&lt;</span>system_error2::_win32_code_domain<span class="pun">&gt;</span><span class="pun">;</span>
 
+    <span class="kwd">namespace</span> <span class="typ dec var fun">mixins</span>
+    <span class="pun">{</span>
+        <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">Base</span><span class="pun">&gt;</span>
+        <span class="kwd">struct</span> <span class="typ dec var fun">mixin</span><span class="pun">&lt;</span><span class="kwd">Base</span><span class="pun">,</span> <span class="kwd">_win32_code_domain</span><span class="pun">&gt;</span><span class="pun">;</span>
+    <span class="pun">}</span>
+
     <span class="kwd">class</span> <a href="doc_win32_code.html#standardese-system_error2___win32_code_domain"><span class="typ dec var fun">_win32_code_domain</span></a><span class="pun">;</span>
 
     <span class="kwd">constexpr</span> <a href="doc_win32_code.html#standardese-system_error2___win32_code_domain"><span class="typ dec var fun">system_error2::_win32_code_domain</span></a> <span class="kwd">const</span> <a href="doc_win32_code.html#standardese-system_error2__win32_code_domain"><span class="typ dec var fun">win32_code_domain</span></a><span class="pun">;</span>
 
     <span class="kwd">static</span> <span class="kwd">constexpr</span> <a href="doc_win32_code.html#standardese-system_error2___win32_code_domain"><span class="typ dec var fun">system_error2::_win32_code_domain</span></a> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">_win32_code_domain::</span><span class="typ dec var fun">get</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+
+    <span class="kwd">namespace</span> <span class="typ dec var fun">mixins</span>
+    <span class="pun">{</span>
+        <span class="kwd">static</span> <a href="doc_win32_code.html#standardese-system_error2__win32_code"><span class="typ dec var fun">system_error2::win32_code</span></a> <span class="typ dec var fun">mixin&lt;Base, system_error2::_win32_code_domain&gt;::</span><span class="typ dec var fun">current</span><span class="pun">(</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+    <span class="pun">}</span>
 <span class="pun">}</span>
 </code></pre>
 
@@ -41,6 +52,7 @@ doc_win32_code
 
 <p>(Windows only) A specialisation of <code>status_error</code> for the Win32 error code domain.</p>
 <hr />
+<p><span id="standardese-system_error2__mixins"></span></p>
 <h3>Class <code>system_error2::_win32_code_domain</code></h3>
 <p><span id="standardese-system_error2___win32_code_domain"></span></p>
 <pre><code class="standardese-language-cpp"><span class="kwd">class</span> <span class="typ dec var fun">_win32_code_domain</span>
@@ -107,5 +119,6 @@ doc_win32_code
 </code></pre>
 
 <p>(Windows only) A constexpr source variable for the win32 code domain, which is that of <code>GetLastError()</code> (Windows). Returned by <code>_win32_code_domain::get()</code>.</p>
-<hr /></body>
+<hr />
+<p><span id="standardese-system_error2__mixins"></span></p></body>
 </html>

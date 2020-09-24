@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>
+doc_quick_status_code_from_enum
+</title>
+</head>
+<body>
+
+<h1>Header file <code>quick_status_code_from_enum.hpp</code></h1>
+<p><span id="standardese-quick_status_code_from_enum-hpp"></span></p>
+<pre><code class="standardese-language-cpp"><span class="pre">#include</span> <span class="pre">&quot;</span><a href="doc_generic_code.html#standardese-generic_code-hpp"><span class="typ dec var fun">generic_code.hpp</span></a><span class="pre">&quot;</span>
+
+<span class="kwd">namespace</span> <span class="typ dec var fun">system_error2</span>
+<span class="pun">{</span>
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">Enum</span><span class="pun">&gt;</span>
+    <span class="kwd">using</span> <a href="doc_quick_status_code_from_enum.html#standardese-system_error2__quick_status_code_from_enum_code-Enum-"><span class="typ dec var fun">quick_status_code_from_enum_code</span></a> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>_quick_status_code_from_enum_domain&lt;Enum&gt;<span class="pun">&gt;</span><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">Enum</span><span class="pun">&gt;</span>
+    <span class="kwd">struct</span> <a href="doc_quick_status_code_from_enum.html#standardese-system_error2__quick_status_code_from_enum_defaults-Enum-"><span class="typ dec var fun">quick_status_code_from_enum_defaults</span></a><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">Enum</span><span class="pun">&gt;</span>
+    <span class="kwd">class</span> <a href="doc_quick_status_code_from_enum.html#standardese-system_error2___quick_status_code_from_enum_domain-Enum-"><span class="typ dec var fun">_quick_status_code_from_enum_domain</span></a><span class="pun">;</span>
+
+    <span class="typ dec var fun">template</span> <span class="pun">&lt;</span><span class="typ dec var fun">class</span> <span class="kwd">Enum</span><span class="pun">&gt;</span><span class="typ dec var fun">constexpr</span> <span class="kwd">_quick_status_code_from_enum_domain</span><span class="pun">&lt;</span><span class="kwd">Enum</span><span class="pun">&gt;</span><span class="kwd">quick_status_code_from_enum_domain</span> <span class="pun">=</span> <span class="pun">{</span><span class="pun">}</span><span class="pun">;</span>
+
+    <span class="kwd">static</span> <span class="kwd">constexpr</span> <a href="doc_quick_status_code_from_enum.html#standardese-system_error2___quick_status_code_from_enum_domain-Enum-"><span class="typ dec var fun">_quick_status_code_from_enum_domain</span></a><span class="pun">&lt;</span>Enum<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">_quick_status_code_from_enum_domain&lt;Enum&gt;::</span><span class="typ dec var fun">get</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+
+    <span class="kwd">namespace</span> <span class="typ dec var fun">mixins</span>
+    <span class="pun">{</span>
+        <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">Base</span><span class="pun">,</span> <span class="kwd">class</span> <span class="typ dec var fun">Enum</span><span class="pun">&gt;</span>
+        <span class="kwd">struct</span> <span class="typ dec var fun">mixin</span><span class="pun">&lt;</span><span class="kwd">Base</span><span class="pun">,</span> <span class="kwd">_quick_status_code_from_enum_domain</span><span class="pun">&lt;</span><span class="kwd">Enum</span><span class="pun">&gt;</span><span class="pun">;</span>
+    <span class="pun">}</span>
+<span class="pun">}</span>
+</code></pre>
+
+<p><span id="standardese-system_error2"></span></p>
+<h3>Alias template <code>system_error2::quick_status_code_from_enum_code</code></h3>
+<p><span id="standardese-system_error2__quick_status_code_from_enum_code-Enum-"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">Enum</span><span class="pun">&gt;</span>
+<span class="kwd">using</span> <span class="typ dec var fun">quick_status_code_from_enum_code</span> <span class="pun">=</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>_quick_status_code_from_enum_domain&lt;Enum&gt;<span class="pun">&gt;</span><span class="pun">;</span>
+</code></pre>
+
+<p>A status code wrapping <code>Enum</code> generated from <code>quick_status_code_from_enum</code>.</p>
+<hr />
+<h3>Struct <code>system_error2::quick_status_code_from_enum_defaults</code></h3>
+<p><span id="standardese-system_error2__quick_status_code_from_enum_defaults-Enum-"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">Enum</span><span class="pun">&gt;</span>
+<span class="kwd">struct</span> <span class="typ dec var fun">quick_status_code_from_enum_defaults</span>
+<span class="pun">{</span>
+    <span class="kwd">struct</span> <a href="doc_quick_status_code_from_enum.html#standardese-system_error2__quick_status_code_from_enum_defaults-Enum-__mapping"><span class="typ dec var fun">mapping</span></a><span class="pun">;</span>
+
+    <span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">Base</span><span class="pun">&gt;</span>
+    <span class="kwd">struct</span> <a href="doc_quick_status_code_from_enum.html#standardese-system_error2__quick_status_code_from_enum_defaults-Enum-__mixin-Base-"><span class="typ dec var fun">mixin</span></a><span class="pun">;</span>
+<span class="pun">};</span>
+</code></pre>
+
+<p>Defaults for an implementation of <code>quick_status_code_from_enum&lt;Enum&gt;</code></p>
+<h3>Struct <code>system_error2::quick_status_code_from_enum_defaults::mapping</code></h3>
+<p><span id="standardese-system_error2__quick_status_code_from_enum_defaults-Enum-__mapping"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">struct</span> <span class="typ dec var fun">mapping</span>
+<span class="pun">{</span>
+    <span class="kwd">using</span> <a href="doc_quick_status_code_from_enum.html#standardese-system_error2__quick_status_code_from_enum_defaults-Enum-__mapping__enumeration_type"><span class="typ dec var fun">enumeration_type</span></a> <span class="pun">=</span> <span class="typ dec var fun">Enum</span><span class="pun">;</span>
+
+    <span class="typ dec var fun">Enum</span> <span class="kwd">const</span> <a href="doc_quick_status_code_from_enum.html#standardese-system_error2__quick_status_code_from_enum_defaults-Enum-__mapping__value"><span class="typ dec var fun">value</span></a><span class="pun">;</span>
+
+    <span class="kwd">char</span> <span class="kwd">const</span><span class="pun">*</span> <a href="doc_quick_status_code_from_enum.html#standardese-system_error2__quick_status_code_from_enum_defaults-Enum-__mapping__message"><span class="typ dec var fun">message</span></a><span class="pun">;</span>
+
+    <span class="typ dec var fun">std::initializer_list</span><span class="pun">&lt;</span>errc<span class="pun">&gt;</span> <span class="kwd">const</span> <a href="doc_quick_status_code_from_enum.html#standardese-system_error2__quick_status_code_from_enum_defaults-Enum-__mapping__code_mappings"><span class="typ dec var fun">code_mappings</span></a><span class="pun">;</span>
+<span class="pun">};</span>
+</code></pre>
+
+<p>Used within <code>quick_status_code_from_enum</code> to define a mapping of enumeration value with its status code</p>
+<h4>Member variables</h4>
+<ul>
+<li><code>value</code> &mdash; The value being mapped</li>
+<li><code>message</code> &mdash; A string representation for this enumeration value</li>
+<li><code>code_mappings</code> &mdash; A list of <code>errc</code> equivalents for this enumeration value</li>
+</ul>
+<h3>Type alias <code>system_error2::quick_status_code_from_enum_defaults::mapping::enumeration_type</code></h3>
+<p><span id="standardese-system_error2__quick_status_code_from_enum_defaults-Enum-__mapping__enumeration_type"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">enumeration_type</span> <span class="pun">=</span> <span class="typ dec var fun">Enum</span><span class="pun">;</span>
+</code></pre>
+
+<p>The enumeration type</p>
+<hr />
+<hr />
+<h3>Struct <code>system_error2::quick_status_code_from_enum_defaults::mixin</code></h3>
+<p><span id="standardese-system_error2__quick_status_code_from_enum_defaults-Enum-__mixin-Base-"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">Base</span><span class="pun">&gt;</span>
+<span class="kwd">struct</span> <span class="typ dec var fun">mixin</span>
+<span class="pun">:</span> <span class="typ dec var fun">Base</span>
+<span class="pun">{</span>
+    <span class="kwd">using</span> <span class="typ dec var fun">Base::Base</span><span class="pun">;</span>
+<span class="pun">};</span>
+</code></pre>
+
+<p>Used within <code>quick_status_code_from_enum</code> to define mixins for the status code wrapping <code>Enum</code></p>
+<hr />
+<hr />
+<h3>Class <code>system_error2::_quick_status_code_from_enum_domain</code></h3>
+<p><span id="standardese-system_error2___quick_status_code_from_enum_domain-Enum-"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">template</span> <span class="pun">&lt;</span><span class="kwd">class</span> <span class="typ dec var fun">Enum</span><span class="pun">&gt;</span>
+<span class="kwd">class</span> <span class="typ dec var fun">_quick_status_code_from_enum_domain</span>
+<span class="pun">:</span> <span class="kwd">public</span> <span class="typ dec var fun">status_code_domain</span>
+<span class="pun">{</span>
+<span class="kwd">public</span><span class="pun">:</span>
+    <span class="kwd">using</span> <a href="doc_quick_status_code_from_enum.html#standardese-system_error2___quick_status_code_from_enum_domain-Enum-__value_type"><span class="typ dec var fun">value_type</span></a> <span class="pun">=</span> <span class="typ dec var fun">Enum</span><span class="pun">;</span>
+
+    <span class="kwd">constexpr</span> <span class="typ dec var fun">_quick_status_code_from_enum_domain</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+
+    <span class="typ dec var fun">_quick_status_code_from_enum_domain</span><span class="pun">(</span>const _quick_status_code_from_enum_domain&lt;Enum&gt;<span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    <span class="typ dec var fun">_quick_status_code_from_enum_domain</span><span class="pun">(</span>_quick_status_code_from_enum_domain&lt;Enum&gt;<span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    _quick_status_code_from_enum_domain&lt;Enum&gt;<span class="pun">&amp;</span> <span class="typ dec var fun">operator=</span><span class="pun">(</span>const _quick_status_code_from_enum_domain&lt;Enum&gt;<span class="pun">&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    _quick_status_code_from_enum_domain&lt;Enum&gt;<span class="pun">&amp;</span> <span class="typ dec var fun">operator=</span><span class="pun">(</span>_quick_status_code_from_enum_domain&lt;Enum&gt;<span class="pun">&amp;&amp;</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    <span class="typ dec var fun">~_quick_status_code_from_enum_domain</span><span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span> <span class="kwd">default</span><span class="pun">;</span>
+
+    <span class="kwd">static</span> <span class="kwd">constexpr</span> const _quick_status_code_from_enum_domain&lt;Enum&gt;<span class="pun">&amp;</span> <span class="typ dec var fun">get</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span>
+
+    <span class="kwd">virtual</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span></a> <span class="typ dec var fun">name</span><span class="pun">(</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+<span class="kwd">protected</span><span class="pun">:</span>
+    <span class="kwd">static</span> <span class="kwd">constexpr</span> const typename _src::mapping<span class="pun">*</span> <span class="typ dec var fun">_find_mapping</span><span class="pun">(</span><a href="doc_quick_status_code_from_enum.html#standardese-system_error2___quick_status_code_from_enum_domain-Enum-__value_type"><span class="typ dec var fun">system_error2::_quick_status_code_from_enum_domain::value_type</span></a> <span class="typ dec var fun">v</span><span class="pun">)</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+    <span class="kwd">virtual</span> <span class="kwd">bool</span> <span class="typ dec var fun">_do_failure</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+    <span class="kwd">virtual</span> <span class="kwd">bool</span> <span class="typ dec var fun">_do_equivalent</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code1</span><span class="pun">,</span> <a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code2</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+    <span class="kwd">virtual</span> <a href="doc_status_code_domain.html#standardese-system_error2__generic_code"><span class="typ dec var fun">system_error2::generic_code</span></a> <span class="typ dec var fun">_generic_code</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+    <span class="kwd">virtual</span> <a href="doc_status_code_domain.html#standardese-system_error2__status_code_domain__string_ref"><span class="typ dec var fun">system_error2::status_code_domain::string_ref</span></a> <span class="typ dec var fun">_do_message</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code</span><span class="pun">)</span> <span class="kwd">const</span> <span class="kwd">noexcept</span><span class="pun">;</span>
+
+    <span class="kwd">virtual</span> <span class="kwd">void</span> <span class="typ dec var fun">_do_throw_exception</span><span class="pun">(</span><a href="doc_status_code.html#standardese-system_error2__status_code-DomainType-"><span class="typ dec var fun">status_code</span></a><span class="pun">&lt;</span>void<span class="pun">&gt;</span> <span class="kwd">const</span><span class="pun">&amp;</span> <span class="typ dec var fun">code</span><span class="pun">)</span> <span class="kwd">const</span><span class="pun">;</span>
+<span class="pun">};</span>
+</code></pre>
+
+<p>The implementation of the domain for status codes wrapping <code>Enum</code> generated from <code>quick_status_code_from_enum</code>.</p>
+<h3>Type alias <code>system_error2::_quick_status_code_from_enum_domain::value_type</code></h3>
+<p><span id="standardese-system_error2___quick_status_code_from_enum_domain-Enum-__value_type"></span></p>
+<pre><code class="standardese-language-cpp"><span class="kwd">using</span> <span class="typ dec var fun">value_type</span> <span class="pun">=</span> <span class="typ dec var fun">Enum</span><span class="pun">;</span>
+</code></pre>
+
+<p>The value type of the quick status code from enum</p>
+<hr />
+<hr />
+<p><span id="standardese-system_error2__mixins"></span></p></body>
+</html>

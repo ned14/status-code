@@ -21,6 +21,14 @@ To fetch a drop-in standalone single file implementation:</p>
 <pre><code>wget https://github.com/ned14/status-code/raw/master/single-header/system_error2.hpp
 </code></pre>
 
+<p>If you'd like a 'ready to go' <code>T</code>-or-<code>E</code> variant return solution where your functions
+just return a <code>result&lt;T&gt;</code> which can transport either a success or a failure, consider using
+<a href="https://ned14.github.io/outcome/experimental/">Experimental.Outcome</a> which bundles a
+copy of this library inside the standalone Outcome and Boost.Outcome distributions.
+You can find an example of use
+<a href="https://github.com/ned14/status-code/tree/master/example/variant_return.cpp]">here</a>.
+Experimental.Outcome works great with C++ exceptions globally disabled, and includes
+only a very minimal set of C++ headers.</p>
 <h2>Features:</h2>
 <ul>
 <li>Portable to any C++ 11 compiler. These are known to work:<ul>
@@ -109,6 +117,83 @@ if(sc.failure())
 </code></pre>
 </tr>
 </table>
+
+<h3>Quick synthesis of a custom status code domain for any arbitrary enumeration type:</h3>
+<p>Defining a custom status code domain requires writing a lot of tedious boilerplate. End user
+Jesse Towner suggested a simplified declarative API so arbitrary enumeration types can
+be wrapped into a custom status code domain with a minimum of effort.</p>
+<p>Note that this support requires a minimum of C++ 14 in the compiler. It is not defined if
+in C++ 11.</p>
+<pre><code class="c++">// This is some third party enumeration type in another namespace
+namespace another_namespace
+{
+  // "Initialiser list" custom status code domain
+  enum class AnotherCode : size_t
+  {
+    success1,
+    goaway,
+    success2,
+    error2
+  };
+}  // namespace another_namespace
+
+// To synthesise a custom status code domain for `AnotherCode`, inject the following
+// template specialisation:
+SYSTEM_ERROR2_NAMESPACE_BEGIN
+template &lt;&gt;
+struct quick_status_code_from_enum&lt;another_namespace::AnotherCode&gt;
+  : quick_status_code_from_enum_defaults&lt;another_namespace::AnotherCode&gt;
+{
+  // Text name of the enum
+  static constexpr const auto domain_name = "Another Code";
+
+  // Unique UUID for the enum. PLEASE use https://www.random.org/cgi-bin/randbyte?nbytes=16&format=h
+  static constexpr const auto domain_uuid = "{be201f65-3962-dd0e-1266-a72e63776a42}";
+
+  // Map of each enum value to its text string, and list of semantically equivalent errc's
+  static const std::initializer_list<mapping> &value_mappings()
+  {
+    static const std::initializer_list&lt;mapping&gt; v = {
+    // Format is: { enum value, "string representation", { list of errc mappings ... } }
+    {AnotherCode::success1, "Success 1", {errc::success}},        //
+    {AnotherCode::goaway, "Go away", {errc::permission_denied}},  //
+    {AnotherCode::success2, "Success 2", {errc::success}},        //
+    {AnotherCode::error2, "Error 2", {}},                         //
+    };
+    return v;
+  }
+
+  // Completely optional definition of mixin for the status code synthesised from `Enum`.
+  // It can be omitted.
+  template &lt;class Base&gt; struct mixin : Base
+  {
+    using Base::Base;
+
+    // A custom method on the synthesised status code
+    constexpr int custom_method() const { return 42; }
+  };
+};
+SYSTEM_ERROR2_NAMESPACE_END
+
+// If you wish easy manufacture of status codes from AnotherCode:
+namespace another_namespace
+{
+  // ADL discovered, must be in same namespace as AnotherCode
+  constexpr inline
+  SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode>
+  status_code(AnotherCode c) { return c; }
+}  // namespace another_namespace
+
+
+// Make a status code of the synthesised code domain for `AnotherCode`
+SYSTEM_ERROR2_CONSTEXPR14 auto v = status_code(another_namespace::AnotherCode::error2);
+assert(v.value() == another_namespace::AnotherCode::error2);
+assert(v.custom_method() == 42);
+
+// If you don't need custom methods, just use system_code, all erased
+// status codes recognise quick_status_code_from_enum<Enum>
+SYSTEM_ERROR2_NAMESPACE::system_code v2(another_namespace::AnotherCode::error2)
+</code></pre>
 
 <h2>Problems with <code>&lt;system_error&gt;</code> solved:</h2>
 <ol>
@@ -222,6 +307,9 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_config.html#standardese-SYSTEM_ERROR2_CONSTEXPR14"><code>SYSTEM_ERROR2_CONSTEXPR14</code></a> &mdash; Defined to be <code>constexpr</code> when on C++ 14 or better compilers. Usually automatic, can be overriden.</p>
 </li>
 <li>
+<p><a href="doc_status_code_domain.html#standardese-status_code_domain-hpp"><code>SYSTEM_ERROR2_FAIL_CONSTEXPR</code></a></p>
+</li>
+<li>
 <p><a href="doc_config.html#standardese-SYSTEM_ERROR2_FATAL"><code>SYSTEM_ERROR2_FATAL</code></a> &mdash; Prints msg to stderr, and calls <code>std::terminate()</code>. Can be overriden via predefinition.</p>
 </li>
 <li>
@@ -243,6 +331,13 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_config.html#standardese-SYSTEM_ERROR2_TRIVIAL_ABI"><code>SYSTEM_ERROR2_TRIVIAL_ABI</code></a> &mdash; Defined to be <code>[[clang::trivial_abi]]</code> when on a new enough clang compiler. Usually automatic, can be overriden.</p>
 </li>
 <li>
+<h2>Namespace <code>std</code></h2>
+<p><span id="standardese-std"></span></p>
+<ul>
+<li><a href="http://en.cppreference.com/mwiki/index.php?title=Special%3ASearch&amp;search=std::make_status_code(std::error_code)"><code>make_status_code</code></a></li>
+</ul>
+</li>
+<li>
 <h2>Namespace <code>system_error2</code></h2>
 <p><span id="standardese-system_error2"></span></p>
 <p>Namespace for the library</p>
@@ -251,7 +346,19 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_com_code.html#standardese-system_error2___com_code_domain"><code>_com_code_domain</code></a> &mdash; (Windows only) The implementation of the domain for COM error codes and/or <code>IErrorInfo</code>.</p>
 </li>
 <li>
-<p><a href="doc_std_error_code.html#standardese-system_error2___error_code_domain-error_code_type-make_categories_type-"><code>_error_code_domain</code></a> &mdash; The implementation of the domain for <code>std::error_code</code> error codes.</p>
+<p><a href="doc_std_error_code.html#standardese-system_error2"><code>_do_equivalent</code></a></p>
+</li>
+<li>
+<p><a href="doc_std_error_code.html#standardese-system_error2"><code>_do_failure</code></a></p>
+</li>
+<li>
+<p><a href="doc_std_error_code.html#standardese-system_error2"><code>_do_message</code></a></p>
+</li>
+<li>
+<p><a href="doc_std_error_code.html#standardese-system_error2"><code>_do_throw_exception</code></a></p>
+</li>
+<li>
+<p><a href="doc_std_error_code.html#standardese-system_error2"><code>_generic_code</code></a></p>
 </li>
 <li>
 <p><a href="doc_generic_code.html#standardese-system_error2___generic_code_domain"><code>_generic_code_domain</code></a> &mdash; The implementation of the domain for generic status codes, those mapped by <code>errc</code> (POSIX).</p>
@@ -266,7 +373,16 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_posix_code.html#standardese-system_error2___posix_code_domain"><code>_posix_code_domain</code></a> &mdash; The implementation of the domain for POSIX error codes, those returned by <code>errno</code>.</p>
 </li>
 <li>
+<p><a href="doc_quick_status_code_from_enum.html#standardese-system_error2___quick_status_code_from_enum_domain-Enum-"><code>_quick_status_code_from_enum_domain</code></a> &mdash; The implementation of the domain for status codes wrapping <code>Enum</code> generated from <code>quick_status_code_from_enum</code>.</p>
+</li>
+<li>
+<p><a href="doc_std_error_code.html#standardese-system_error2___std_error_code_domain"><code>_std_error_code_domain</code></a> &mdash; The implementation of the domain for <code>std::error_code</code> error codes.</p>
+</li>
+<li>
 <p><a href="doc_win32_code.html#standardese-system_error2___win32_code_domain"><code>_win32_code_domain</code></a> &mdash; (Windows only) The implementation of the domain for Win32 error codes, those returned by <code>GetLastError()</code>.</p>
+</li>
+<li>
+<p><a href="doc_result.html#standardese-system_error2__bad_result_access"><code>bad_result_access</code></a> &mdash; Exception type representing the failure to retrieve an error.</p>
 </li>
 <li>
 <p><a href="doc_com_code.html#standardese-system_error2__com_code"><code>com_code</code></a> &mdash; (Windows only) A COM error code. Note semantic equivalence testing is only implemented for <code>FACILITY_WIN32</code> and <code>FACILITY_NT_BIT</code>. As you can see at <a href="https://blogs.msdn.microsoft.com/eldar/2007/04/03/a-lot-of-hresult-codes/">https://blogs.msdn.microsoft.com/eldar/2007/04/03/a-lot-of-hresult-codes/</a>, there are an awful lot of COM error codes, and keeping mapping tables for all of them would be impractical (for the Win32 and NT facilities, we actually reuse the mapping tables in <code>win32_code</code> and <code>nt_code</code>).</p>
@@ -317,16 +433,19 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_getaddrinfo_code.html#standardese-system_error2__getaddrinfo_error"><code>getaddrinfo_error</code></a> &mdash; A specialisation of <code>status_error</code> for the <code>getaddrinfo()</code> error code domain.</p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__in_place"><code>in_place</code></a> &mdash; Aliases <code>std::in_place</code> if on C++ 17 or later, else defined locally.</p>
+<p><a href="doc_status_code.html#standardese-system_error2"><code>in_place_t</code></a></p>
 </li>
 <li>
-<p><a href="doc_status_code.html#standardese-system_error2__in_place_t"><code>in_place_t</code></a> &mdash; Aliases <code>std::in_place_t</code> if on C++ 17 or later, else defined locally.</p>
+<p><a href="doc_result.html#standardese-system_error2"><code>in_place_type</code></a></p>
+</li>
+<li>
+<p><a href="doc_result.html#standardese-system_error2"><code>is_result</code></a> &mdash; A trait for detecting result types</p>
 </li>
 <li>
 <p><a href="doc_status_code.html#standardese-system_error2__is_status_code-T-"><code>is_status_code</code></a> &mdash; Trait returning true if the type is a status code.</p>
 </li>
 <li>
-<p><a href="doc_std_error_code.html#standardese-system_error2"><code>make_status_code</code></a></p>
+<p><a href="doc_generic_code.html#standardese-system_error2"><code>make_status_code</code></a></p>
 </li>
 <li>
 <p><a href="doc_status_code_ptr.html#standardese-system_error2__make_status_code_ptr-T----"><code>make_status_code_ptr</code></a> &mdash; Make an erased status code which indirects to a dynamically allocated status code.</p>
@@ -336,7 +455,18 @@ code with fewer unintended portability problems.</p>
 <p><span id="standardese-system_error2__mixins"></span></p>
 <p>Namespace for user injected mixins</p>
 <ul>
-<li><a href="doc_status_code.html#standardese-system_error2__mixins"><code>mixin</code></a></li>
+<li>
+<p><a href="doc_std_error_code.html#standardese-system_error2__mixins"><code></code></a></p>
+</li>
+<li>
+<p><a href="doc_std_error_code.html#standardese-system_error2__mixins"><code>category</code></a></p>
+</li>
+<li>
+<p><a href="doc_win32_code.html#standardese-system_error2__mixins"><code>current</code></a></p>
+</li>
+<li>
+<p><a href="doc_quick_status_code_from_enum.html#standardese-system_error2__mixins"><code>mixin</code></a></p>
+</li>
 </ul>
 </li>
 <li>
@@ -349,10 +479,10 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_nt_code.html#standardese-system_error2__nt_error"><code>nt_error</code></a> &mdash; (Windows only) A specialisation of <code>status_error</code> for the NT error code domain.</p>
 </li>
 <li>
-<p><a href="doc_errored_status_code.html#standardese-system_error2__operator---DomainType1-DomainType2--errored_status_code-DomainType1-const--errored_status_code-DomainType2-const--"><code>operator!=</code></a> &mdash; True if the status code’s are not semantically equal via <code>equivalent()</code>.</p>
+<p><a href="doc_result.html#standardese-system_error2__operator---T-U---result-T-const--result-U-const--"><code>operator!=</code></a> &mdash; True if the two results compare unequal.</p>
 </li>
 <li>
-<p><a href="doc_errored_status_code.html#standardese-system_error2__operator---DomainType1-DomainType2--errored_status_code-DomainType1-const--errored_status_code-DomainType2-const--"><code>operator==</code></a> &mdash; True if the status code’s are semantically equal via <code>equivalent()</code>.</p>
+<p><a href="doc_result.html#standardese-system_error2__operator---T-U---result-T-const--result-U-const--"><code>operator==</code></a> &mdash; True if the two results compare equal.</p>
 </li>
 <li>
 <p><a href="doc_posix_code.html#standardese-system_error2__posix_code"><code>posix_code</code></a> &mdash; A POSIX error code, those returned by <code>errno</code>.</p>
@@ -364,6 +494,21 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_posix_code.html#standardese-system_error2__posix_error"><code>posix_error</code></a> &mdash; A specialisation of <code>status_error</code> for the POSIX error code domain.</p>
 </li>
 <li>
+<p><a href="doc_status_code.html#standardese-system_error2__quick_status_code_from_enum-Enum-"><code>quick_status_code_from_enum</code></a> &mdash; Specialise this template to quickly wrap a third party enumeration into a custom status code domain.</p>
+</li>
+<li>
+<p><a href="doc_quick_status_code_from_enum.html#standardese-system_error2__quick_status_code_from_enum_code-Enum-"><code>quick_status_code_from_enum_code</code></a> &mdash; A status code wrapping <code>Enum</code> generated from <code>quick_status_code_from_enum</code>.</p>
+</li>
+<li>
+<p><a href="doc_quick_status_code_from_enum.html#standardese-system_error2__quick_status_code_from_enum_defaults-Enum-"><code>quick_status_code_from_enum_defaults</code></a> &mdash; Defaults for an implementation of <code>quick_status_code_from_enum&lt;Enum&gt;</code></p>
+</li>
+<li>
+<p><a href="doc_quick_status_code_from_enum.html#standardese-system_error2"><code>quick_status_code_from_enum_domain</code></a></p>
+</li>
+<li>
+<p><a href="doc_result.html#standardese-system_error2__result-T-"><code>result</code></a> &mdash; (error while parsing comment text: unkown command \class)</p>
+</li>
+<li>
 <p><a href="doc_status_code.html#standardese-system_error2__status_code-"><code>status_code</code></a> &mdash; A type erased lightweight status code reflecting empty, success, or failure.</p>
 </li>
 <li>
@@ -373,10 +518,7 @@ code with fewer unintended portability problems.</p>
 <p><a href="doc_status_error.html#standardese-system_error2__status_error-DomainType-"><code>status_error</code></a> &mdash; Exception type representing a thrown status_code</p>
 </li>
 <li>
-<p><a href="doc_std_error_code.html#standardese-system_error2__std_error_code"><code>std_error_code</code></a> &mdash; A wrapper of <code>std::error_code</code>.</p>
-</li>
-<li>
-<p><a href="doc_std_error_code.html#standardese-system_error2__std_error_code_domain"><code>std_error_code_domain</code></a> &mdash; A constexpr source variable for the <code>std::error_code</code> code domain. Returned by <code>_error_code_domain&lt;error_code_type, detail::make_std_categoriesy&gt;::get()</code>.</p>
+<p><a href="doc_std_error_code.html#standardese-system_error2__std_error_code"><code>std_error_code</code></a> &mdash; A <code>status_code</code> representing exactly a <code>std::error_code</code></p>
 </li>
 <li>
 <p><a href="doc_system_code_from_exception.html#standardese-system_error2__system_code_from_exception-std__exception_ptr---int-"><code>system_code_from_exception</code></a> &mdash; A utility function which returns the closest matching system_code to a supplied exception ptr.</p>
