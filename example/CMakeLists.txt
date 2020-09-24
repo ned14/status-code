@@ -10,3 +10,8 @@ target_link_libraries(file_io_error PRIVATE status-code)
 add_executable(thrown_exception "thrown_exception.cpp")
 target_link_libraries(thrown_exception PRIVATE status-code)
 target_compile_features(thrown_exception PRIVATE cxx_std_17)
+
+file(DOWNLOAD "https://raw.githubusercontent.com/ned14/outcome/develop/single-header/outcome-experimental.hpp" "${CMAKE_CURRENT_SOURCE_DIR}/outcome-experimental.hpp" SHOW_PROGRESS)
+if(EXISTS "outcome-experimental.hpp")
+  add_executable(variant_return "variant_return.cpp")
+endif()
