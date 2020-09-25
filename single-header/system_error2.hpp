@@ -1100,12 +1100,12 @@ namespace detail
     //! Return a reference to the `value_type`.
     constexpr value_type &value() & noexcept { return this->_value; }
     //! Return a reference to the `value_type`.
-    constexpr value_type &&value() && noexcept { return this->_value; }
+    constexpr value_type &&value() && noexcept { return static_cast<value_type &&>(this->_value); }
 #endif
     //! Return a reference to the `value_type`.
     constexpr const value_type &value() const &noexcept { return this->_value; }
     //! Return a reference to the `value_type`.
-    constexpr const value_type &&value() const &&noexcept { return this->_value; }
+    constexpr const value_type &&value() const &&noexcept { return static_cast<const value_type &&>(this->_value); }
   protected:
     status_code_storage() = default;
     status_code_storage(const status_code_storage &) = default;
@@ -2273,6 +2273,8 @@ public:
     assert(v.domain() == this->domain()); // NOLINT
     _check();
   }
+  //! Always false (including at compile time), as errored status codes are never successful.
+  constexpr bool success() const noexcept { return false; }
   //! Return a const reference to the `value_type`.
   constexpr const value_type &value() const &noexcept { return this->_value; }
 };
@@ -2382,6 +2384,8 @@ public:
   {
     _check();
   }
+  //! Always false (including at compile time), as errored status codes are never successful.
+  constexpr bool success() const noexcept { return false; }
   //! Return the erased `value_type` by value.
   constexpr value_type value() const noexcept { return this->_value; }
 };
