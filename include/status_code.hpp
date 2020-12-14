@@ -217,7 +217,15 @@ public:
   SYSTEM_ERROR2_NODISCARD constexpr bool empty() const noexcept { return _domain == nullptr; }
 
   //! Return a reference to a string textually representing a code.
-  string_ref message() const noexcept { return (_domain != nullptr) ? _domain->_do_message(*this) : string_ref("(empty)"); }
+  string_ref message() const noexcept
+  {
+    // Avoid MSVC's buggy ternary operator for expensive to destruct things
+    if(_domain != nullptr)
+    {
+      return _domain->_do_message(*this);
+    }
+    return string_ref("(empty)");
+  }
   //! True if code means success.
   bool success() const noexcept { return (_domain != nullptr) ? !_domain->_do_failure(*this) : false; }
   //! True if code means failure.
@@ -301,9 +309,9 @@ namespace detail
 
 #if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
     //! Return a reference to the `value_type`.
-    constexpr value_type &value() & noexcept { return this->_value; }
+    constexpr value_type &value() &noexcept { return this->_value; }
     //! Return a reference to the `value_type`.
-    constexpr value_type &&value() && noexcept { return static_cast<value_type &&>(this->_value); }
+    constexpr value_type &&value() &&noexcept { return static_cast<value_type &&>(this->_value); }
 #endif
     //! Return a reference to the `value_type`.
     constexpr const value_type &value() const &noexcept { return this->_value; }
@@ -445,7 +453,15 @@ public:
   }
 
   //! Return a reference to a string textually representing a code.
-  string_ref message() const noexcept { return this->_domain ? string_ref(this->domain()._do_message(*this)) : string_ref("(empty)"); }
+  string_ref message() const noexcept
+  {
+    // Avoid MSVC's buggy ternary operator for expensive to destruct things
+    if(this->_domain != nullptr)
+    {
+      return string_ref(this->domain()._do_message(*this));
+    }
+    return string_ref("(empty)");
+  }
 };
 
 namespace traits
