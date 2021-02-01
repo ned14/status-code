@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 project(status-code VERSION 1.0 LANGUAGES CXX)
+include(GNUInstallDirs)
 enable_testing()
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(PROJECT_IS_DEPENDENCY OFF)
@@ -76,33 +77,62 @@ endif()
 
 add_library(status-code INTERFACE)
 target_compile_features(status-code INTERFACE cxx_std_11)
-target_include_directories(status-code INTERFACE "include")
-target_sources(status-code INTERFACE
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/com_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/config.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/error.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/errored_status_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/generic_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/getaddrinfo_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/iostream_support.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/nt_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/posix_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/result.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/status_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/status_code_domain.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/status_code_ptr.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/status_error.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/std_error_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/system_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/system_error2.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/win32_code.hpp"
+target_include_directories(status-code INTERFACE
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>"
 )
+foreach(source 
+    "include/com_code.hpp"
+    "include/config.hpp"
+    "include/error.hpp"
+    "include/errored_status_code.hpp"
+    "include/generic_code.hpp"
+    "include/getaddrinfo_code.hpp"
+    "include/iostream_support.hpp"
+    "include/nt_code.hpp"
+    "include/posix_code.hpp"
+    "include/result.hpp"
+    "include/status_code.hpp"
+    "include/status_code_domain.hpp"
+    "include/status_code_ptr.hpp"
+    "include/status_error.hpp"
+    "include/std_error_code.hpp"
+    "include/system_code.hpp"
+    "include/system_error2.hpp"
+    "include/win32_code.hpp"
+  )
+  target_sources(status-code INTERFACE
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${source}>"
+    "$<INSTALL_INTERFACE:${source}>"
+  )
+  get_filename_component(dir ${source} DIRECTORY)
+  install(FILES "${source}"
+    DESTINATION "${dir}"
+  )
+endforeach()
 
-#export(
-#  TARGETS status-code
-#  FILE "StatusCodeTargets.cmake"
-#  EXPORT_LINK_INTERFACE_LIBRARIES
-#)
+install(TARGETS status-code
+        EXPORT status-codeExports
+        INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+)
+set_target_properties(status-code PROPERTIES EXPORT_NAME hl)
+
+configure_file(
+  "${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectConfig.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  @ONLY
+)
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+)
+install(EXPORT status-codeExports
+  NAMESPACE status-code::
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/status-code"
+)
 
 if(NOT PROJECT_IS_DEPENDENCY)
   include(FindPythonInterp)

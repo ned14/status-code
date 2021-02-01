@@ -149,7 +149,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_STATUS_ERROR_HPP
 #define SYSTEM_ERROR2_STATUS_ERROR_HPP
 /* Proposed SG14 status_code
-(C) 2018 - 2019 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
+(C) 2018 - 2020 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
 File Created: Feb 2018
 
 
@@ -238,7 +238,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 // 0.01
 #include <initializer_list>
 #ifndef SYSTEM_ERROR2_CONSTEXPR14
-#if 0 || __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
+#if 0L || __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
 //! Defined to be `constexpr` when on C++ 14 or better compilers. Usually automatic, can be overriden.
 #define SYSTEM_ERROR2_CONSTEXPR14 constexpr
 #else
@@ -246,7 +246,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 #endif
 #ifndef SYSTEM_ERROR2_NORETURN
-#if 0 || (_HAS_CXX17 && _MSC_VER >= 1911 /* VS2017.3 */)
+#if 0L || (_HAS_CXX17 && _MSC_VER >= 1911 /* VS2017.3 */)
 #define SYSTEM_ERROR2_NORETURN [[noreturn]]
 #endif
 #endif
@@ -272,7 +272,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define SYSTEM_ERROR2_NORETURN
 #endif
 #ifndef SYSTEM_ERROR2_NODISCARD
-#if 0 || (_HAS_CXX17 && _MSC_VER >= 1911 /* VS2017.3 */)
+#if 0L || (_HAS_CXX17 && _MSC_VER >= 1911 /* VS2017.3 */)
 #define SYSTEM_ERROR2_NODISCARD [[nodiscard]]
 #endif
 #endif
@@ -292,7 +292,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define SYSTEM_ERROR2_NODISCARD
 #endif
 #ifndef SYSTEM_ERROR2_TRIVIAL_ABI
-#if 0 || (__clang_major__ >= 7 && !defined(__APPLE__))
+#if 0L || (__clang_major__ >= 7 && !defined(__APPLE__))
 //! Defined to be `[[clang::trivial_abi]]` when on a new enough clang compiler. Usually automatic, can be overriden.
 #define SYSTEM_ERROR2_TRIVIAL_ABI [[clang::trivial_abi]]
 #else
@@ -833,7 +833,7 @@ protected:
   virtual generic_code _generic_code(const status_code<void> &code) const noexcept = 0;
   //! Return a reference to a string textually representing a code.
   virtual string_ref _do_message(const status_code<void> &code) const noexcept = 0;
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   //! Throw a code as a C++ exception.
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const = 0;
 #else
@@ -1014,13 +1014,23 @@ protected:
       : _domain(v)
   {
   }
+  // Used to work around triggering a ubsan failure. Do NOT remove!
+  constexpr const status_code_domain *_domain_ptr() const noexcept { return _domain; }
 public:
   //! Return the status code domain.
   constexpr const status_code_domain &domain() const noexcept { return *_domain; }
   //! True if the status code is empty.
   SYSTEM_ERROR2_NODISCARD constexpr bool empty() const noexcept { return _domain == nullptr; }
   //! Return a reference to a string textually representing a code.
-  string_ref message() const noexcept { return (_domain != nullptr) ? _domain->_do_message(*this) : string_ref("(empty)"); }
+  string_ref message() const noexcept
+  {
+    // Avoid MSVC's buggy ternary operator for expensive to destruct things
+    if(_domain != nullptr)
+    {
+      return _domain->_do_message(*this);
+    }
+    return string_ref("(empty)");
+  }
   //! True if code means success.
   bool success() const noexcept { return (_domain != nullptr) ? !_domain->_do_failure(*this) : false; }
   //! True if code means failure.
@@ -1049,7 +1059,7 @@ public:
   for the equivalent generic code and those are compared.
   */
   template <class T> inline bool equivalent(const status_code<T> &o) const noexcept;
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   //! Throw a code as a C++ exception.
   SYSTEM_ERROR2_NORETURN void throw_exception() const
   {
@@ -1098,9 +1108,9 @@ namespace detail
     }
 #if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
     //! Return a reference to the `value_type`.
-    constexpr value_type &value() & noexcept { return this->_value; }
+    constexpr value_type &value() &noexcept { return this->_value; }
     //! Return a reference to the `value_type`.
-    constexpr value_type &&value() && noexcept { return static_cast<value_type &&>(this->_value); }
+    constexpr value_type &&value() &&noexcept { return static_cast<value_type &&>(this->_value); }
 #endif
     //! Return a reference to the `value_type`.
     constexpr const value_type &value() const &noexcept { return this->_value; }
@@ -1231,7 +1241,15 @@ public:
 #endif
   }
   //! Return a reference to a string textually representing a code.
-  string_ref message() const noexcept { return this->_domain ? string_ref(this->domain()._do_message(*this)) : string_ref("(empty)"); }
+  string_ref message() const noexcept
+  {
+    // Avoid MSVC's buggy ternary operator for expensive to destruct things
+    if(this->_domain != nullptr)
+    {
+      return string_ref(this->domain()._do_message(*this));
+    }
+    return string_ref("(empty)");
+  }
 };
 namespace traits
 {
@@ -1296,14 +1314,14 @@ public:
                                     && detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
                                     bool>::type = true>
   constexpr status_code(const status_code<DomainType> &v) noexcept // NOLINT
-      : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
+      : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), detail::erasure_cast<value_type>(v.value()))
   {
   }
   //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying and it would fit into our storage
   template <class DomainType, //
             typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
   SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept // NOLINT
-      : _base(typename _base::_value_type_constructor{}, &v.domain(), detail::erasure_cast<value_type>(v.value()))
+      : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), detail::erasure_cast<value_type>(v.value()))
   {
     v._domain = nullptr;
   }
@@ -1710,7 +1728,7 @@ protected:
     const auto &c = static_cast<const generic_code &>(code); // NOLINT
     return string_ref(detail::generic_code_message(c.value()));
   }
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this); // NOLINT
@@ -1883,7 +1901,7 @@ public:
   _quick_status_code_from_enum_domain &operator=(const _quick_status_code_from_enum_domain &) = default;
   _quick_status_code_from_enum_domain &operator=(_quick_status_code_from_enum_domain &&) = default;
   ~_quick_status_code_from_enum_domain() = default;
-#if __cplusplus < 201402 && !defined(_MSC_VER)
+#if __cplusplus < 201402L && !defined(_MSC_VER)
   static inline const _quick_status_code_from_enum_domain &get()
   {
     static _quick_status_code_from_enum_domain v;
@@ -1977,7 +1995,7 @@ protected:
     }
     return string_ref("unknown");
   }
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override
   {
     assert(code.domain() == *this); // NOLINT
@@ -1986,7 +2004,7 @@ protected:
   }
 #endif
 };
-#if __cplusplus >= 201402 || defined(_MSC_VER)
+#if __cplusplus >= 201402L || defined(_MSC_VER)
 template <class Enum> constexpr _quick_status_code_from_enum_domain<Enum> quick_status_code_from_enum_domain = {};
 template <class Enum> inline constexpr const _quick_status_code_from_enum_domain<Enum> &_quick_status_code_from_enum_domain<Enum>::get()
 {
@@ -2046,7 +2064,7 @@ namespace detail
     indirecting_domain &operator=(const indirecting_domain &) = default;
     indirecting_domain &operator=(indirecting_domain &&) = default; // NOLINT
     ~indirecting_domain() = default;
-#if __cplusplus < 201402 && !defined(_MSC_VER)
+#if __cplusplus < 201402L && !defined(_MSC_VER)
     static inline const indirecting_domain &get()
     {
       static indirecting_domain v;
@@ -2082,7 +2100,7 @@ namespace detail
       const auto &c = static_cast<const _mycode &>(code); // NOLINT
       return typename StatusCode::domain_type()._do_message(*c.value());
     }
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
     SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
     {
       assert(code.domain() == *this);
@@ -2106,7 +2124,7 @@ namespace detail
       delete c.value(); // NOLINT
     }
   };
-#if __cplusplus >= 201402 || defined(_MSC_VER)
+#if __cplusplus >= 201402L || defined(_MSC_VER)
   template <class StatusCode> constexpr indirecting_domain<StatusCode> _indirecting_domain{};
   template <class StatusCode> inline constexpr const indirecting_domain<StatusCode> &indirecting_domain<StatusCode>::get() { return _indirecting_domain<StatusCode>; }
 #endif
@@ -2671,7 +2689,7 @@ protected:
     const auto &c = static_cast<const posix_code &>(code); // NOLINT
     return _make_string_ref(c.value());
   }
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this); // NOLINT
@@ -2694,7 +2712,7 @@ SYSTEM_ERROR2_NAMESPACE_END
 #endif
 #else
 #endif
-#if defined(_WIN32) || 0
+#if defined(_WIN32) || 0L
 /* Proposed SG14 status_code
 (C) 2018 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
 File Created: Feb 2018
@@ -2720,7 +2738,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 */
 #ifndef SYSTEM_ERROR2_NT_CODE_HPP
 #define SYSTEM_ERROR2_NT_CODE_HPP
-#if !defined(_WIN32) && !0
+#if !defined(_WIN32) && !0L
 #error This file should only be included on Windows
 #endif
 /* Proposed SG14 status_code
@@ -2748,7 +2766,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 */
 #ifndef SYSTEM_ERROR2_WIN32_CODE_HPP
 #define SYSTEM_ERROR2_WIN32_CODE_HPP
-#if !defined(_WIN32) && !0
+#if !defined(_WIN32) && !0L
 #error This file should only be included on Windows
 #endif
 SYSTEM_ERROR2_NAMESPACE_BEGIN
@@ -2974,7 +2992,7 @@ protected:
     const auto &c = static_cast<const win32_code &>(code); // NOLINT
     return _make_string_ref(c.value());
   }
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this);
@@ -4265,7 +4283,7 @@ protected:
     const auto &c = static_cast<const nt_code &>(code); // NOLINT
     return _make_string_ref(c.value());
   }
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this);
