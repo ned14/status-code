@@ -102,6 +102,7 @@ foreach(source
     "include/status_error.hpp"
     "include/std_error_code.hpp"
     "include/system_code.hpp"
+    "include/system_code_from_exception.hpp"
     "include/system_error2.hpp"
     "include/win32_code.hpp"
   )
