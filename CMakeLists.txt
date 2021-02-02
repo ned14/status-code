@@ -94,6 +94,7 @@ foreach(source
     "include/iostream_support.hpp"
     "include/nt_code.hpp"
     "include/posix_code.hpp"
+    "include/quick_status_code_from_enum.hpp"
     "include/result.hpp"
     "include/status_code.hpp"
     "include/status_code_domain.hpp"
