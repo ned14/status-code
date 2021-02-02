@@ -82,6 +82,9 @@ target_include_directories(status-code INTERFACE
   "$<INSTALL_INTERFACE:include>"
 )
 foreach(source 
+    "include/detail/nt_code_to_generic_code.ipp"
+    "include/detail/nt_code_to_win32_code.ipp"
+    "include/detail/win32_code_to_generic_code.ipp"
     "include/com_code.hpp"
     "include/config.hpp"
     "include/error.hpp"
