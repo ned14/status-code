@@ -59,7 +59,11 @@ class _com_code_domain : public status_code_domain
   using _base = status_code_domain;
 
   //! Construct from a `HRESULT` error code
+#ifdef _COMDEF_NOT_WINAPI_FAMILY_DESKTOP_APP
+  static _base::string_ref _make_string_ref(HRESULT c, wchar_t *perrinfo = nullptr) noexcept
+#else
   static _base::string_ref _make_string_ref(HRESULT c, IErrorInfo *perrinfo = nullptr) noexcept
+#endif
   {
     _com_error ce(c, perrinfo);
 #ifdef _UNICODE
@@ -77,7 +81,7 @@ class _com_code_domain : public status_code_domain
       {
         return _base::string_ref("failed to get message from system");
       }
-      bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, ce.ErrorMessage(), wlen + 1, p, allocation, nullptr, nullptr);
+      bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, ce.ErrorMessage(), (int)(wlen + 1), p, (int) allocation, nullptr, nullptr);
       if(bytes != 0)
       {
         char *end = strchr(p, 0);
