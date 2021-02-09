@@ -459,10 +459,12 @@ namespace detail
     extern "C" ptrdiff_t write(int, const void *, size_t);
 #elif defined(_MSC_VER)
     extern ptrdiff_t write(int, const void *, size_t);
-#if defined(_WIN64)
+#if (defined(__x86_64__) || defined(_M_X64)) || (defined(__aarch64__) || defined(_M_ARM64)) || (defined(__arm__) || defined(_M_ARM))
 #pragma comment(linker, "/alternatename:?write@avoid_stdio_include@detail@system_error2@@YA_JHPEBX_K@Z=write")
-#else
+#elif defined(__x86__) || defined(_M_X86) || defined(__i386__)
 #pragma comment(linker, "/alternatename:?write@avoid_stdio_include@detail@system_error2@@YAHHPBXI@Z=_write")
+#else
+#error Unknown architecture
 #endif
 #endif
   } // namespace avoid_stdio_include
@@ -2782,14 +2784,20 @@ namespace win32
   // Converts UTF-16 message string to UTF-8
   extern int __stdcall WideCharToMultiByte(unsigned int CodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, int cchWideChar, char *lpMultiByteStr, int cbMultiByte, const char *lpDefaultChar, int *lpUsedDefaultChar);
 #pragma comment(lib, "kernel32.lib")
-#if defined(_WIN64)
+#if (defined(__x86_64__) || defined(_M_X64)) || (defined(__aarch64__) || defined(_M_ARM64))
 #pragma comment(linker, "/alternatename:?GetLastError@win32@system_error2@@YAKXZ=GetLastError")
 #pragma comment(linker, "/alternatename:?FormatMessageW@win32@system_error2@@YAKKPEBXKKPEA_WKPEAX@Z=FormatMessageW")
 #pragma comment(linker, "/alternatename:?WideCharToMultiByte@win32@system_error2@@YAHIKPEB_WHPEADHPEBDPEAH@Z=WideCharToMultiByte")
-#else
+#elif defined(__x86__) || defined(_M_X86) || defined(__i386__)
 #pragma comment(linker, "/alternatename:?GetLastError@win32@system_error2@@YGKXZ=__imp__GetLastError@0")
 #pragma comment(linker, "/alternatename:?FormatMessageW@win32@system_error2@@YGKKPBXKKPA_WKPAX@Z=__imp__FormatMessageW@28")
 #pragma comment(linker, "/alternatename:?WideCharToMultiByte@win32@system_error2@@YGHIKPB_WHPADHPBDPAH@Z=__imp__WideCharToMultiByte@32")
+#elif defined(__arm__) || defined(_M_ARM)
+#pragma comment(linker, "/alternatename:?GetLastError@win32@system_error2@@YAKXZ=GetLastError")
+#pragma comment(linker, "/alternatename:?FormatMessageW@win32@system_error2@@YAKKPBXKKPA_WKPAX@Z=FormatMessageW")
+#pragma comment(linker, "/alternatename:?WideCharToMultiByte@win32@system_error2@@YAHIKPB_WHPADHPBDPAH@Z=WideCharToMultiByte")
+#else
+#error Unknown architecture
 #endif
 } // namespace win32
 class _win32_code_domain;
@@ -3024,10 +3032,14 @@ namespace win32
   // Used to retrieve where the NTDLL DLL is mapped into memory
   extern HMODULE __stdcall GetModuleHandleW(const wchar_t *lpModuleName);
 #pragma comment(lib, "kernel32.lib")
-#if defined(_WIN64)
+#if (defined(__x86_64__) || defined(_M_X64)) || (defined(__aarch64__) || defined(_M_ARM64))
 #pragma comment(linker, "/alternatename:?GetModuleHandleW@win32@system_error2@@YAPEAXPEB_W@Z=GetModuleHandleW")
-#else
+#elif defined(__x86__) || defined(_M_X86) || defined(__i386__)
 #pragma comment(linker, "/alternatename:?GetModuleHandleW@win32@system_error2@@YGPAXPB_W@Z=__imp__GetModuleHandleW@4")
+#elif defined(__arm__) || defined(_M_ARM)
+#pragma comment(linker, "/alternatename:?GetModuleHandleW@win32@system_error2@@YAPAXPB_W@Z=GetModuleHandleW")
+#else
+#error Unknown architecture
 #endif
 } // namespace win32
 class _nt_code_domain;
