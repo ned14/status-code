@@ -306,7 +306,7 @@ namespace detail
     extern ptrdiff_t write(int, const void *, size_t);
 #if(defined(__x86_64__) || defined(_M_X64)) || (defined(__aarch64__) || defined(_M_ARM64)) || (defined(__arm__) || defined(_M_ARM))
 #pragma comment(linker, "/alternatename:?write@avoid_stdio_include@detail@system_error2@@YA_JHPEBX_K@Z=write")
-#elif defined(__x86__) || defined(_M_X86) || defined(__i386__)
+#elif defined(__x86__) || defined(_M_IX86) || defined(__i386__)
 #pragma comment(linker, "/alternatename:?write@avoid_stdio_include@detail@system_error2@@YAHHPBXI@Z=_write")
 #else
 #error Unknown architecture
