@@ -199,7 +199,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_STATUS_CODE_DOMAIN_HPP
 #define SYSTEM_ERROR2_STATUS_CODE_DOMAIN_HPP
 /* Proposed SG14 status_code
-(C) 2018 - 2020 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
+(C) 2018 - 2021 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
 File Created: Feb 2018
 
 
@@ -237,6 +237,25 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include <new>
 // 0.01
 #include <initializer_list>
+#ifndef SYSTEM_ERROR2_HAVE_BIT_CAST
+#ifdef __has_include
+#if __has_include(<bit>) && (__cplusplus >= 202002L || _HAS_CXX20)
+#define SYSTEM_ERROR2_HAVE_BIT_CAST 1
+#endif
+#elif __cplusplus >= 202002L
+#define SYSTEM_ERROR2_HAVE_BIT_CAST 1
+#endif
+#ifndef SYSTEM_ERROR2_HAVE_BIT_CAST
+#define SYSTEM_ERROR2_HAVE_BIT_CAST 0
+#endif
+#endif
+#if SYSTEM_ERROR2_HAVE_BIT_CAST
+#include <bit>
+#if __cpp_lib_bit_cast < 201806L
+#undef SYSTEM_ERROR2_HAVE_BIT_CAST
+#define SYSTEM_ERROR2_HAVE_BIT_CAST 0
+#endif
+#endif
 #ifndef SYSTEM_ERROR2_CONSTEXPR14
 #if 0L || __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
 //! Defined to be `constexpr` when on C++ 14 or better compilers. Usually automatic, can be overriden.
@@ -334,17 +353,11 @@ namespace detail
     return end - str;
   }
 #else
-  inline constexpr size_t cstrlen_(const char *str, size_t acc)
-  {
-    return (str[0] == 0) ? acc : cstrlen_(str + 1, acc + 1);
-  }
-  inline constexpr size_t cstrlen(const char *str)
-  {
-    return cstrlen_(str, 0);
-  }
+  inline constexpr size_t cstrlen_(const char *str, size_t acc) { return (str[0] == 0) ? acc : cstrlen_(str + 1, acc + 1); }
+  inline constexpr size_t cstrlen(const char *str) { return cstrlen_(str, 0); }
 #endif
   /* A partially compliant implementation of C++20's std::bit_cast function contributed
-  by Jesse Towner. TODO FIXME Replace with C++ 20 bit_cast when available.
+  by Jesse Towner.
 
   Our bit_cast is only guaranteed to be constexpr when both the input and output
   arguments are either integrals or enums. However, this covers most use cases
@@ -357,10 +370,35 @@ namespace detail
   template <class To, class From> using is_static_castable = std::integral_constant<bool, is_integral_or_enum<To>::value && is_integral_or_enum<From>::value>;
   template <class To, class From> using is_union_castable = std::integral_constant<bool, !is_static_castable<To, From>::value && !std::is_array<To>::value && !std::is_array<From>::value>;
   template <class To, class From> using is_bit_castable = std::integral_constant<bool, sizeof(To) == sizeof(From) && traits::is_move_bitcopying<To>::value && traits::is_move_bitcopying<From>::value>;
-  template <class To, class From> union bit_cast_union {
+  template <class To, class From> union bit_cast_union
+  {
     From source;
     To target;
   };
+#if SYSTEM_ERROR2_HAVE_BIT_CAST
+  using std::bit_cast; // available for all trivially copyable types
+  // For move bit copying types
+  template <class To, class From>
+  requires(is_bit_castable<To, From>::value //
+           &&is_union_castable<To, From>::value //
+           && (!std::is_trivially_copyable_v<From> //
+               || !std::is_trivially_copyable_v<To>) ) //
+  constexpr To bit_cast(const From &from) noexcept
+  {
+    return bit_cast_union<To, From>{from}.target;
+  }
+  template <class To, class From>
+  requires(is_bit_castable<To, From>::value //
+           && !is_union_castable<To, From>::value //
+           && (!std::is_trivially_copyable_v<From> //
+               || !std::is_trivially_copyable_v<To>) ) //
+  To bit_cast(const From &from) noexcept
+  {
+    bit_cast_union<To, From> ret;
+    memmove(&ret.source, &from, sizeof(ret.source));
+    return ret.target;
+  }
+#else
   template <class To, class From,
             typename std::enable_if< //
             is_bit_castable<To, From>::value //
@@ -400,6 +438,7 @@ namespace detail
     memmove(&ret.source, &from, sizeof(ret.source));
     return ret.target;
   }
+#endif
   /* erasure_cast performs a bit_cast with additional rules to handle types
   of differing sizes. For integral & enum types, it may perform a narrowing
   or widing conversion with static_cast if necessary, before doing the final
