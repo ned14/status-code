@@ -1,5 +1,5 @@
 /* Proposed SG14 status_code
-(C) 2018 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
+(C) 2018 - 2021 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
 File Created: Aug 2018
 
 
@@ -134,7 +134,8 @@ namespace detail
     static struct storage_t
     {
       std::atomic<unsigned> _lock;
-      union item_t {
+      union item_t
+      {
         int _init;
         _std_error_code_domain domain;
         constexpr item_t()
@@ -264,7 +265,18 @@ inline generic_code _std_error_code_domain::_generic_code(const status_code<void
   assert(code.domain() == *this);
   const auto &c = static_cast<const std_error_code &>(code);  // NOLINT
   // Ask my embedded error code for its mapping to std::errc, which is a subset of our generic_code errc.
-  return generic_code(static_cast<errc>(c.category().default_error_condition(c.value()).value()));
+  std::error_condition cond(c.category().default_error_condition(c.value()));
+  if(cond.category() == std::generic_category())
+  {
+    return generic_code(static_cast<errc>(cond.value()));
+  }
+#if !defined(SYSTEM_ERROR2_NOT_POSIX) && !defined(_WIN32)
+  if(cond.category() == std::system_category())
+  {
+    return generic_code(static_cast<errc>(cond.value()));
+  }
+#endif
+  return errc::unknown;
 }
 
 inline _std_error_code_domain::string_ref _std_error_code_domain::_do_message(const status_code<void> &code) const noexcept
