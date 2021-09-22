@@ -217,7 +217,7 @@ public:
   SYSTEM_ERROR2_NODISCARD constexpr bool empty() const noexcept { return _domain == nullptr; }
 
   //! Return a reference to a string textually representing a code.
-  string_ref message() const noexcept
+  SYSTEM_ERROR2_CONSTEXPR20 string_ref message() const noexcept
   {
     // Avoid MSVC's buggy ternary operator for expensive to destruct things
     if(_domain != nullptr)
@@ -227,15 +227,15 @@ public:
     return string_ref("(empty)");
   }
   //! True if code means success.
-  bool success() const noexcept { return (_domain != nullptr) ? !_domain->_do_failure(*this) : false; }
+  SYSTEM_ERROR2_CONSTEXPR20 bool success() const noexcept { return (_domain != nullptr) ? !_domain->_do_failure(*this) : false; }
   //! True if code means failure.
-  bool failure() const noexcept { return (_domain != nullptr) ? _domain->_do_failure(*this) : false; }
+  SYSTEM_ERROR2_CONSTEXPR20 bool failure() const noexcept { return (_domain != nullptr) ? _domain->_do_failure(*this) : false; }
   /*! True if code is strictly (and potentially non-transitively) semantically equivalent to another code in another domain.
   Note that usually non-semantic i.e. pure value comparison is used when the other status code has the same domain.
   As `equivalent()` will try mapping to generic code, this usually captures when two codes have the same semantic
   meaning in `equivalent()`.
   */
-  template <class T> bool strictly_equivalent(const status_code<T> &o) const noexcept
+  template <class T> constexpr bool strictly_equivalent(const status_code<T> &o) const noexcept
   {
     if(_domain && o._domain)
     {
@@ -253,7 +253,7 @@ public:
   Firstly `strictly_equivalent()` is run in both directions. If neither succeeds, each domain is asked
   for the equivalent generic code and those are compared.
   */
-  template <class T> inline bool equivalent(const status_code<T> &o) const noexcept;
+  template <class T> constexpr inline bool equivalent(const status_code<T> &o) const noexcept;
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   //! Throw a code as a C++ exception.
   SYSTEM_ERROR2_NORETURN void throw_exception() const
@@ -453,7 +453,7 @@ public:
   }
 
   //! Return a reference to a string textually representing a code.
-  string_ref message() const noexcept
+  SYSTEM_ERROR2_CONSTEXPR20 string_ref message() const noexcept
   {
     // Avoid MSVC's buggy ternary operator for expensive to destruct things
     if(this->_domain != nullptr)
@@ -506,7 +506,7 @@ public:
   status_code &operator=(const status_code &) = delete;
   //! Move assignment
   status_code &operator=(status_code &&) = default;  // NOLINT
-  ~status_code()
+  SYSTEM_ERROR2_CONSTEXPR20 ~status_code()
   {
     if(nullptr != this->_domain)
     {
@@ -515,7 +515,7 @@ public:
   }
 
   //! Return a copy of the erased code by asking the domain to perform the erased copy.
-  status_code clone() const
+  SYSTEM_ERROR2_CONSTEXPR20 status_code clone() const
   {
     if(nullptr == this->_domain)
     {

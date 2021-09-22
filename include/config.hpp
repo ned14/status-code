@@ -73,6 +73,16 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 #endif
 
+#ifndef SYSTEM_ERROR2_CONSTEXPR20
+#if defined(STANDARDESE_IS_IN_THE_HOUSE) || __cplusplus >= 202000 || _HAS_CXX20
+//! Defined to be `constexpr` when on C++ 20 or better compilers. Usually automatic, can be overriden.
+#define SYSTEM_ERROR2_CONSTEXPR20 constexpr
+#else
+#define SYSTEM_ERROR2_CONSTEXPR20
+#endif
+#endif
+
+
 #ifndef SYSTEM_ERROR2_NORETURN
 #if defined(STANDARDESE_IS_IN_THE_HOUSE) || (_HAS_CXX17 && _MSC_VER >= 1911 /* VS2017.3 */)
 #define SYSTEM_ERROR2_NORETURN [[noreturn]]
