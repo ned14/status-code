@@ -85,19 +85,15 @@ public:
   }
 
   /***** KEEP THESE IN SYNC WITH STATUS_CODE *****/
-  //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
-  template <class T, class... Args,                                                                              //
-            class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type,    // Safe ADL lookup of make_status_code(), returns void if not found
-            typename std::enable_if<!std::is_same<typename std::decay<T>::type, errored_status_code>::value      // not copy/move of self
-                                    && !std::is_same<typename std::decay<T>::type, in_place_t>::value            // not in_place_t
-                                    && is_status_code<MakeStatusCodeResult>::value                               // ADL makes a status code
-                                    && std::is_constructible<errored_status_code, MakeStatusCodeResult>::value,  // ADLed status code is compatible
-                                    bool>::type = true>
-  errored_status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...)))  // NOLINT
-      : errored_status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
+  //! Implicit construction from any type where an ADL discovered `make_status_code(Args ...)` returns a `status_code`.
+  template <class...Args,
+            std::enable_if_t<detail::is_make_status_code_available<errored_status_code, in_place_t, Args...>::value, bool> = true>
+  constexpr errored_status_code(Args&&...args) noexcept(noexcept(make_status_code(std::declval<Args>()...)))  // NOLINT
+      : errored_status_code(make_status_code(static_cast<Args&&>(args)...))
   {
     _check();
   }
+
   //! Implicit construction from any `quick_status_code_from_enum<Enum>` enumerated type.
   template <class Enum,                                                                                      //
             class QuickStatusCodeType = typename quick_status_code_from_enum<Enum>::code_type,               // Enumeration has been activated
@@ -243,16 +239,11 @@ public:
   {
     _check();
   }
-  //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
-  template <class T, class... Args,                                                                              //
-            class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type,    // Safe ADL lookup of make_status_code(), returns void if not found
-            typename std::enable_if<!std::is_same<typename std::decay<T>::type, errored_status_code>::value      // not copy/move of self
-                                    && !std::is_same<typename std::decay<T>::type, value_type>::value            // not copy/move of value type
-                                    && is_status_code<MakeStatusCodeResult>::value                               // ADL makes a status code
-                                    && std::is_constructible<errored_status_code, MakeStatusCodeResult>::value,  // ADLed status code is compatible
-                                    bool>::type = true>
-  errored_status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...)))  // NOLINT
-      : errored_status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
+  //! Implicit construction from any type where an ADL discovered `make_status_code(Args ...)` returns a `status_code`.
+  template <class...Args,
+            std::enable_if_t<detail::is_make_status_code_available<errored_status_code, value_type, Args...>::value, bool> = true>
+  constexpr errored_status_code(Args&&...args) noexcept(noexcept(make_status_code(std::declval<Args>()...)))  // NOLINT
+      : errored_status_code(make_status_code(static_cast<Args&&>(args)...))
   {
     _check();
   }
