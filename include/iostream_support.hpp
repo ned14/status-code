@@ -34,9 +34,8 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 /*! Print the status code to a `std::ostream &`.
 Requires that `DomainType::value_type` implements an `operator<<` overload for `std::ostream`.
 */
-template <class DomainType,  //
-          typename std::enable_if<std::is_same<std::ostream, typename std::decay<decltype(std::declval<std::ostream>() << std::declval<typename status_code<DomainType>::value_type>())>::type>::value, bool>::type = true>
-inline std::ostream &operator<<(std::ostream &s, const status_code<DomainType> &v)
+SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(std::is_same<std::ostream, typename std::decay<decltype(std::declval<std::ostream>() << std::declval<typename status_code<DomainType>::value_type>())>::type>::value)) inline std::ostream &operator<<(std::ostream &s, const status_code<DomainType> &v)
 {
   if(v.empty())
   {
@@ -64,7 +63,7 @@ template <class ErasedType> inline std::ostream &operator<<(std::ostream &s, con
 }
 
 /*! Print the generic code to a `std::ostream &`.
-*/
+ */
 inline std::ostream &operator<<(std::ostream &s, const generic_code &v)
 {
   if(v.empty())
