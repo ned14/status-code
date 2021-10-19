@@ -159,6 +159,39 @@ namespace detail
 
   template <class T, class... Args> using get_make_status_code_result = decltype(make_status_code(std::declval<T>(), std::declval<Args>()...));
   template <class... Args> using safe_get_make_status_code_result = test_apply<get_make_status_code_result, Args...>;
+
+
+  template<typename...Args>
+  using get_make_status_code_result_t = decltype(make_status_code(std::declval<Args>()...));
+
+  // Check compatibility of return value
+  template<typename StatusCode, typename Ret, typename = void>
+  struct is_make_status_code_ret_compatible : std::false_type {};
+
+  template<typename StatusCode, typename Ret>
+  struct is_make_status_code_ret_compatible<StatusCode, Ret,
+                                            std::enable_if_t<is_status_code<Ret>::value && std::is_constructible<StatusCode, Ret>::value> > : std::true_type {};
+
+  // Check compatibility of invoking make_status_code
+  template<typename StatusCode, typename Types, typename = void>
+  struct is_make_status_code_compatible : std::false_type {};
+
+  template<typename StatusCode, typename...Args>
+  struct is_make_status_code_compatible<StatusCode, impl::types<Args...>,
+                                        impl::void_t<get_make_status_code_result_t<Args...> > > :
+      is_make_status_code_ret_compatible<StatusCode, get_make_status_code_result_t<Args...> > {};
+
+  template <typename StatusCode, typename Exclude, typename Types, typename = void>
+  struct is_make_status_code_available_impl: std::false_type {};
+
+  template <typename StatusCode, typename Exclude, typename T, typename...Args>
+  struct is_make_status_code_available_impl<StatusCode, Exclude, impl::types<T, Args...>,
+                                            std::enable_if_t<!std::is_same<StatusCode, typename std::decay<T>::type>::value
+                                                             && !std::is_same<typename std::decay<T>::type, Exclude>::value> >:
+      is_make_status_code_compatible<StatusCode, impl::types<T, Args...> > {};
+
+  template <typename StatusCode, typename Exclude, typename...Args>
+  using is_make_status_code_available = is_make_status_code_available_impl<StatusCode, Exclude, impl::types<Args...> >;
 }  // namespace detail
 
 //! Trait returning true if the type is a status code.
@@ -393,17 +426,11 @@ public:
   SYSTEM_ERROR2_CONSTEXPR14 status_code clone() const { return *this; }
 
   /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
-  //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
-  template <class T, class... Args,                                                                            //
-            class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type,  // Safe ADL lookup of make_status_code(), returns void if not found
-            typename std::enable_if<!std::is_same<typename std::decay<T>::type, status_code>::value            // not copy/move of self
-                                    && !std::is_same<typename std::decay<T>::type, in_place_t>::value          // not in_place_t
-                                    && is_status_code<MakeStatusCodeResult>::value                             // ADL makes a status code
-                                    && std::is_constructible<status_code, MakeStatusCodeResult>::value,        // ADLed status code is compatible
-
-                                    bool>::type = true>
-  constexpr status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...)))  // NOLINT
-      : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
+  //! Implicit construction from any type where an ADL discovered `make_status_code(Args ...)` returns a `status_code`.
+  template <class...Args,
+            std::enable_if_t<detail::is_make_status_code_available<status_code, in_place_t, Args...>::value, bool> = true>
+  constexpr status_code(Args&&...args) noexcept(noexcept(make_status_code(std::declval<Args>()...)))  // NOLINT
+      : status_code(make_status_code(static_cast<Args&&>(args)...))
   {
   }
   //! Implicit construction from any `quick_status_code_from_enum<Enum>` enumerated type.
@@ -544,18 +571,14 @@ public:
   {
     v._domain = nullptr;
   }
-  //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
-  template <class T, class... Args,                                                                            //
-            class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type,  // Safe ADL lookup of make_status_code(), returns void if not found
-            typename std::enable_if<!std::is_same<typename std::decay<T>::type, status_code>::value            // not copy/move of self
-                                    && !std::is_same<typename std::decay<T>::type, value_type>::value          // not copy/move of value type
-                                    && is_status_code<MakeStatusCodeResult>::value                             // ADL makes a status code
-                                    && std::is_constructible<status_code, MakeStatusCodeResult>::value,        // ADLed status code is compatible
-                                    bool>::type = true>
-  constexpr status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...)))  // NOLINT
-      : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
+  //! Implicit construction from any type where an ADL discovered `make_status_code(Args ...)` returns a `status_code`.
+  template <class...Args,
+            std::enable_if_t<detail::is_make_status_code_available<status_code, value_type, Args...>::value, bool> = true>
+  constexpr status_code(Args&&...args) noexcept(noexcept(make_status_code(std::declval<Args>()...)))  // NOLINT
+      : status_code(make_status_code(static_cast<Args&&>(args)...))
   {
   }
+
   //! Implicit construction from any `quick_status_code_from_enum<Enum>` enumerated type.
   template <class Enum,                                                                              //
             class QuickStatusCodeType = typename quick_status_code_from_enum<Enum>::code_type,       // Enumeration has been activated
