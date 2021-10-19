@@ -93,6 +93,7 @@ namespace detail
       assert(code.domain() == *this);
       const auto &c = static_cast<const _mycode &>(code);  // NOLINT
       typename StatusCode::domain_type()._do_throw_exception(*c.value());
+      abort();  // suppress buggy GCC warning
     }
 #endif
     virtual void _do_erased_copy(status_code<void> &dst, const status_code<void> &src, size_t /*unused*/) const override  // NOLINT
