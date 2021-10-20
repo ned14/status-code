@@ -161,17 +161,19 @@ namespace detail
   template <class... Args> using safe_get_make_status_code_result = test_apply<get_make_status_code_result, Args...>;
 
   // Avoid std::is_constructible of StatusCode unless it is likely to succeed to keep GCC 7 happy
-  template <class StatusCode, class MakeStatusCodeResult> struct _is_status_code_constructible : std::is_constructible<StatusCode, MakeStatusCodeResult>
+  template <class StatusCode, class MakeStatusCodeResult> struct _is_status_code_constructible2 : std::is_constructible<StatusCode, MakeStatusCodeResult>
   {
   };
-  template <class StatusCode> struct _is_status_code_constructible<StatusCode, void>
+  template <class StatusCode> struct _is_status_code_constructible2<StatusCode, void>
   {
     static constexpr bool value = false;
   };
+  template <class... Args> constexpr void _is_status_code_constructible1(...);
+  template <class... Args> constexpr typename safe_get_make_status_code_result<Args...>::type _is_status_code_constructible1(int);
   template <bool enable, class StatusCode, class... Args> struct is_status_code_constructible
   {
-    using MakeStatusCodeResult = typename safe_get_make_status_code_result<Args...>::type;  // void if not found
-    static constexpr bool value = is_status_code<MakeStatusCodeResult>::value && _is_status_code_constructible<StatusCode, MakeStatusCodeResult>::value;
+    using MakeStatusCodeResult = decltype(_is_status_code_constructible1<Args...>(5));  // void if not found
+    static constexpr bool value = is_status_code<MakeStatusCodeResult>::value && _is_status_code_constructible2<StatusCode, MakeStatusCodeResult>::value;
   };
   template <class StatusCode, class... Args> struct is_status_code_constructible<false, StatusCode, Args...>
   {
