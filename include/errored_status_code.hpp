@@ -86,10 +86,12 @@ public:
 
   /***** KEEP THESE IN SYNC WITH STATUS_CODE *****/
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
-  SYSTEM_ERROR2_TEMPLATE(class T, class... Args)
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::is_status_code_constructible<!std::is_same<typename std::decay<T>::type, errored_status_code>::value  // not copy/move of self
-                                                                                   && !std::is_same<typename std::decay<T>::type, in_place_t>::value,       // not in_place_t
-                                                                                   errored_status_code, T, Args...>::value))
+  SYSTEM_ERROR2_TEMPLATE(class T, class... Args,                                                                               //
+                         class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type)     // Safe ADL lookup of make_status_code(), returns void if not found
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(!std::is_same<typename std::decay<T>::type, errored_status_code>::value          // not copy/move of self
+                                              && !std::is_same<typename std::decay<T>::type, in_place_t>::value                // not in_place_t
+                                              && is_status_code<MakeStatusCodeResult>::value                                   // ADL makes a status code
+                                              && std::is_constructible<errored_status_code, MakeStatusCodeResult>::value))     // ADLed status code is compatible
   errored_status_code(T &&v, Args &&...args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...)))  // NOLINT
       : errored_status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
@@ -236,10 +238,12 @@ public:
     _check();
   }
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
-  SYSTEM_ERROR2_TEMPLATE(class T, class... Args)
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::is_status_code_constructible<!std::is_same<typename std::decay<T>::type, errored_status_code>::value  // not copy/move of self
-                                                                                   && !std::is_same<typename std::decay<T>::type, value_type>::value,       // not copy/move of value type
-                                                                                   errored_status_code, T, Args...>::value))
+  SYSTEM_ERROR2_TEMPLATE(class T, class... Args,                                                                               //
+                         class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type)     // Safe ADL lookup of make_status_code(), returns void if not found
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(!std::is_same<typename std::decay<T>::type, errored_status_code>::value          // not copy/move of self
+                                              && !std::is_same<typename std::decay<T>::type, value_type>::value                // not copy/move of value type
+                                              && is_status_code<MakeStatusCodeResult>::value                                   // ADL makes a status code
+                                              && std::is_constructible<errored_status_code, MakeStatusCodeResult>::value))     // ADLed status code is compatible
   errored_status_code(T &&v, Args &&...args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...)))  // NOLINT
       : errored_status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
