@@ -1,0 +1,35 @@
+name: Unit tests Windows
+
+on:
+  push:
+    branches:
+    - develop
+    - master
+  pull_request:
+  schedule:
+  - cron: '0 0 1 * *'
+
+jobs:
+  WinVS2019:
+    name: Windows VS2019
+    runs-on: windows-2019
+          
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: CMake build tests Windows
+      shell: bash
+      run: |
+       mkdir build
+       cd build
+       cmake .. -DCMAKE_BUILD_TYPE=Release CMAKE_CXX_STANDARD=${{ matrix.standard }}
+       cmake --build .
+      
+    - name: CMake run tests Windows
+      shell: bash
+      run: |
+        bin/test-result
+        bin/test-status-code
+        bin/test-status-code-noexcept
+        bin/test-status-not-posix
+        bin/test-status-p0709a

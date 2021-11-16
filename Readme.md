@@ -1,6 +1,6 @@
 # Reference implementation for proposed SG14 `status_code` (`<system_error2>`) in C++ 11
 
-(C) 2018 - 2020 Niall Douglas [http://www.nedproductions.biz/](http://www.nedproductions.biz/)
+(C) 2018 - 2021 Niall Douglas [http://www.nedproductions.biz/](http://www.nedproductions.biz/)
 Please send feedback to the SG14 study group mailing list at [https://lists.isocpp.org/mailman/listinfo.cgi/sg14/](https://lists.isocpp.org/mailman/listinfo.cgi/sg14/).
 
 Docs: [https://ned14.github.io/status-code/](https://ned14.github.io/status-code/)
