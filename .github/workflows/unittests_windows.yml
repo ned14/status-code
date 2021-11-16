@@ -22,7 +22,7 @@ jobs:
       run: |
        mkdir build
        cd build
-       cmake .. -DCMAKE_BUILD_TYPE=Release CMAKE_CXX_STANDARD=${{ matrix.standard }}
+       cmake .. -DCMAKE_BUILD_TYPE=Release
        cmake --build .
       
     - name: CMake run tests Windows
