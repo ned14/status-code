@@ -79,7 +79,7 @@ SYSTEM_ERROR2_NAMESPACE_END
 namespace another_namespace
 {
   // ADL discovered, must be in same namespace as AnotherCode
-  constexpr inline SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode> status_code(AnotherCode c) { return SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode>(c); }
+  SYSTEM_ERROR2_CONSTEXPR14 inline SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode> status_code(AnotherCode c) { return SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode>(c); }
 }  // namespace another_namespace
 
 
