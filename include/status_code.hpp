@@ -235,7 +235,7 @@ public:
   As `equivalent()` will try mapping to generic code, this usually captures when two codes have the same semantic
   meaning in `equivalent()`.
   */
-  template <class T> constexpr bool strictly_equivalent(const status_code<T> &o) const noexcept
+  template <class T> SYSTEM_ERROR2_CONSTEXPR14 bool strictly_equivalent(const status_code<T> &o) const noexcept
   {
     if(_domain && o._domain)
     {
@@ -253,7 +253,7 @@ public:
   Firstly `strictly_equivalent()` is run in both directions. If neither succeeds, each domain is asked
   for the equivalent generic code and those are compared.
   */
-  template <class T> constexpr inline bool equivalent(const status_code<T> &o) const noexcept;
+  template <class T> SYSTEM_ERROR2_CONSTEXPR14 inline bool equivalent(const status_code<T> &o) const noexcept;
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   //! Throw a code as a C++ exception.
   SYSTEM_ERROR2_NORETURN void throw_exception() const

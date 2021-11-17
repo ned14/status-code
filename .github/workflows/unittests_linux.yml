@@ -35,6 +35,7 @@ jobs:
     - name: CMake run tests Linux
       shell: bash
       run: |
+        cd build
         bin/test-result
         bin/test-status-code
         bin/test-status-code-noexcept

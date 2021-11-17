@@ -239,10 +239,10 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include <initializer_list>
 #ifndef SYSTEM_ERROR2_HAVE_BIT_CAST
 #ifdef __has_include
-#if __has_include(<bit>) && (__cplusplus >= 202002 || _HAS_CXX20)
+#if __has_include(<bit>) && (__cplusplus >= 202002L || _HAS_CXX20)
 #define SYSTEM_ERROR2_HAVE_BIT_CAST 1
 #endif
-#elif __cplusplus >= 202002
+#elif __cplusplus >= 202002L
 #define SYSTEM_ERROR2_HAVE_BIT_CAST 1
 #endif
 #ifndef SYSTEM_ERROR2_HAVE_BIT_CAST
@@ -251,13 +251,13 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 #if SYSTEM_ERROR2_HAVE_BIT_CAST
 #include <bit>
-#if __cpp_lib_bit_cast < 201806
+#if __cpp_lib_bit_cast < 201806L
 #undef SYSTEM_ERROR2_HAVE_BIT_CAST
 #define SYSTEM_ERROR2_HAVE_BIT_CAST 0
 #endif
 #endif
 #ifndef SYSTEM_ERROR2_CONSTEXPR14
-#if 0 || __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
+#if 0L || __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
 //! Defined to be `constexpr` when on C++ 14 or better compilers. Usually automatic, can be overriden.
 #define SYSTEM_ERROR2_CONSTEXPR14 constexpr
 #else
@@ -265,7 +265,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 #endif
 #ifndef SYSTEM_ERROR2_CONSTEXPR20
-#if 0 || __cplusplus >= 202000 || _HAS_CXX20
+#if 0L || __cplusplus >= 202000 || _HAS_CXX20
 //! Defined to be `constexpr` when on C++ 20 or better compilers. Usually automatic, can be overriden.
 #define SYSTEM_ERROR2_CONSTEXPR20 constexpr
 #else
@@ -273,7 +273,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 #endif
 #ifndef SYSTEM_ERROR2_NORETURN
-#if 0 || (_HAS_CXX17 && _MSC_VER >= 1911 /* VS2017.3 */)
+#if 0L || (_HAS_CXX17 && _MSC_VER >= 1911 /* VS2017.3 */)
 #define SYSTEM_ERROR2_NORETURN [[noreturn]]
 #endif
 #endif
@@ -299,7 +299,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define SYSTEM_ERROR2_NORETURN
 #endif
 #ifndef SYSTEM_ERROR2_NODISCARD
-#if 0 || (_HAS_CXX17 && _MSC_VER >= 1911 /* VS2017.3 */)
+#if 0L || (_HAS_CXX17 && _MSC_VER >= 1911 /* VS2017.3 */)
 #define SYSTEM_ERROR2_NODISCARD [[nodiscard]]
 #endif
 #endif
@@ -319,7 +319,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define SYSTEM_ERROR2_NODISCARD
 #endif
 #ifndef SYSTEM_ERROR2_TRIVIAL_ABI
-#if 0 || (__clang_major__ >= 7 && !defined(__APPLE__))
+#if 0L || (__clang_major__ >= 7 && !defined(__APPLE__))
 //! Defined to be `[[clang::trivial_abi]]` when on a new enough clang compiler. Usually automatic, can be overriden.
 #define SYSTEM_ERROR2_TRIVIAL_ABI [[clang::trivial_abi]]
 #else
@@ -746,15 +746,15 @@ public:
     //! Returns a null terminated C string
     constexpr const_pointer data() const noexcept { return _begin; }
     //! Returns the beginning of the string
-    constexpr iterator begin() noexcept { return _begin; }
+    SYSTEM_ERROR2_CONSTEXPR14 iterator begin() noexcept { return _begin; }
     //! Returns the beginning of the string
-    constexpr const_iterator begin() const noexcept { return _begin; }
+    SYSTEM_ERROR2_CONSTEXPR14 const_iterator begin() const noexcept { return _begin; }
     //! Returns the beginning of the string
     constexpr const_iterator cbegin() const noexcept { return _begin; }
     //! Returns the end of the string
-    constexpr iterator end() noexcept { return _end; }
+    SYSTEM_ERROR2_CONSTEXPR14 iterator end() noexcept { return _end; }
     //! Returns the end of the string
-    constexpr const_iterator end() const noexcept { return _end; }
+    SYSTEM_ERROR2_CONSTEXPR14 const_iterator end() const noexcept { return _end; }
     //! Returns the end of the string
     constexpr const_iterator cend() const noexcept { return _end; }
   };
@@ -882,12 +882,12 @@ protected:
   SYSTEM_ERROR2_CONSTEXPR20 virtual generic_code _generic_code(const status_code<void> &code) const noexcept = 0;
   //! Return a reference to a string textually representing a code.
   SYSTEM_ERROR2_CONSTEXPR20 virtual string_ref _do_message(const status_code<void> &code) const noexcept = 0;
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   //! Throw a code as a C++ exception.
   SYSTEM_ERROR2_NORETURN SYSTEM_ERROR2_CONSTEXPR20 virtual void _do_throw_exception(const status_code<void> &code) const = 0;
 #else
   // Keep a vtable slot for binary compatibility
-  SYSTEM_ERROR2_NORETURN SYSTEM_ERROR2_CONSTEXPR20 virtual void _do_throw_exception(const status_code<void> & /*code*/) const { abort(); }
+  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> & /*code*/) const { abort(); }
 #endif
   // For a `status_code<erased<T>>` only, copy from `src` to `dst`. Default implementation uses `memcpy()`.
   virtual void _do_erased_copy(status_code<void> &dst, const status_code<void> &src, size_t bytes) const { memcpy(&dst, &src, bytes); } // NOLINT
@@ -1089,7 +1089,7 @@ public:
   As `equivalent()` will try mapping to generic code, this usually captures when two codes have the same semantic
   meaning in `equivalent()`.
   */
-  template <class T> constexpr bool strictly_equivalent(const status_code<T> &o) const noexcept
+  template <class T> SYSTEM_ERROR2_CONSTEXPR14 bool strictly_equivalent(const status_code<T> &o) const noexcept
   {
     if(_domain && o._domain)
     {
@@ -1107,8 +1107,8 @@ public:
   Firstly `strictly_equivalent()` is run in both directions. If neither succeeds, each domain is asked
   for the equivalent generic code and those are compared.
   */
-  template <class T> constexpr inline bool equivalent(const status_code<T> &o) const noexcept;
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+  template <class T> SYSTEM_ERROR2_CONSTEXPR14 inline bool equivalent(const status_code<T> &o) const noexcept;
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   //! Throw a code as a C++ exception.
   SYSTEM_ERROR2_NORETURN void throw_exception() const
   {
@@ -1782,7 +1782,7 @@ protected:
     const auto &c = static_cast<const generic_code &>(code); // NOLINT
     return string_ref(detail::generic_code_message(c.value()));
   }
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this); // NOLINT
@@ -1805,7 +1805,7 @@ SYSTEM_ERROR2_CONSTEXPR14 inline generic_code make_status_code(errc c) noexcept
   return generic_code(in_place, c);
 }
 /*************************************************************************************************************/
-template <class T> inline constexpr bool status_code<void>::equivalent(const status_code<T> &o) const noexcept
+template <class T> inline SYSTEM_ERROR2_CONSTEXPR14 bool status_code<void>::equivalent(const status_code<T> &o) const noexcept
 {
   if(_domain && o._domain)
   {
@@ -1832,12 +1832,12 @@ template <class T> inline constexpr bool status_code<void>::equivalent(const sta
   return (!_domain && !o._domain);
 }
 //! True if the status code's are semantically equal via `equivalent()`.
-template <class DomainType1, class DomainType2> constexpr inline bool operator==(const status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
+template <class DomainType1, class DomainType2> SYSTEM_ERROR2_CONSTEXPR14 inline bool operator==(const status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
 {
   return a.equivalent(b);
 }
 //! True if the status code's are not semantically equal via `equivalent()`.
-template <class DomainType1, class DomainType2> constexpr inline bool operator!=(const status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
+template <class DomainType1, class DomainType2> SYSTEM_ERROR2_CONSTEXPR14 inline bool operator!=(const status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
 {
   return !a.equivalent(b);
 }
@@ -1845,7 +1845,7 @@ template <class DomainType1, class DomainType2> constexpr inline bool operator!=
 template <class DomainType1, class T, //
           class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type, // Safe ADL lookup of make_status_code(), returns void if not found
           typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true> // ADL makes a status code
-constexpr inline bool operator==(const status_code<DomainType1> &a, const T &b)
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator==(const status_code<DomainType1> &a, const T &b)
 {
   return a.equivalent(make_status_code(b));
 }
@@ -1853,7 +1853,7 @@ constexpr inline bool operator==(const status_code<DomainType1> &a, const T &b)
 template <class T, class DomainType1, //
           class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type, // Safe ADL lookup of make_status_code(), returns void if not found
           typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true> // ADL makes a status code
-constexpr inline bool operator==(const T &a, const status_code<DomainType1> &b)
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator==(const T &a, const status_code<DomainType1> &b)
 {
   return b.equivalent(make_status_code(a));
 }
@@ -1861,7 +1861,7 @@ constexpr inline bool operator==(const T &a, const status_code<DomainType1> &b)
 template <class DomainType1, class T, //
           class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type, // Safe ADL lookup of make_status_code(), returns void if not found
           typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true> // ADL makes a status code
-constexpr inline bool operator!=(const status_code<DomainType1> &a, const T &b)
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator!=(const status_code<DomainType1> &a, const T &b)
 {
   return !a.equivalent(make_status_code(b));
 }
@@ -1869,7 +1869,7 @@ constexpr inline bool operator!=(const status_code<DomainType1> &a, const T &b)
 template <class T, class DomainType1, //
           class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type, // Safe ADL lookup of make_status_code(), returns void if not found
           typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true> // ADL makes a status code
-constexpr inline bool operator!=(const T &a, const status_code<DomainType1> &b)
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator!=(const T &a, const status_code<DomainType1> &b)
 {
   return !b.equivalent(make_status_code(a));
 }
@@ -1877,7 +1877,7 @@ constexpr inline bool operator!=(const T &a, const status_code<DomainType1> &b)
 template <class DomainType1, class T, //
           class QuickStatusCodeType = typename quick_status_code_from_enum<T>::code_type // Enumeration has been activated
           >
-constexpr inline bool operator==(const status_code<DomainType1> &a, const T &b)
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator==(const status_code<DomainType1> &a, const T &b)
 {
   return a.equivalent(QuickStatusCodeType(b));
 }
@@ -1885,7 +1885,7 @@ constexpr inline bool operator==(const status_code<DomainType1> &a, const T &b)
 template <class T, class DomainType1, //
           class QuickStatusCodeType = typename quick_status_code_from_enum<T>::code_type // Enumeration has been activated
           >
-constexpr inline bool operator==(const T &a, const status_code<DomainType1> &b)
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator==(const T &a, const status_code<DomainType1> &b)
 {
   return b.equivalent(QuickStatusCodeType(a));
 }
@@ -1893,7 +1893,7 @@ constexpr inline bool operator==(const T &a, const status_code<DomainType1> &b)
 template <class DomainType1, class T, //
           class QuickStatusCodeType = typename quick_status_code_from_enum<T>::code_type // Enumeration has been activated
           >
-constexpr inline bool operator!=(const status_code<DomainType1> &a, const T &b)
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator!=(const status_code<DomainType1> &a, const T &b)
 {
   return !a.equivalent(QuickStatusCodeType(b));
 }
@@ -1901,7 +1901,7 @@ constexpr inline bool operator!=(const status_code<DomainType1> &a, const T &b)
 template <class T, class DomainType1, //
           class QuickStatusCodeType = typename quick_status_code_from_enum<T>::code_type // Enumeration has been activated
           >
-constexpr inline bool operator!=(const T &a, const status_code<DomainType1> &b)
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator!=(const T &a, const status_code<DomainType1> &b)
 {
   return !b.equivalent(QuickStatusCodeType(a));
 }
@@ -1955,7 +1955,7 @@ public:
   _quick_status_code_from_enum_domain &operator=(const _quick_status_code_from_enum_domain &) = default;
   _quick_status_code_from_enum_domain &operator=(_quick_status_code_from_enum_domain &&) = default;
   ~_quick_status_code_from_enum_domain() = default;
-#if __cplusplus < 201402 && !defined(_MSC_VER)
+#if __cplusplus < 201402L && !defined(_MSC_VER)
   static inline const _quick_status_code_from_enum_domain &get()
   {
     static _quick_status_code_from_enum_domain v;
@@ -2049,7 +2049,7 @@ protected:
     }
     return string_ref("unknown");
   }
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override
   {
     assert(code.domain() == *this); // NOLINT
@@ -2058,7 +2058,7 @@ protected:
   }
 #endif
 };
-#if __cplusplus >= 201402 || defined(_MSC_VER)
+#if __cplusplus >= 201402L || defined(_MSC_VER)
 template <class Enum> constexpr _quick_status_code_from_enum_domain<Enum> quick_status_code_from_enum_domain = {};
 template <class Enum> inline constexpr const _quick_status_code_from_enum_domain<Enum> &_quick_status_code_from_enum_domain<Enum>::get()
 {
@@ -2118,7 +2118,7 @@ namespace detail
     indirecting_domain &operator=(const indirecting_domain &) = default;
     indirecting_domain &operator=(indirecting_domain &&) = default; // NOLINT
     ~indirecting_domain() = default;
-#if __cplusplus < 201402 && !defined(_MSC_VER)
+#if __cplusplus < 201402L && !defined(_MSC_VER)
     static inline const indirecting_domain &get()
     {
       static indirecting_domain v;
@@ -2154,12 +2154,13 @@ namespace detail
       const auto &c = static_cast<const _mycode &>(code); // NOLINT
       return typename StatusCode::domain_type()._do_message(*c.value());
     }
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
     SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
     {
       assert(code.domain() == *this);
       const auto &c = static_cast<const _mycode &>(code); // NOLINT
       typename StatusCode::domain_type()._do_throw_exception(*c.value());
+      abort(); // suppress buggy GCC warning
     }
 #endif
     virtual void _do_erased_copy(status_code<void> &dst, const status_code<void> &src, size_t /*unused*/) const override // NOLINT
@@ -2178,7 +2179,7 @@ namespace detail
       delete c.value(); // NOLINT
     }
   };
-#if __cplusplus >= 201402 || defined(_MSC_VER)
+#if __cplusplus >= 201402L || defined(_MSC_VER)
   template <class StatusCode> constexpr indirecting_domain<StatusCode> _indirecting_domain{};
   template <class StatusCode> inline constexpr const indirecting_domain<StatusCode> &indirecting_domain<StatusCode>::get() { return _indirecting_domain<StatusCode>; }
 #endif
@@ -2743,7 +2744,7 @@ protected:
     const auto &c = static_cast<const posix_code &>(code); // NOLINT
     return _make_string_ref(c.value());
   }
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this); // NOLINT
@@ -2766,7 +2767,7 @@ SYSTEM_ERROR2_NAMESPACE_END
 #endif
 #else
 #endif
-#if defined(_WIN32) || 0
+#if defined(_WIN32) || 0L
 /* Proposed SG14 status_code
 (C) 2018 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
 File Created: Feb 2018
@@ -2792,7 +2793,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 */
 #ifndef SYSTEM_ERROR2_NT_CODE_HPP
 #define SYSTEM_ERROR2_NT_CODE_HPP
-#if !defined(_WIN32) && !0
+#if !defined(_WIN32) && !0L
 #error This file should only be included on Windows
 #endif
 /* Proposed SG14 status_code
@@ -2820,7 +2821,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 */
 #ifndef SYSTEM_ERROR2_WIN32_CODE_HPP
 #define SYSTEM_ERROR2_WIN32_CODE_HPP
-#if !defined(_WIN32) && !0
+#if !defined(_WIN32) && !0L
 #error This file should only be included on Windows
 #endif
 SYSTEM_ERROR2_NAMESPACE_BEGIN
@@ -3052,7 +3053,7 @@ protected:
     const auto &c = static_cast<const win32_code &>(code); // NOLINT
     return _make_string_ref(c.value());
   }
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this);
@@ -4347,7 +4348,7 @@ protected:
     const auto &c = static_cast<const nt_code &>(code); // NOLINT
     return _make_string_ref(c.value());
   }
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override // NOLINT
   {
     assert(code.domain() == *this);

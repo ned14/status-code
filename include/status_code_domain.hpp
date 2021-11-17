@@ -255,15 +255,15 @@ public:
     //! Returns a null terminated C string
     constexpr const_pointer data() const noexcept { return _begin; }
     //! Returns the beginning of the string
-    constexpr iterator begin() noexcept { return _begin; }
+    SYSTEM_ERROR2_CONSTEXPR14 iterator begin() noexcept { return _begin; }
     //! Returns the beginning of the string
-    constexpr const_iterator begin() const noexcept { return _begin; }
+    SYSTEM_ERROR2_CONSTEXPR14 const_iterator begin() const noexcept { return _begin; }
     //! Returns the beginning of the string
     constexpr const_iterator cbegin() const noexcept { return _begin; }
     //! Returns the end of the string
-    constexpr iterator end() noexcept { return _end; }
+    SYSTEM_ERROR2_CONSTEXPR14 iterator end() noexcept { return _end; }
     //! Returns the end of the string
-    constexpr const_iterator end() const noexcept { return _end; }
+    SYSTEM_ERROR2_CONSTEXPR14 const_iterator end() const noexcept { return _end; }
     //! Returns the end of the string
     constexpr const_iterator cend() const noexcept { return _end; }
   };

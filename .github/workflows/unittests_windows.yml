@@ -22,12 +22,13 @@ jobs:
       run: |
        mkdir build
        cd build
-       cmake .. -DCMAKE_BUILD_TYPE=Release
+       cmake ..
        cmake --build .
       
     - name: CMake run tests Windows
       shell: bash
       run: |
+        cd build
         bin/test-result
         bin/test-status-code
         bin/test-status-code-noexcept
