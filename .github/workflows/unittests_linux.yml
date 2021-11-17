@@ -40,4 +40,4 @@ jobs:
         bin/test-status-code
         bin/test-status-code-noexcept
         bin/test-status-code-not-posix
-        bin/test-status-p0709a
+        bin/test-status-code-p0709a

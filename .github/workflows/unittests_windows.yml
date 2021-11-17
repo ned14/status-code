@@ -33,4 +33,4 @@ jobs:
         bin/Release/test-status-code
         bin/Release/test-status-code-noexcept
         bin/Release/test-status-code-not-posix
-        bin/Release/test-status-p0709a
+        bin/Release/test-status-code-p0709a
