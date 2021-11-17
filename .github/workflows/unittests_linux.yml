@@ -39,5 +39,5 @@ jobs:
         bin/test-result
         bin/test-status-code
         bin/test-status-code-noexcept
-        bin/test-status-not-posix
+        bin/test-status-code-not-posix
         bin/test-status-p0709a

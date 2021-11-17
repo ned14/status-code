@@ -23,14 +23,14 @@ jobs:
        mkdir build
        cd build
        cmake ..
-       cmake --build .
+       cmake --build . -- config Release
       
     - name: CMake run tests Windows
       shell: bash
       run: |
         cd build
-        bin/test-result
-        bin/test-status-code
-        bin/test-status-code-noexcept
-        bin/test-status-not-posix
-        bin/test-status-p0709a
+        bin/Release/test-result
+        bin/Release/test-status-code
+        bin/Release/test-status-code-noexcept
+        bin/Release/test-status-code-not-posix
+        bin/Release/test-status-p0709a
