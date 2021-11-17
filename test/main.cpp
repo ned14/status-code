@@ -649,5 +649,6 @@ int main()
   CHECK(get_id(success11) == success9.domain().id());
 #endif
 
+  printf("\nExiting tests with code %d\n", retcode);
   return retcode;
 }
