@@ -326,6 +326,46 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define SYSTEM_ERROR2_TRIVIAL_ABI
 #endif
 #endif
+#if defined(__cpp_concepts) && !defined(SYSTEM_ERROR2_DISABLE_CONCEPTS_SUPPORT)
+#define SYSTEM_ERROR2_GLUE(x, y) x y
+#define SYSTEM_ERROR2_RETURN_ARG_COUNT(_1_, _2_, _3_, _4_, _5_, _6_, _7_, _8_, count, ...) count
+#define SYSTEM_ERROR2_EXPAND_ARGS(args) SYSTEM_ERROR2_RETURN_ARG_COUNT args
+#define SYSTEM_ERROR2_COUNT_ARGS_MAX8(...) SYSTEM_ERROR2_EXPAND_ARGS((__VA_ARGS__, 8, 7, 6, 5, 4, 3, 2, 1, 0))
+#define SYSTEM_ERROR2_OVERLOAD_MACRO2(name, count) name##count
+#define SYSTEM_ERROR2_OVERLOAD_MACRO1(name, count) SYSTEM_ERROR2_OVERLOAD_MACRO2(name, count)
+#define SYSTEM_ERROR2_OVERLOAD_MACRO(name, count) SYSTEM_ERROR2_OVERLOAD_MACRO1(name, count)
+#define SYSTEM_ERROR2_CALL_OVERLOAD(name, ...) SYSTEM_ERROR2_GLUE(SYSTEM_ERROR2_OVERLOAD_MACRO(name, SYSTEM_ERROR2_COUNT_ARGS_MAX8(__VA_ARGS__)), (__VA_ARGS__))
+#define SYSTEM_ERROR2_TREQUIRES_EXPAND8(a, b, c, d, e, f, g, h) a &&SYSTEM_ERROR2_TREQUIRES_EXPAND7(b, c, d, e, f, g, h)
+#define SYSTEM_ERROR2_TREQUIRES_EXPAND7(a, b, c, d, e, f, g) a &&SYSTEM_ERROR2_TREQUIRES_EXPAND6(b, c, d, e, f, g)
+#define SYSTEM_ERROR2_TREQUIRES_EXPAND6(a, b, c, d, e, f) a &&SYSTEM_ERROR2_TREQUIRES_EXPAND5(b, c, d, e, f)
+#define SYSTEM_ERROR2_TREQUIRES_EXPAND5(a, b, c, d, e) a &&SYSTEM_ERROR2_TREQUIRES_EXPAND4(b, c, d, e)
+#define SYSTEM_ERROR2_TREQUIRES_EXPAND4(a, b, c, d) a &&SYSTEM_ERROR2_TREQUIRES_EXPAND3(b, c, d)
+#define SYSTEM_ERROR2_TREQUIRES_EXPAND3(a, b, c) a &&SYSTEM_ERROR2_TREQUIRES_EXPAND2(b, c)
+#define SYSTEM_ERROR2_TREQUIRES_EXPAND2(a, b) a &&SYSTEM_ERROR2_TREQUIRES_EXPAND1(b)
+#define SYSTEM_ERROR2_TREQUIRES_EXPAND1(a) a
+//! Expands into a && b && c && ...
+#define SYSTEM_ERROR2_TREQUIRES(...) requires SYSTEM_ERROR2_CALL_OVERLOAD(SYSTEM_ERROR2_TREQUIRES_EXPAND, __VA_ARGS__)
+#define SYSTEM_ERROR2_TEMPLATE(...) template <__VA_ARGS__>
+#define SYSTEM_ERROR2_TEXPR(...) requires { (__VA_ARGS__); }
+#define SYSTEM_ERROR2_TPRED(...) (__VA_ARGS__)
+#if !defined(_MSC_VER) || _MSC_FULL_VER >= 192400000 // VS 2019 16.3 is broken here
+#define SYSTEM_ERROR2_REQUIRES(...) requires(__VA_ARGS__)
+#else
+#define SYSTEM_ERROR2_REQUIRES(...)
+#endif
+#else
+#define SYSTEM_ERROR2_TEMPLATE(...) template <__VA_ARGS__
+#define SYSTEM_ERROR2_TREQUIRES(...) , __VA_ARGS__ >
+#define SYSTEM_ERROR2_TEXPR(...) typename = decltype(__VA_ARGS__)
+#ifdef _MSC_VER
+// MSVC gives an error if every specialisation of a template is always ill-formed, so
+// the more powerful SFINAE form below causes pukeage :(
+#define SYSTEM_ERROR2_TPRED(...) typename = typename std::enable_if<(__VA_ARGS__)>::type
+#else
+#define SYSTEM_ERROR2_TPRED(...) typename std::enable_if<(__VA_ARGS__), bool>::type = true
+#endif
+#define SYSTEM_ERROR2_REQUIRES(...)
+#endif
 #ifndef SYSTEM_ERROR2_NAMESPACE
 //! The system_error2 namespace name.
 #define SYSTEM_ERROR2_NAMESPACE system_error2
@@ -407,39 +447,27 @@ namespace detail
     return ret.target;
   }
 #else
-  template <class To, class From,
-            typename std::enable_if< //
-            is_bit_castable<To, From>::value //
-            && is_static_castable<To, From>::value //
-            && !is_union_castable<To, From>::value, //
-            bool>::type = true> //
-  constexpr To bit_cast(const From &from) noexcept
-  {
-    return static_cast<To>(from);
-  }
+  SYSTEM_ERROR2_TEMPLATE(class To, class From, int = 5)
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_bit_castable<To, From>::value //
+                                              &&is_static_castable<To, From>::value //
+                                              && !is_union_castable<To, From>::value))
+  constexpr To bit_cast(const From &from) noexcept { return static_cast<To>(from); }
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
-  template <class To, class From,
-            typename std::enable_if< //
-            is_bit_castable<To, From>::value //
-            && !is_static_castable<To, From>::value //
-            && is_union_castable<To, From>::value, //
-            bool>::type = true> //
-  constexpr To bit_cast(const From &from) noexcept
-  {
-    return bit_cast_union<To, From>{from}.target;
-  }
+  SYSTEM_ERROR2_TEMPLATE(class To, class From, long = 5)
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_bit_castable<To, From>::value //
+                                              && !is_static_castable<To, From>::value //
+                                              && is_union_castable<To, From>::value))
+  constexpr To bit_cast(const From &from) noexcept { return bit_cast_union<To, From>{from}.target; }
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
-  template <class To, class From,
-            typename std::enable_if< //
-            is_bit_castable<To, From>::value //
-            && !is_static_castable<To, From>::value //
-            && !is_union_castable<To, From>::value, //
-            bool>::type = true> //
+  SYSTEM_ERROR2_TEMPLATE(class To, class From, short = 5)
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_bit_castable<To, From>::value //
+                                              && !is_static_castable<To, From>::value //
+                                              && !is_union_castable<To, From>::value))
   To bit_cast(const From &from) noexcept
   {
     bit_cast_union<To, From> ret;
@@ -476,17 +504,16 @@ namespace detail
     {
     }
   };
-  template <class To, class From, typename std::enable_if<is_erasure_castable<To, From>::value && (sizeof(To) == sizeof(From)), bool>::type = true> constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(from); }
-  template <class To, class From, typename std::enable_if<is_erasure_castable<To, From>::value && is_static_castable<To, From>::value && (sizeof(To) < sizeof(From)), bool>::type = true> constexpr To erasure_cast(const From &from) noexcept { return static_cast<To>(bit_cast<erasure_integer_type<From, To>>(from)); }
-  template <class To, class From, typename std::enable_if<is_erasure_castable<To, From>::value && is_static_castable<To, From>::value && (sizeof(To) > sizeof(From)), bool>::type = true> constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(static_cast<erasure_integer_type<To, From>>(from)); }
-  template <class To, class From, typename std::enable_if<is_erasure_castable<To, From>::value && !is_static_castable<To, From>::value && (sizeof(To) < sizeof(From)), bool>::type = true> constexpr To erasure_cast(const From &from) noexcept
-  {
-    return bit_cast<padded_erasure_object<To, sizeof(From) - sizeof(To)>>(from).value;
-  }
-  template <class To, class From, typename std::enable_if<is_erasure_castable<To, From>::value && !is_static_castable<To, From>::value && (sizeof(To) > sizeof(From)), bool>::type = true> constexpr To erasure_cast(const From &from) noexcept
-  {
-    return bit_cast<To>(padded_erasure_object<From, sizeof(To) - sizeof(From)>{from});
-  }
+  SYSTEM_ERROR2_TEMPLATE(class To, class From)
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && (sizeof(To) == sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(from); }
+  SYSTEM_ERROR2_TEMPLATE(class To, class From, long = 5)
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value &&is_static_castable<To, From>::value && (sizeof(To) < sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return static_cast<To>(bit_cast<erasure_integer_type<From, To>>(from)); }
+  SYSTEM_ERROR2_TEMPLATE(class To, class From, int = 5)
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value &&is_static_castable<To, From>::value && (sizeof(To) > sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(static_cast<erasure_integer_type<To, From>>(from)); }
+  SYSTEM_ERROR2_TEMPLATE(class To, class From, short = 5)
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && !is_static_castable<To, From>::value && (sizeof(To) < sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return bit_cast<padded_erasure_object<To, sizeof(From) - sizeof(To)>>(from).value; }
+  SYSTEM_ERROR2_TEMPLATE(class To, class From, char = 5)
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && !is_static_castable<To, From>::value && (sizeof(To) > sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(padded_erasure_object<From, sizeof(To) - sizeof(From)>{from}); }
 } // namespace detail
 SYSTEM_ERROR2_NAMESPACE_END
 #ifndef SYSTEM_ERROR2_FATAL
@@ -930,8 +957,8 @@ namespace mixins
 /*! A tag for an erased value type for `status_code<D>`.
 Available only if `ErasedType` satisfies `traits::is_move_bitcopying<ErasedType>::value`.
 */
-template <class ErasedType, //
-          typename std::enable_if<traits::is_move_bitcopying<ErasedType>::value, bool>::type = true>
+SYSTEM_ERROR2_TEMPLATE(class ErasedType) //
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(traits::is_move_bitcopying<ErasedType>::value))
 struct erased
 {
   using value_type = ErasedType;
@@ -998,6 +1025,7 @@ namespace detail
   {
     static constexpr bool value = true;
   };
+#if !defined(__GNUC__) || defined(__clang__) || __GNUC__ >= 8
   // From http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4436.pdf
   namespace impl
   {
@@ -1022,6 +1050,35 @@ namespace detail
   template <template <class...> class T, class... Ts> using test_apply = impl::test_apply<T, impl::types<Ts...>>;
   template <class T, class... Args> using get_make_status_code_result = decltype(make_status_code(std::declval<T>(), std::declval<Args>()...));
   template <class... Args> using safe_get_make_status_code_result = test_apply<get_make_status_code_result, Args...>;
+#else
+  // ICE avoidance form for GCCs before 8. Note this form doesn't prevent recursive make_status_code ADL instantation,
+  // so in certain corner cases this will break. On the other hand, more useful than an ICE.
+  namespace impl
+  {
+    template <typename... Ts> struct make_void
+    {
+      using type = void;
+    };
+    template <typename... Ts> using void_t = typename make_void<Ts...>::type;
+    template <class...> struct types
+    {
+      using type = types;
+    };
+    template <typename Types, typename = void> struct make_status_code_rettype
+    {
+      using type = void;
+    };
+    template <typename... Args> using get_make_status_code_result = decltype(make_status_code(std::declval<Args>()...));
+    template <typename... Args> struct make_status_code_rettype<types<Args...>, void_t<get_make_status_code_result<Args...>>>
+    {
+      using type = get_make_status_code_result<Args...>;
+    };
+  } // namespace impl
+  template <class... Args> struct safe_get_make_status_code_result
+  {
+    using type = typename impl::make_status_code_rettype<impl::types<Args...>>::type;
+  };
+#endif
 } // namespace detail
 //! Trait returning true if the type is a status code.
 template <class T> struct is_status_code
@@ -1187,7 +1244,7 @@ namespace detail
     {
     };
     template <class... Args>
-    constexpr status_code_storage(_value_type_constructor /*unused*/, const status_code_domain *v, Args &&... args)
+    constexpr status_code_storage(_value_type_constructor /*unused*/, const status_code_domain *v, Args &&...args)
         : _base(v)
         , _value(static_cast<Args &&>(args)...)
     {
@@ -1234,35 +1291,33 @@ public:
   SYSTEM_ERROR2_CONSTEXPR14 status_code clone() const { return *this; }
   /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
-  template <class T, class... Args, //
-            class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type, // Safe ADL lookup of make_status_code(), returns void if not found
-            typename std::enable_if<!std::is_same<typename std::decay<T>::type, status_code>::value // not copy/move of self
-                                    && !std::is_same<typename std::decay<T>::type, in_place_t>::value // not in_place_t
-                                    && is_status_code<MakeStatusCodeResult>::value // ADL makes a status code
-                                    && std::is_constructible<status_code, MakeStatusCodeResult>::value, // ADLed status code is compatible
-                                    bool>::type = true>
-  constexpr status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...))) // NOLINT
+  SYSTEM_ERROR2_TEMPLATE(class T, class... Args, //
+                         class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type) // Safe ADL lookup of make_status_code(), returns void if not found
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(!std::is_same<typename std::decay<T>::type, status_code>::value // not copy/move of self
+                                              && !std::is_same<typename std::decay<T>::type, in_place_t>::value // not in_place_t
+                                              && is_status_code<MakeStatusCodeResult>::value // ADL makes a status code
+                                              && std::is_constructible<status_code, MakeStatusCodeResult>::value)) // ADLed status code is compatible
+  constexpr status_code(T &&v, Args &&...args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...))) // NOLINT
       : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
   }
   //! Implicit construction from any `quick_status_code_from_enum<Enum>` enumerated type.
-  template <class Enum, //
-            class QuickStatusCodeType = typename quick_status_code_from_enum<Enum>::code_type, // Enumeration has been activated
-            typename std::enable_if<std::is_constructible<status_code, QuickStatusCodeType>::value, // Its status code is compatible
-                                    bool>::type = true>
+  SYSTEM_ERROR2_TEMPLATE(class Enum, //
+                         class QuickStatusCodeType = typename quick_status_code_from_enum<Enum>::code_type) // Enumeration has been activated
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(std::is_constructible<status_code, QuickStatusCodeType>::value)) // Its status code is compatible
   constexpr status_code(Enum &&v) noexcept(std::is_nothrow_constructible<status_code, QuickStatusCodeType>::value) // NOLINT
       : status_code(QuickStatusCodeType(static_cast<Enum &&>(v)))
   {
   }
   //! Explicit in-place construction. Disables if `domain_type::get()` is not a valid expression.
   template <class... Args>
-  constexpr explicit status_code(in_place_t /*unused */, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, Args &&...>::value)
+  constexpr explicit status_code(in_place_t /*unused */, Args &&...args) noexcept(std::is_nothrow_constructible<value_type, Args &&...>::value)
       : _base(typename _base::_value_type_constructor{}, &domain_type::get(), static_cast<Args &&>(args)...)
   {
   }
   //! Explicit in-place construction from initialiser list. Disables if `domain_type::get()` is not a valid expression.
   template <class T, class... Args>
-  constexpr explicit status_code(in_place_t /*unused */, std::initializer_list<T> il, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, std::initializer_list<T>, Args &&...>::value)
+  constexpr explicit status_code(in_place_t /*unused */, std::initializer_list<T> il, Args &&...args) noexcept(std::is_nothrow_constructible<value_type, std::initializer_list<T>, Args &&...>::value)
       : _base(typename _base::_value_type_constructor{}, &domain_type::get(), il, static_cast<Args &&>(args)...)
   {
   }
@@ -1280,8 +1335,8 @@ public:
   `value_type` is trivially copyable or move bitcopying, and `sizeof(status_code) <= sizeof(status_code<erased<>>)`.
   Does not check if domains are equal.
   */
-  template <class ErasedType, //
-            typename std::enable_if<detail::type_erasure_is_safe<ErasedType, value_type>::value, bool>::type = true>
+  SYSTEM_ERROR2_TEMPLATE(class ErasedType) //
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::type_erasure_is_safe<ErasedType, value_type>::value))
   constexpr explicit status_code(const status_code<erased<ErasedType>> &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
       : status_code(detail::erasure_cast<value_type>(v.value()))
   {
@@ -1358,39 +1413,36 @@ public:
   }
   /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
-  template <class DomainType, //
-            typename std::enable_if<std::is_trivially_copyable<typename DomainType::value_type>::value //
-                                    && detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
-                                    bool>::type = true>
+  SYSTEM_ERROR2_TEMPLATE(class DomainType) //
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(std::is_trivially_copyable<typename DomainType::value_type>::value //
+                                              &&detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value))
   constexpr status_code(const status_code<DomainType> &v) noexcept // NOLINT
       : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), detail::erasure_cast<value_type>(v.value()))
   {
   }
   //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying and it would fit into our storage
-  template <class DomainType, //
-            typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value, bool>::type = true>
+  SYSTEM_ERROR2_TEMPLATE(class DomainType) //
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value))
   SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept // NOLINT
       : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), detail::erasure_cast<value_type>(v.value()))
   {
     v._domain = nullptr;
   }
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
-  template <class T, class... Args, //
-            class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type, // Safe ADL lookup of make_status_code(), returns void if not found
-            typename std::enable_if<!std::is_same<typename std::decay<T>::type, status_code>::value // not copy/move of self
-                                    && !std::is_same<typename std::decay<T>::type, value_type>::value // not copy/move of value type
-                                    && is_status_code<MakeStatusCodeResult>::value // ADL makes a status code
-                                    && std::is_constructible<status_code, MakeStatusCodeResult>::value, // ADLed status code is compatible
-                                    bool>::type = true>
-  constexpr status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...))) // NOLINT
+  SYSTEM_ERROR2_TEMPLATE(class T, class... Args, //
+                         class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type) // Safe ADL lookup of make_status_code(), returns void if not found
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(!std::is_same<typename std::decay<T>::type, status_code>::value // not copy/move of self
+                                              && !std::is_same<typename std::decay<T>::type, value_type>::value // not copy/move of value type
+                                              && is_status_code<MakeStatusCodeResult>::value // ADL makes a status code
+                                              && std::is_constructible<status_code, MakeStatusCodeResult>::value)) // ADLed status code is compatible
+  constexpr status_code(T &&v, Args &&...args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...))) // NOLINT
       : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
   }
   //! Implicit construction from any `quick_status_code_from_enum<Enum>` enumerated type.
-  template <class Enum, //
-            class QuickStatusCodeType = typename quick_status_code_from_enum<Enum>::code_type, // Enumeration has been activated
-            typename std::enable_if<std::is_constructible<status_code, QuickStatusCodeType>::value, // Its status code is compatible
-                                    bool>::type = true>
+  SYSTEM_ERROR2_TEMPLATE(class Enum, //
+                         class QuickStatusCodeType = typename quick_status_code_from_enum<Enum>::code_type) // Enumeration has been activated
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(std::is_constructible<status_code, QuickStatusCodeType>::value)) // Its status code is compatible
   constexpr status_code(Enum &&v) noexcept(std::is_nothrow_constructible<status_code, QuickStatusCodeType>::value) // NOLINT
       : status_code(QuickStatusCodeType(static_cast<Enum &&>(v)))
   {
@@ -1842,33 +1894,33 @@ template <class DomainType1, class DomainType2> SYSTEM_ERROR2_CONSTEXPR14 inline
   return !a.equivalent(b);
 }
 //! True if the status code's are semantically equal via `equivalent()` to `make_status_code(T)`.
-template <class DomainType1, class T, //
-          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type, // Safe ADL lookup of make_status_code(), returns void if not found
-          typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true> // ADL makes a status code
+SYSTEM_ERROR2_TEMPLATE(class DomainType1, class T, //
+                       class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type) // Safe ADL lookup of make_status_code(), returns void if not found
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<MakeStatusCodeResult>::value)) // ADL makes a status code
 SYSTEM_ERROR2_CONSTEXPR14 inline bool operator==(const status_code<DomainType1> &a, const T &b)
 {
   return a.equivalent(make_status_code(b));
 }
 //! True if the status code's are semantically equal via `equivalent()` to `make_status_code(T)`.
-template <class T, class DomainType1, //
-          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type, // Safe ADL lookup of make_status_code(), returns void if not found
-          typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true> // ADL makes a status code
+SYSTEM_ERROR2_TEMPLATE(class T, class DomainType1, //
+                       class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type) // Safe ADL lookup of make_status_code(), returns void if not found
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<MakeStatusCodeResult>::value)) // ADL makes a status code
 SYSTEM_ERROR2_CONSTEXPR14 inline bool operator==(const T &a, const status_code<DomainType1> &b)
 {
   return b.equivalent(make_status_code(a));
 }
 //! True if the status code's are not semantically equal via `equivalent()` to `make_status_code(T)`.
-template <class DomainType1, class T, //
-          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type, // Safe ADL lookup of make_status_code(), returns void if not found
-          typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true> // ADL makes a status code
+SYSTEM_ERROR2_TEMPLATE(class DomainType1, class T, //
+                       class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type) // Safe ADL lookup of make_status_code(), returns void if not found
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<MakeStatusCodeResult>::value)) // ADL makes a status code
 SYSTEM_ERROR2_CONSTEXPR14 inline bool operator!=(const status_code<DomainType1> &a, const T &b)
 {
   return !a.equivalent(make_status_code(b));
 }
 //! True if the status code's are semantically equal via `equivalent()` to `make_status_code(T)`.
-template <class T, class DomainType1, //
-          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type, // Safe ADL lookup of make_status_code(), returns void if not found
-          typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true> // ADL makes a status code
+SYSTEM_ERROR2_TEMPLATE(class T, class DomainType1, //
+                       class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type) // Safe ADL lookup of make_status_code(), returns void if not found
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<MakeStatusCodeResult>::value)) // ADL makes a status code
 SYSTEM_ERROR2_CONSTEXPR14 inline bool operator!=(const T &a, const status_code<DomainType1> &b)
 {
   return !b.equivalent(make_status_code(a));
@@ -2189,7 +2241,8 @@ This is useful for shoehorning a rich status code with large value type into a s
 erased status code like `system_code`, with which the status code generated by this
 function is compatible. Note that this function can throw due to `bad_alloc`.
 */
-template <class T, typename std::enable_if<is_status_code<T>::value, bool>::type = true> //
+SYSTEM_ERROR2_TEMPLATE(class T)
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<T>::value)) //
 inline status_code<erased<typename std::add_pointer<typename std::decay<T>::type>::type>> make_status_code_ptr(T &&v)
 {
   using status_code_type = typename std::decay<T>::type;
@@ -2198,13 +2251,15 @@ inline status_code<erased<typename std::add_pointer<typename std::decay<T>::type
 /*! If a status code refers to a `status_code_ptr` which indirects to a status
 code of type `StatusCode`, return a pointer to that `StatusCode`. Otherwise return null.
 */
-template <class StatusCode, class U, typename std::enable_if<is_status_code<StatusCode>::value, bool>::type = true> inline StatusCode *get_if(status_code<erased<U>> *v) noexcept
+SYSTEM_ERROR2_TEMPLATE(class StatusCode, class U)
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<StatusCode>::value)) inline StatusCode *get_if(status_code<erased<U>> *v) noexcept
 {
   if((0xc44f7bdeb2cc50e9 ^ typename StatusCode::domain_type().id()) != v->domain().id())
   {
     return nullptr;
   }
-  union {
+  union
+  {
     U value;
     StatusCode *ret;
   };
@@ -2212,13 +2267,16 @@ template <class StatusCode, class U, typename std::enable_if<is_status_code<Stat
   return ret;
 }
 //! \overload Const overload
-template <class StatusCode, class U, typename std::enable_if<is_status_code<StatusCode>::value, bool>::type = true> inline const StatusCode *get_if(const status_code<erased<U>> *v) noexcept
+SYSTEM_ERROR2_TEMPLATE(class StatusCode, class U)
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<StatusCode>::value))
+inline const StatusCode *get_if(const status_code<erased<U>> *v) noexcept
 {
   if((0xc44f7bdeb2cc50e9 ^ typename StatusCode::domain_type().id()) != v->domain().id())
   {
     return nullptr;
   }
-  union {
+  union
+  {
     U value;
     const StatusCode *ret;
   };
@@ -2286,23 +2344,21 @@ public:
   }
   /***** KEEP THESE IN SYNC WITH STATUS_CODE *****/
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
-  template <class T, class... Args, //
-            class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type, // Safe ADL lookup of make_status_code(), returns void if not found
-            typename std::enable_if<!std::is_same<typename std::decay<T>::type, errored_status_code>::value // not copy/move of self
-                                    && !std::is_same<typename std::decay<T>::type, in_place_t>::value // not in_place_t
-                                    && is_status_code<MakeStatusCodeResult>::value // ADL makes a status code
-                                    && std::is_constructible<errored_status_code, MakeStatusCodeResult>::value, // ADLed status code is compatible
-                                    bool>::type = true>
-  errored_status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...))) // NOLINT
+  SYSTEM_ERROR2_TEMPLATE(class T, class... Args, //
+                         class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type) // Safe ADL lookup of make_status_code(), returns void if not found
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(!std::is_same<typename std::decay<T>::type, errored_status_code>::value // not copy/move of self
+                                              && !std::is_same<typename std::decay<T>::type, in_place_t>::value // not in_place_t
+                                              && is_status_code<MakeStatusCodeResult>::value // ADL makes a status code
+                                              && std::is_constructible<errored_status_code, MakeStatusCodeResult>::value)) // ADLed status code is compatible
+  errored_status_code(T &&v, Args &&...args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...))) // NOLINT
       : errored_status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
     _check();
   }
   //! Implicit construction from any `quick_status_code_from_enum<Enum>` enumerated type.
-  template <class Enum, //
-            class QuickStatusCodeType = typename quick_status_code_from_enum<Enum>::code_type, // Enumeration has been activated
-            typename std::enable_if<std::is_constructible<errored_status_code, QuickStatusCodeType>::value, // Its status code is compatible
-                                    bool>::type = true>
+  SYSTEM_ERROR2_TEMPLATE(class Enum, //
+                         class QuickStatusCodeType = typename quick_status_code_from_enum<Enum>::code_type) // Enumeration has been activated
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(std::is_constructible<errored_status_code, QuickStatusCodeType>::value)) // Its status code is compatible
   errored_status_code(Enum &&v) noexcept(std::is_nothrow_constructible<errored_status_code, QuickStatusCodeType>::value) // NOLINT
       : errored_status_code(QuickStatusCodeType(static_cast<Enum &&>(v)))
   {
@@ -2310,14 +2366,14 @@ public:
   }
   //! Explicit in-place construction.
   template <class... Args>
-  explicit errored_status_code(in_place_t _, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, Args &&...>::value)
+  explicit errored_status_code(in_place_t _, Args &&...args) noexcept(std::is_nothrow_constructible<value_type, Args &&...>::value)
       : _base(_, static_cast<Args &&>(args)...)
   {
     _check();
   }
   //! Explicit in-place construction from initialiser list.
   template <class T, class... Args>
-  explicit errored_status_code(in_place_t _, std::initializer_list<T> il, Args &&... args) noexcept(std::is_nothrow_constructible<value_type, std::initializer_list<T>, Args &&...>::value)
+  explicit errored_status_code(in_place_t _, std::initializer_list<T> il, Args &&...args) noexcept(std::is_nothrow_constructible<value_type, std::initializer_list<T>, Args &&...>::value)
       : _base(_, il, static_cast<Args &&>(args)...)
   {
     _check();
@@ -2338,8 +2394,8 @@ public:
   `value_type` is trivially destructible and `sizeof(status_code) <= sizeof(status_code<erased<>>)`.
   Does not check if domains are equal.
   */
-  template <class ErasedType, //
-            typename std::enable_if<detail::type_erasure_is_safe<ErasedType, value_type>::value, bool>::type = true>
+  SYSTEM_ERROR2_TEMPLATE(class ErasedType) //
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::type_erasure_is_safe<ErasedType, value_type>::value))
   explicit errored_status_code(const status_code<erased<ErasedType>> &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
       : errored_status_code(detail::erasure_cast<value_type>(v.value())) // NOLINT
   {
@@ -2397,61 +2453,55 @@ public:
   }
   /***** KEEP THESE IN SYNC WITH STATUS_CODE *****/
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
-  template <class DomainType, //
-            typename std::enable_if<std::is_trivially_copyable<typename DomainType::value_type>::value //
-                                    && detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
-                                    bool>::type = true>
+  SYSTEM_ERROR2_TEMPLATE(class DomainType) //
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(std::is_trivially_copyable<typename DomainType::value_type>::value //
+                                              &&detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value))
   errored_status_code(const status_code<DomainType> &v) noexcept
       : _base(v) // NOLINT
   {
     _check();
   }
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
-  template <class DomainType, //
-            typename std::enable_if<std::is_trivially_copyable<typename DomainType::value_type>::value //
-                                    && detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
-                                    bool>::type = true>
+  SYSTEM_ERROR2_TEMPLATE(class DomainType) //
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(std::is_trivially_copyable<typename DomainType::value_type>::value //
+                                              &&detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value))
   errored_status_code(const errored_status_code<DomainType> &v) noexcept
       : _base(static_cast<const status_code<DomainType> &>(v)) // NOLINT
   {
     _check();
   }
   //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying and it would fit into our storage
-  template <class DomainType, //
-            typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
-                                    bool>::type = true>
+  SYSTEM_ERROR2_TEMPLATE(class DomainType) //
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value))
   errored_status_code(status_code<DomainType> &&v) noexcept
       : _base(static_cast<status_code<DomainType> &&>(v)) // NOLINT
   {
     _check();
   }
   //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying and it would fit into our storage
-  template <class DomainType, //
-            typename std::enable_if<detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value,
-                                    bool>::type = true>
+  SYSTEM_ERROR2_TEMPLATE(class DomainType) //
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value))
   errored_status_code(errored_status_code<DomainType> &&v) noexcept
       : _base(static_cast<status_code<DomainType> &&>(v)) // NOLINT
   {
     _check();
   }
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
-  template <class T, class... Args, //
-            class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type, // Safe ADL lookup of make_status_code(), returns void if not found
-            typename std::enable_if<!std::is_same<typename std::decay<T>::type, errored_status_code>::value // not copy/move of self
-                                    && !std::is_same<typename std::decay<T>::type, value_type>::value // not copy/move of value type
-                                    && is_status_code<MakeStatusCodeResult>::value // ADL makes a status code
-                                    && std::is_constructible<errored_status_code, MakeStatusCodeResult>::value, // ADLed status code is compatible
-                                    bool>::type = true>
-  errored_status_code(T &&v, Args &&... args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...))) // NOLINT
+  SYSTEM_ERROR2_TEMPLATE(class T, class... Args, //
+                         class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<T, Args...>::type) // Safe ADL lookup of make_status_code(), returns void if not found
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(!std::is_same<typename std::decay<T>::type, errored_status_code>::value // not copy/move of self
+                                              && !std::is_same<typename std::decay<T>::type, value_type>::value // not copy/move of value type
+                                              && is_status_code<MakeStatusCodeResult>::value // ADL makes a status code
+                                              && std::is_constructible<errored_status_code, MakeStatusCodeResult>::value)) // ADLed status code is compatible
+  errored_status_code(T &&v, Args &&...args) noexcept(noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...))) // NOLINT
       : errored_status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
     _check();
   }
   //! Implicit construction from any `quick_status_code_from_enum<Enum>` enumerated type.
-  template <class Enum, //
-            class QuickStatusCodeType = typename quick_status_code_from_enum<Enum>::code_type, // Enumeration has been activated
-            typename std::enable_if<std::is_constructible<errored_status_code, QuickStatusCodeType>::value, // Its status code is compatible
-                                    bool>::type = true>
+  SYSTEM_ERROR2_TEMPLATE(class Enum, //
+                         class QuickStatusCodeType = typename quick_status_code_from_enum<Enum>::code_type) // Enumeration has been activated
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(std::is_constructible<errored_status_code, QuickStatusCodeType>::value)) // Its status code is compatible
   errored_status_code(Enum &&v) noexcept(std::is_nothrow_constructible<errored_status_code, QuickStatusCodeType>::value) // NOLINT
       : errored_status_code(QuickStatusCodeType(static_cast<Enum &&>(v)))
   {
@@ -2500,33 +2550,33 @@ template <class DomainType1, class DomainType2> inline bool operator!=(const err
   return !static_cast<const status_code<DomainType1> &>(a).equivalent(b);
 }
 //! True if the status code's are semantically equal via `equivalent()` to `make_status_code(T)`.
-template <class DomainType1, class T, //
-          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type, // Safe ADL lookup of make_status_code(), returns void if not found
-          typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true> // ADL makes a status code
+SYSTEM_ERROR2_TEMPLATE(class DomainType1, class T, //
+                       class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type) // Safe ADL lookup of make_status_code(), returns void if not found
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<MakeStatusCodeResult>::value)) // ADL makes a status code
 inline bool operator==(const errored_status_code<DomainType1> &a, const T &b)
 {
   return a.equivalent(make_status_code(b));
 }
 //! True if the status code's are semantically equal via `equivalent()` to `make_status_code(T)`.
-template <class T, class DomainType1, //
-          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type, // Safe ADL lookup of make_status_code(), returns void if not found
-          typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true> // ADL makes a status code
+SYSTEM_ERROR2_TEMPLATE(class T, class DomainType1, //
+                       class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type) // Safe ADL lookup of make_status_code(), returns void if not found
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<MakeStatusCodeResult>::value)) // ADL makes a status code
 inline bool operator==(const T &a, const errored_status_code<DomainType1> &b)
 {
   return b.equivalent(make_status_code(a));
 }
 //! True if the status code's are not semantically equal via `equivalent()` to `make_status_code(T)`.
-template <class DomainType1, class T, //
-          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type, // Safe ADL lookup of make_status_code(), returns void if not found
-          typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true> // ADL makes a status code
+SYSTEM_ERROR2_TEMPLATE(class DomainType1, class T, //
+                       class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type) // Safe ADL lookup of make_status_code(), returns void if not found
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<MakeStatusCodeResult>::value)) // ADL makes a status code
 inline bool operator!=(const errored_status_code<DomainType1> &a, const T &b)
 {
   return !a.equivalent(make_status_code(b));
 }
 //! True if the status code's are semantically equal via `equivalent()` to `make_status_code(T)`.
-template <class T, class DomainType1, //
-          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type, // Safe ADL lookup of make_status_code(), returns void if not found
-          typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true> // ADL makes a status code
+SYSTEM_ERROR2_TEMPLATE(class T, class DomainType1, //
+                       class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type) // Safe ADL lookup of make_status_code(), returns void if not found
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<MakeStatusCodeResult>::value)) // ADL makes a status code
 inline bool operator!=(const T &a, const errored_status_code<DomainType1> &b)
 {
   return !b.equivalent(make_status_code(a));

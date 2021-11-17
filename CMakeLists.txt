@@ -146,7 +146,7 @@ if(NOT PROJECT_IS_DEPENDENCY)
     message(WARNING "NOT rebuilding preprocessed edition of library due to python not being installed")
   else()
     # See if the ply package is installed so pcpp can run
-    execute_process(COMMAND python -c "import pcpp" RESULT_VARIABLE python_has_pcpp)
+    execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c "import pcpp" RESULT_VARIABLE python_has_pcpp)
     if(NOT python_has_pcpp EQUAL 0)
       message(WARNING "NOT rebuilding preprocessed edition of library due to installed python not having the pcpp package installed. "
         "Do '(sudo) pip install pcpp' to fix.")
@@ -214,4 +214,23 @@ if(NOT PROJECT_IS_DEPENDENCY)
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
   endif()
+
+  # Compile examples
+  add_executable(example-quick_status_code_from_enum "example/quick_status_code_from_enum.cpp")
+  target_link_libraries(example-quick_status_code_from_enum PRIVATE status-code)
+  set_target_properties(example-quick_status_code_from_enum PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+  add_executable(example-thrown_exception "example/thrown_exception.cpp")
+  target_link_libraries(example-thrown_exception PRIVATE status-code)
+  set_target_properties(example-thrown_exception PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+  target_compile_features(example-thrown_exception PRIVATE cxx_std_17)
+  add_executable(example-file_io_error "wg21/file_io_error.cpp")
+  target_link_libraries(example-file_io_error PRIVATE status-code)
+  set_target_properties(example-file_io_error PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+  
 endif()
