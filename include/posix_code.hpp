@@ -69,7 +69,7 @@ class _posix_code_domain : public status_code_domain
     char *s = strerror_r(c, buffer, sizeof(buffer));  // NOLINT
     if(s != nullptr)
     {
-      strncpy(buffer, s, sizeof(buffer));  // NOLINT
+      strncpy(buffer, s, sizeof(buffer) - 1);  // NOLINT
       buffer[1023] = 0;
     }
 #else
