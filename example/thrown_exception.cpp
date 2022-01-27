@@ -75,7 +75,10 @@ public:
 
   // Always use https://www.random.org/cgi-bin/randbyte?nbytes=8&format=h to create a
   // unique 64 bit value for every unique domain you create!
-  constexpr _thrown_exception_domain() noexcept : _base(0xb766b5e50597a655) {}
+  constexpr _thrown_exception_domain() noexcept
+      : _base(0xb766b5e50597a655)
+  {
+  }
 
   // Default all the copy, move and destruct. This makes the type 100% constexpr in every way
   // which in turns allows the compiler to assume it will not be instantiated at runtime.
@@ -90,6 +93,9 @@ public:
 
   // Return the name of this domain
   virtual _base::string_ref name() const noexcept override final { return _base::string_ref("thrown exception"); }
+
+  // Return information about the value type of this domain
+  virtual payload_info_t payload_info() const noexcept override { return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type), (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)}; }
 
 protected:
   // This internal routine maps an exception ptr onto a generic_code

@@ -32,6 +32,10 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include "std_error_code.hpp"
 #include "system_error2.hpp"
 
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
+#include "system_code_from_exception.hpp"
+#endif
+
 #include <cstdio>
 #include <cstring>  // for strdup, strlen
 #include <iostream>
@@ -66,7 +70,7 @@ inline std::ostream &operator<<(std::ostream &s, Code v)
 class Code_domain_impl;
 using StatusCode = system_error2::status_code<Code_domain_impl>;
 // Category for Code
-class Code_domain_impl : public system_error2::status_code_domain
+class Code_domain_impl final : public system_error2::status_code_domain
 {
   using _base = system_error2::status_code_domain;
 
@@ -144,6 +148,7 @@ public:
     static string_ref v("Code_category_impl");
     return v;  // NOLINT
   }
+  virtual payload_info_t payload_info() const noexcept override { return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type), (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)}; }
   virtual bool _do_failure(const system_error2::status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
@@ -647,6 +652,22 @@ int main()
   CHECK(*get_if<posix_code>(&success11) == success9);
   CHECK(get_if<StatusCode>(&success11) == nullptr);
   CHECK(get_id(success11) == success9.domain().id());
+#endif
+
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
+  // Test that system_code_from_exception() correctly extracts the original status code.
+  printf("\n");
+  CHECK(failure2 == [&]() -> system_code
+        {
+          try
+          {
+            failure2.throw_exception();
+          }
+          catch(...)
+          {
+            return system_code_from_exception();
+          }
+        }());
 #endif
 
   printf("\nExiting tests with code %d\n", retcode);
