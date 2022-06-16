@@ -106,6 +106,9 @@ protected:
     const auto &c = static_cast<const http_status_code &>(code);  // NOLINT
     switch(c.value())
     {
+    case 102:
+    case 202:
+      return errc::operation_in_progress;
     case 400:
     case 405:
       return errc::invalid_argument;
@@ -114,13 +117,23 @@ protected:
     case 403:
       return errc::permission_denied;
     case 404:
+    case 410:
       return errc::no_such_file_or_directory;
+    case 405:
+    case 418:
+      return errc::operation_not_supported;
+    case 406:
+      return errc::protocol_not_supported;
     case 408:
       return errc::timed_out;
     case 413:
       return errc::result_out_of_range;
     case 501:
-      return errc::operation_not_supported;
+      return errc::not_supported;
+    case 503:
+      return errc::resource_unavailable_try_again;
+    case 504:
+      return errc::timed_out;
     case 507:
       return errc::no_space_on_device;
     default:
