@@ -23,17 +23,17 @@ http://www.boost.org/LICENSE_1_0.txt)
 */
 
 #ifdef _WIN32
-#include "com_code.hpp"
+#include "status-code/com_code.hpp"
 #else
-#include "getaddrinfo_code.hpp"
+#include "status-code/getaddrinfo_code.hpp"
 #endif
 
-#include "iostream_support.hpp"
-#include "std_error_code.hpp"
-#include "system_error2.hpp"
+#include "status-code/iostream_support.hpp"
+#include "status-code/std_error_code.hpp"
+#include "status-code/system_error2.hpp"
 
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
-#include "system_code_from_exception.hpp"
+#include "status-code/system_code_from_exception.hpp"
 #endif
 
 #include <cstdio>

@@ -82,32 +82,33 @@ target_include_directories(status-code INTERFACE
   "$<INSTALL_INTERFACE:include>"
 )
 foreach(source 
-    "include/detail/nt_code_to_generic_code.ipp"
-    "include/detail/nt_code_to_win32_code.ipp"
-    "include/detail/win32_code_to_generic_code.ipp"
-    "include/com_code.hpp"
-    "include/config.hpp"
-    "include/error.hpp"
-    "include/errored_status_code.hpp"
-    "include/generic_code.hpp"
-    "include/getaddrinfo_code.hpp"
-    "include/iostream_support.hpp"
-    "include/nt_code.hpp"
-    "include/posix_code.hpp"
-    "include/quick_status_code_from_enum.hpp"
-    "include/result.hpp"
-    "include/status_code.hpp"
-    "include/status_code_domain.hpp"
-    "include/status_code_ptr.hpp"
-    "include/status_error.hpp"
-    "include/std_error_code.hpp"
-    "include/system_code.hpp"
-    "include/system_code_from_exception.hpp"
-    "include/system_error2.hpp"
-    "include/win32_code.hpp"
+    "include/status-code/detail/nt_code_to_generic_code.ipp"
+    "include/status-code/detail/nt_code_to_win32_code.ipp"
+    "include/status-code/detail/win32_code_to_generic_code.ipp"
+    "include/status-code/boost_error_code.hpp"
+    "include/status-code/com_code.hpp"
+    "include/status-code/config.hpp"
+    "include/status-code/error.hpp"
+    "include/status-code/errored_status_code.hpp"
+    "include/status-code/generic_code.hpp"
+    "include/status-code/getaddrinfo_code.hpp"
+    "include/status-code/http_status_code.hpp"
+    "include/status-code/iostream_support.hpp"
+    "include/status-code/nt_code.hpp"
+    "include/status-code/posix_code.hpp"
+    "include/status-code/quick_status_code_from_enum.hpp"
+    "include/status-code/result.hpp"
+    "include/status-code/status_code.hpp"
+    "include/status-code/status_code_domain.hpp"
+    "include/status-code/status_code_ptr.hpp"
+    "include/status-code/status_error.hpp"
+    "include/status-code/std_error_code.hpp"
+    "include/status-code/system_code.hpp"
+    "include/status-code/system_code_from_exception.hpp"
+    "include/status-code/system_error2.hpp"
+    "include/status-code/win32_code.hpp"
   )
   target_sources(status-code INTERFACE
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${source}>"
     "$<INSTALL_INTERFACE:${source}>"
   )
   get_filename_component(dir ${source} DIRECTORY)
@@ -153,7 +154,7 @@ if(NOT PROJECT_IS_DEPENDENCY)
     else()
       add_custom_target(status-code-pp 
         pcpp -o "${CMAKE_CURRENT_SOURCE_DIR}/single-header/system_error2.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/system_error2.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/status-code/system_error2.hpp"
         --passthru-defines --passthru-unfound-includes --passthru-unknown-exprs
         --passthru-comments --line-directive --compress # --debug
         -U STANDARDESE_IS_IN_THE_HOUSE
