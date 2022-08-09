@@ -110,7 +110,6 @@ protected:
     case 202:
       return errc::operation_in_progress;
     case 400:
-    case 405:
       return errc::invalid_argument;
     case 401:
       return errc::operation_not_permitted;
