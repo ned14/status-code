@@ -161,8 +161,17 @@ if(NOT PROJECT_IS_DEPENDENCY)
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         COMMENT "Preprocessing ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}.hpp into ${CMAKE_CURRENT_SOURCE_DIR}/single-header/${PROJECT_NAME}.hpp ..."
       )
+      add_custom_target(status-code-nowindows-pp 
+        pcpp -o "${CMAKE_CURRENT_SOURCE_DIR}/single-header/system_error2-nowindows.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/status-code/system_error2.hpp"
+        --passthru-defines --passthru-unfound-includes --passthru-unknown-exprs
+        --passthru-comments --line-directive --compress # --debug
+        -U STANDARDESE_IS_IN_THE_HOUSE -U _WIN32
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMENT "Preprocessing ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}.hpp into ${CMAKE_CURRENT_SOURCE_DIR}/single-header/${PROJECT_NAME}-nowindows.hpp ..."
+      )
       if(NOT CMAKE_VERSION VERSION_LESS 3.3)
-        add_dependencies(status-code status-code-pp)
+        add_dependencies(status-code status-code-pp status-code-nowindows-pp)
       endif()
     endif()
   endif()
