@@ -379,7 +379,19 @@ namespace detail
     {
     }
   };
+
+  template <> class status_code_storage<void>
+  {
+  };
 }  // namespace detail
+
+namespace mixins
+{
+  template <> struct mixin<detail::status_code_storage<void>, void> final
+  {
+    int disable_erased_constructor_overload;
+  };
+}  // namespace mixins
 
 /*! A lightweight, typed, status code reflecting empty, success, or failure.
 This is the main workhorse of the system_error2 library. Its characteristics reflect the value type
