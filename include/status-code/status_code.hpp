@@ -559,16 +559,19 @@ public:
 
   /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
-  SYSTEM_ERROR2_TEMPLATE(class DomainType)                                                                        //
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(std::is_trivially_copyable<typename DomainType::value_type>::value  //
-                                              &&detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value))
+  SYSTEM_ERROR2_TEMPLATE(class DomainType)                                                                                        //
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(std::is_trivially_copyable<typename DomainType::value_type>::value                  //
+                                              &&detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value  //
+                                              && (sizeof(status_code<DomainType>) == sizeof(detail::status_code_storage<DomainType>))))
+
   constexpr status_code(const status_code<DomainType> &v) noexcept  // NOLINT
       : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), detail::erasure_cast<value_type>(v.value()))
   {
   }
   //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying and it would fit into our storage
-  SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value))
+  SYSTEM_ERROR2_TEMPLATE(class DomainType)                                                                                      //
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value  //
+                                              && (sizeof(status_code<DomainType>) == sizeof(detail::status_code_storage<DomainType>))))
   SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept  // NOLINT
       : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), detail::erasure_cast<value_type>(v.value()))
   {
