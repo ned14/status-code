@@ -397,20 +397,20 @@ namespace detail
 
   template <class DomainType> struct has_stateful_mixin
   {
-    static constexpr bool value = sizeof(status_code_storage<DomainType>) != sizeof(mixins::mixin<status_code_storage<DomainType>, DomainType>);
+    static constexpr bool value = (sizeof(status_code_storage<DomainType>) != sizeof(mixins::mixin<status_code_storage<DomainType>, DomainType>));
   };
   template <> struct has_stateful_mixin<void>
   {
     static constexpr bool value = false;
   };
 
-  template <class FromDomain, class ToValueType> struct is_type_erasable_to
+  template <class FromDomain, class ToValueType> struct is_domain_type_erasable_to
   {
     static constexpr bool value = traits::is_move_bitcopying<typename status_code_storage<FromDomain>::value_type>::value         //
                                   && sizeof(status_code_storage<FromDomain>) <= sizeof(status_code_storage<erased<ToValueType>>)  //
                                   && !has_stateful_mixin<FromDomain>::value;
   };
-  template <class ToValueType> struct is_type_erasable_to<void, ToValueType>
+  template <class ToValueType> struct is_domain_type_erasable_to<void, ToValueType>
   {
     static constexpr bool value = false;
   };
@@ -422,7 +422,7 @@ namespace traits
   template <class StatusCode> using has_stateful_mixin = detail::has_stateful_mixin<typename detail::remove_cvref<StatusCode>::type::value_type>;
 
   //! Determines whether the status code `From` can be type erased into a status code based on `ToValueType`.
-  template <class From, class ToValueType> using is_type_erasable_to = detail::is_type_erasable_to<typename detail::remove_cvref<From>::type::domain_type, ToValueType>;
+  template <class From, class ToValueType> using is_type_erasable_to = detail::is_domain_type_erasable_to<typename detail::remove_cvref<From>::type::domain_type, ToValueType>;
 }  // namespace traits
 
 /*! A lightweight, typed, status code reflecting empty, success, or failure.
@@ -515,7 +515,7 @@ public:
   Does not check if domains are equal.
   */
   SYSTEM_ERROR2_TEMPLATE(class ErasedType)  //
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::is_type_erasable_to<erased<ErasedType>, value_type>::value))
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::is_domain_type_erasable_to<erased<ErasedType>, value_type>::value))
   constexpr explicit status_code(const status_code<erased<ErasedType>> &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
       : status_code(detail::erasure_cast<value_type>(v.value()))
   {
@@ -604,7 +604,7 @@ public:
   /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
   SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::is_type_erasable_to<DomainType, value_type>::value))
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::is_domain_type_erasable_to<DomainType, value_type>::value))
 
   constexpr status_code(const status_code<DomainType> &v) noexcept  // NOLINT
       : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), detail::erasure_cast<value_type>(v.value()))
@@ -612,7 +612,7 @@ public:
   }
   //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying and it would fit into our storage
   SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::is_type_erasable_to<DomainType, value_type>::value))
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::is_domain_type_erasable_to<DomainType, value_type>::value))
   SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept  // NOLINT
       : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), detail::erasure_cast<value_type>(v.value()))
   {
