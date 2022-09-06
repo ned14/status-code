@@ -134,11 +134,6 @@ namespace detail
     static constexpr bool value = true;
   };
 
-  template <class T> struct remove_cvref
-  {
-    using type = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
-  };
-
 #if !defined(__GNUC__) || defined(__clang__) || __GNUC__ >= 8
   // From http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4436.pdf
   namespace impl
