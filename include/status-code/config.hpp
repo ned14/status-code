@@ -240,6 +240,19 @@ namespace detail
   inline constexpr size_t cstrlen(const char *str) { return cstrlen_(str, 0); }
 #endif
 
+#if(__cplusplus >= 202002L || _MSVC_LANG >= 202002L) && __cpp_lib_remove_cvref >= 201711L
+
+  template <class T> using remove_cvref = std::remove_cvref<T>;
+
+#else
+
+  template <class T> struct remove_cvref
+  {
+    using type = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+  };
+
+#endif
+
   /* A partially compliant implementation of C++20's std::bit_cast function contributed
   by Jesse Towner.
 
