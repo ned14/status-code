@@ -400,6 +400,15 @@ namespace detail
     }
   };
 
+  template <class DomainType> struct has_stateful_mixin
+  {
+    static constexpr bool value = sizeof(status_code_storage<DomainType>) != sizeof(mixins::mixin<status_code_storage<DomainType>, DomainType>);
+  };
+  template <> struct has_stateful_mixin<void>
+  {
+    static constexpr bool value = false;
+  };
+
   template <class From, class To> struct is_type_erasable_to
   {
     static constexpr bool value = false;
@@ -408,7 +417,7 @@ namespace detail
   {
     static constexpr bool value = traits::is_move_bitcopying<typename get_domain_value_type<FromDomain>::value_type>::value       //
                                   && sizeof(status_code_storage<FromDomain>) <= sizeof(status_code_storage<erased<ToValueType>>)  //
-                                  && sizeof(status_code_storage<FromDomain>) == sizeof(mixins::mixin<status_code_storage<FromDomain>, FromDomain>);
+                                  && !has_stateful_mixin<FromDomain>::value;
   };
   template <class ToValueType> struct is_type_erasable_to<status_code<void>, ToValueType>
   {
@@ -418,11 +427,11 @@ namespace detail
 
 namespace traits
 {
+  //! Determines whether the mixin contained in `StatusCode` contains non-static member variables.
+  template <class StatusCode> using has_stateful_mixin = detail::has_stateful_mixin<typename detail::remove_cvref<StatusCode>::type::value_type>;
+
   //! Determines whether the status code `From` can be type erased into a status code based on `ToValueType`.
-  template <class From, class ToValueType> struct is_type_erasable_to
-  {
-    static constexpr bool value = detail::is_type_erasable_to<typename detail::remove_cvref<From>::type, ToValueType>::value;
-  };
+  template <class From, class ToValueType> using is_type_erasable_to = detail::is_type_erasable_to<typename detail::remove_cvref<From>::type, ToValueType>;
 }  // namespace traits
 
 /*! A lightweight, typed, status code reflecting empty, success, or failure.
