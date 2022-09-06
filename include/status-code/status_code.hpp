@@ -134,6 +134,11 @@ namespace detail
     static constexpr bool value = true;
   };
 
+  template <class T> struct remove_cvref
+  {
+    using type = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+  };
+
 #if !defined(__GNUC__) || defined(__clang__) || __GNUC__ >= 8
   // From http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4436.pdf
   namespace impl
@@ -329,7 +334,10 @@ namespace detail
 
     // Replace the type erased implementations with type aware implementations for better codegen
     //! Return the status code domain.
-    constexpr const domain_type &domain() const noexcept { return *static_cast<const domain_type *>(this->_domain); }
+    constexpr const domain_type &domain() const noexcept
+    {
+      return *static_cast<const domain_type *>(this->_domain);
+    }
 
     //! Reset the code to empty.
     SYSTEM_ERROR2_CONSTEXPR14 void clear() noexcept
@@ -341,14 +349,26 @@ namespace detail
 
 #if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
     //! Return a reference to the `value_type`.
-    constexpr value_type &value() &noexcept { return this->_value; }
+    constexpr value_type &value() &noexcept
+    {
+      return this->_value;
+    }
     //! Return a reference to the `value_type`.
-    constexpr value_type &&value() &&noexcept { return static_cast<value_type &&>(this->_value); }
+    constexpr value_type &&value() &&noexcept
+    {
+      return static_cast<value_type &&>(this->_value);
+    }
 #endif
     //! Return a reference to the `value_type`.
-    constexpr const value_type &value() const &noexcept { return this->_value; }
+    constexpr const value_type &value() const &noexcept
+    {
+      return this->_value;
+    }
     //! Return a reference to the `value_type`.
-    constexpr const value_type &&value() const &&noexcept { return static_cast<const value_type &&>(this->_value); }
+    constexpr const value_type &&value() const &&noexcept
+    {
+      return static_cast<const value_type &&>(this->_value);
+    }
 
   protected:
     status_code_storage() = default;
@@ -380,18 +400,30 @@ namespace detail
     }
   };
 
-  template <> class status_code_storage<void>
+  template <class From, class To> struct is_type_erasable_to
   {
+    static constexpr bool value = false;
+  };
+  template <class FromDomain, class ToValueType> struct is_type_erasable_to<status_code<FromDomain>, ToValueType>
+  {
+    static constexpr bool value = traits::is_move_bitcopying<typename get_domain_value_type<FromDomain>::value_type>::value       //
+                                  && sizeof(status_code_storage<FromDomain>) <= sizeof(status_code_storage<erased<ToValueType>>)  //
+                                  && sizeof(status_code_storage<FromDomain>) == sizeof(mixins::mixin<status_code_storage<FromDomain>, FromDomain>);
+  };
+  template <class ToValueType> struct is_type_erasable_to<status_code<void>, ToValueType>
+  {
+    static constexpr bool value = false;
   };
 }  // namespace detail
 
-namespace mixins
+namespace traits
 {
-  template <> struct mixin<detail::status_code_storage<void>, void> final
+  //! Determines whether the status code `From` can be type erased into a status code based on `ToValueType`.
+  template <class From, class ToValueType> struct is_type_erasable_to
   {
-    int disable_erased_constructor_overload;
+    static constexpr bool value = detail::is_type_erasable_to<typename detail::remove_cvref<From>::type, ToValueType>::value;
   };
-}  // namespace mixins
+}  // namespace traits
 
 /*! A lightweight, typed, status code reflecting empty, success, or failure.
 This is the main workhorse of the system_error2 library. Its characteristics reflect the value type
@@ -483,7 +515,7 @@ public:
   Does not check if domains are equal.
   */
   SYSTEM_ERROR2_TEMPLATE(class ErasedType)  //
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::type_erasure_is_safe<ErasedType, value_type>::value))
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(traits::is_type_erasable_to<status_code<erased<ErasedType>>, value_type>::value))
   constexpr explicit status_code(const status_code<erased<ErasedType>> &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
       : status_code(detail::erasure_cast<value_type>(v.value()))
   {
@@ -571,19 +603,16 @@ public:
 
   /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
-  SYSTEM_ERROR2_TEMPLATE(class DomainType)                                                                                        //
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(std::is_trivially_copyable<typename DomainType::value_type>::value                  //
-                                              &&detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value  //
-                                              && (sizeof(mixins::mixin<detail::status_code_storage<DomainType>, DomainType>) == sizeof(detail::status_code_storage<DomainType>))))
+  SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(traits::is_type_erasable_to<status_code<DomainType>, value_type>::value))
 
   constexpr status_code(const status_code<DomainType> &v) noexcept  // NOLINT
       : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), detail::erasure_cast<value_type>(v.value()))
   {
   }
   //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying and it would fit into our storage
-  SYSTEM_ERROR2_TEMPLATE(class DomainType)                                                                                      //
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::type_erasure_is_safe<value_type, typename DomainType::value_type>::value  //
-                                              && (sizeof(mixins::mixin<detail::status_code_storage<DomainType>, DomainType>) == sizeof(detail::status_code_storage<DomainType>))))
+  SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(traits::is_type_erasable_to<status_code<DomainType>, value_type>::value))
   SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept  // NOLINT
       : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), detail::erasure_cast<value_type>(v.value()))
   {

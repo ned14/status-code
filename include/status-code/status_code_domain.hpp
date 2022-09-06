@@ -47,16 +47,6 @@ using generic_code = status_code<_generic_code_domain>;
 namespace detail
 {
   template <class StatusCode> class indirecting_domain;
-  template <class T> struct status_code_sizer
-  {
-    void *a;
-    T b;
-  };
-  template <class To, class From> struct type_erasure_is_safe
-  {
-    static constexpr bool value = traits::is_move_bitcopying<From>::value  //
-                                  && (sizeof(status_code_sizer<From>) <= sizeof(status_code_sizer<To>));
-  };
   /* We are severely limited by needing to retain C++ 11 compatibility when doing
   constexpr string parsing. MSVC lets you throw exceptions within a constexpr
   evaluation context when exceptions are globally disabled, but won't let you
