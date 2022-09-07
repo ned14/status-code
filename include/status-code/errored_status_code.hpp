@@ -54,7 +54,9 @@ template <class DomainType> class errored_status_code : public status_code<Domai
   }
 
 public:
-  //! The type of the erased error code.
+  //! The type of the domain.
+  using typename _base::domain_type;
+  //! The type of the error code.
   using typename _base::value_type;
   //! The type of a reference to a message string.
   using typename _base::string_ref;
@@ -134,11 +136,11 @@ public:
     _check();
   }
   /*! Explicit construction from an erased status code. Available only if
-  `value_type` is trivially destructible and `sizeof(status_code) <= sizeof(status_code<erased<>>)`.
+  `value_type` is trivially copyable or move bitcopying, and `sizeof(status_code) <= sizeof(status_code<erased<>>)`.
   Does not check if domains are equal.
   */
   SYSTEM_ERROR2_TEMPLATE(class ErasedType)  //
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::is_domain_type_erasable_to<erased<ErasedType>, value_type>::value))
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::domain_value_type_erasure_is_safe<domain_type, erased<ErasedType>>::value))
   explicit errored_status_code(const status_code<erased<ErasedType>> &v) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
       : errored_status_code(detail::erasure_cast<value_type>(v.value()))  // NOLINT
   {
@@ -174,6 +176,7 @@ template <class ErasedType> class errored_status_code<erased<ErasedType>> : publ
   }
 
 public:
+  using domain_type = typename _base::domain_type;
   using value_type = typename _base::value_type;
   using string_ref = typename _base::string_ref;
 
@@ -205,7 +208,7 @@ public:
   /***** KEEP THESE IN SYNC WITH STATUS_CODE *****/
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
   SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::is_domain_type_erasable_to<DomainType, value_type>::value))
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::domain_value_type_erasure_is_safe<erased<ErasedType>, DomainType>::value))
   errored_status_code(const status_code<DomainType> &v) noexcept
       : _base(v)  // NOLINT
   {
@@ -213,7 +216,7 @@ public:
   }
   //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
   SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::is_domain_type_erasable_to<DomainType, value_type>::value))
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::domain_value_type_erasure_is_safe<erased<ErasedType>, DomainType>::value))
   errored_status_code(const errored_status_code<DomainType> &v) noexcept
       : _base(static_cast<const status_code<DomainType> &>(v))  // NOLINT
   {
@@ -221,7 +224,7 @@ public:
   }
   //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying and it would fit into our storage
   SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::is_domain_type_erasable_to<DomainType, value_type>::value))
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::domain_value_type_erasure_is_safe<erased<ErasedType>, DomainType>::value))
   errored_status_code(status_code<DomainType> &&v) noexcept
       : _base(static_cast<status_code<DomainType> &&>(v))  // NOLINT
   {
@@ -229,7 +232,7 @@ public:
   }
   //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying and it would fit into our storage
   SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::is_domain_type_erasable_to<DomainType, value_type>::value))
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::domain_value_type_erasure_is_safe<erased<ErasedType>, DomainType>::value))
   errored_status_code(errored_status_code<DomainType> &&v) noexcept
       : _base(static_cast<status_code<DomainType> &&>(v))  // NOLINT
   {
