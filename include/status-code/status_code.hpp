@@ -650,11 +650,15 @@ public:
     {
       return;
     }
-    throw std::runtime_error("status_code: source domain's erased copy function returned failure or refusal");
+    struct _ final : public std::exception
+    {
+      virtual const char *what() const noexcept override { return "status_code: source domain's erased copy function returned failure or refusal"; }
+    };
+    throw _{};
   }
 #endif
   //! Tagged copy construction from an unknown status code. Note that this will be empty if its value type is not trivially copyable or would not fit into our storage or the source domain's `_do_erased_copy()` refused the copy.
-  SYSTEM_ERROR2_CONSTEXPR14 status_code(std::nothrow_t, const status_code<void> &v) noexcept  // NOLINT
+  SYSTEM_ERROR2_CONSTEXPR20 status_code(std::nothrow_t, const status_code<void> &v) noexcept  // NOLINT
       : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), value_type{})
   {
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
