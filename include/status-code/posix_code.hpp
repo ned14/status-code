@@ -35,6 +35,18 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
+// Fix for issue #48 Issue compiling on arm-none-eabi (newlib) with GNU extensions off
+#if !defined(__APPLE__) && !defined(_MSC_VER)
+namespace detail
+{
+  namespace avoid_stdio_include
+  {
+    // This returns int for non-glibc strerror_r, but glibc's is particularly weird so we retain it
+    extern "C" char *strerror_r(int errnum, char *buf, size_t buflen);
+  }  // namespace avoid_stdio_include
+}  // namespace detail
+#endif
+
 class _posix_code_domain;
 //! A POSIX error code, those returned by `errno`.
 using posix_code = status_code<_posix_code_domain>;
@@ -66,14 +78,14 @@ class _posix_code_domain : public status_code_domain
 #ifdef _WIN32
     strerror_s(buffer, sizeof(buffer), c);
 #elif defined(__gnu_linux__) && !defined(__ANDROID__)  // handle glibc's weird strerror_r()
-    char *s = strerror_r(c, buffer, sizeof(buffer));  // NOLINT
+    char *s = detail::avoid_stdio_include::strerror_r(c, buffer, sizeof(buffer));  // NOLINT
     if(s != nullptr)
     {
       strncpy(buffer, s, sizeof(buffer) - 1);  // NOLINT
       buffer[1023] = 0;
     }
 #else
-    strerror_r(c, buffer, sizeof(buffer));
+    detail::avoid_stdio_include::strerror_r(c, buffer, sizeof(buffer));
 #endif
     size_t length = strlen(buffer);                     // NOLINT
     auto *p = static_cast<char *>(malloc(length + 1));  // NOLINT
