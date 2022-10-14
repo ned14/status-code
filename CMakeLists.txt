@@ -186,6 +186,13 @@ if(NOT PROJECT_IS_DEPENDENCY)
     add_test(NAME test-result COMMAND $<TARGET_FILE:test-result>)
   endif()
 
+  add_executable(test-issue0050 "test/issue0050.cpp")
+  target_link_libraries(test-issue0050 PRIVATE status-code)
+  set_target_properties(test-issue0050 PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+  add_test(NAME test-issue0050 COMMAND $<TARGET_FILE:test-issue0050>)
+  
   add_executable(test-status-code "test/main.cpp")
   target_link_libraries(test-status-code PRIVATE status-code)
   set_target_properties(test-status-code PROPERTIES

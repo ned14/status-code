@@ -459,7 +459,7 @@ int main()
       int a[2];
     };
     status_code<erased<Foo2>> test1;
-    status_code<erased<Foo1>> test2(test1);
+    status_code<erased<Foo1>> test2(std::move(test1));
     (void) test2;
   }
 
