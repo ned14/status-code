@@ -565,7 +565,8 @@ SYSTEM_ERROR2_NAMESPACE_END
 #endif
 #include <cstring> // for strchr
 SYSTEM_ERROR2_NAMESPACE_BEGIN
-/*! The main workhorse of the system_error2 library, can be typed (`status_code<DomainType>`), erased-immutable (`status_code<void>`) or erased-mutable (`status_code<erased<T>>`).
+/*! The main workhorse of the system_error2 library, can be typed (`status_code<DomainType>`), erased-immutable (`status_code<void>`) or erased-mutable
+(`status_code<erased<T>>`).
 
 Be careful of placing these into containers! Equality and inequality operators are
 *semantic* not exact. Therefore two distinct items will test true! To help prevent
@@ -597,17 +598,33 @@ namespace detail
 #else
 #define SYSTEM_ERROR2_FAIL_CONSTEXPR(msg) ((void) msg, 1 / 0)
 #endif
-  constexpr inline unsigned long long parse_hex_byte(char c) { return ('0' <= c && c <= '9') ? (c - '0') : ('a' <= c && c <= 'f') ? (10 + c - 'a') : ('A' <= c && c <= 'F') ? (10 + c - 'A') : SYSTEM_ERROR2_FAIL_CONSTEXPR("Invalid character in UUID"); }
+  constexpr inline unsigned long long parse_hex_byte(char c)
+  {
+    return ('0' <= c && c <= '9') ? (c - '0') :
+           ('a' <= c && c <= 'f') ? (10 + c - 'a') :
+           ('A' <= c && c <= 'F') ? (10 + c - 'A') :
+                                    SYSTEM_ERROR2_FAIL_CONSTEXPR("Invalid character in UUID");
+  }
   constexpr inline unsigned long long parse_uuid2(const char *s)
   {
-    return ((parse_hex_byte(s[0]) << 0) | (parse_hex_byte(s[1]) << 4) | (parse_hex_byte(s[2]) << 8) | (parse_hex_byte(s[3]) << 12) | (parse_hex_byte(s[4]) << 16) | (parse_hex_byte(s[5]) << 20) | (parse_hex_byte(s[6]) << 24) | (parse_hex_byte(s[7]) << 28) | (parse_hex_byte(s[9]) << 32) | (parse_hex_byte(s[10]) << 36) |
-            (parse_hex_byte(s[11]) << 40) | (parse_hex_byte(s[12]) << 44) | (parse_hex_byte(s[14]) << 48) | (parse_hex_byte(s[15]) << 52) | (parse_hex_byte(s[16]) << 56) | (parse_hex_byte(s[17]) << 60)) //
+    return ((parse_hex_byte(s[0]) << 0) | (parse_hex_byte(s[1]) << 4) | (parse_hex_byte(s[2]) << 8) | (parse_hex_byte(s[3]) << 12) |
+            (parse_hex_byte(s[4]) << 16) | (parse_hex_byte(s[5]) << 20) | (parse_hex_byte(s[6]) << 24) | (parse_hex_byte(s[7]) << 28) |
+            (parse_hex_byte(s[9]) << 32) | (parse_hex_byte(s[10]) << 36) | (parse_hex_byte(s[11]) << 40) | (parse_hex_byte(s[12]) << 44) |
+            (parse_hex_byte(s[14]) << 48) | (parse_hex_byte(s[15]) << 52) | (parse_hex_byte(s[16]) << 56) | (parse_hex_byte(s[17]) << 60)) //
            ^ //
-           ((parse_hex_byte(s[19]) << 0) | (parse_hex_byte(s[20]) << 4) | (parse_hex_byte(s[21]) << 8) | (parse_hex_byte(s[22]) << 12) | (parse_hex_byte(s[24]) << 16) | (parse_hex_byte(s[25]) << 20) | (parse_hex_byte(s[26]) << 24) | (parse_hex_byte(s[27]) << 28) | (parse_hex_byte(s[28]) << 32) |
-            (parse_hex_byte(s[29]) << 36) | (parse_hex_byte(s[30]) << 40) | (parse_hex_byte(s[31]) << 44) | (parse_hex_byte(s[32]) << 48) | (parse_hex_byte(s[33]) << 52) | (parse_hex_byte(s[34]) << 56) | (parse_hex_byte(s[35]) << 60));
+           ((parse_hex_byte(s[19]) << 0) | (parse_hex_byte(s[20]) << 4) | (parse_hex_byte(s[21]) << 8) | (parse_hex_byte(s[22]) << 12) |
+            (parse_hex_byte(s[24]) << 16) | (parse_hex_byte(s[25]) << 20) | (parse_hex_byte(s[26]) << 24) | (parse_hex_byte(s[27]) << 28) |
+            (parse_hex_byte(s[28]) << 32) | (parse_hex_byte(s[29]) << 36) | (parse_hex_byte(s[30]) << 40) | (parse_hex_byte(s[31]) << 44) |
+            (parse_hex_byte(s[32]) << 48) | (parse_hex_byte(s[33]) << 52) | (parse_hex_byte(s[34]) << 56) | (parse_hex_byte(s[35]) << 60));
   }
-  template <size_t N> constexpr inline unsigned long long parse_uuid_from_array(const char (&uuid)[N]) { return (N == 37) ? parse_uuid2(uuid) : ((N == 39) ? parse_uuid2(uuid + 1) : SYSTEM_ERROR2_FAIL_CONSTEXPR("UUID does not have correct length")); }
-  template <size_t N> constexpr inline unsigned long long parse_uuid_from_pointer(const char *uuid) { return (N == 36) ? parse_uuid2(uuid) : ((N == 38) ? parse_uuid2(uuid + 1) : SYSTEM_ERROR2_FAIL_CONSTEXPR("UUID does not have correct length")); }
+  template <size_t N> constexpr inline unsigned long long parse_uuid_from_array(const char (&uuid)[N])
+  {
+    return (N == 37) ? parse_uuid2(uuid) : ((N == 39) ? parse_uuid2(uuid + 1) : SYSTEM_ERROR2_FAIL_CONSTEXPR("UUID does not have correct length"));
+  }
+  template <size_t N> constexpr inline unsigned long long parse_uuid_from_pointer(const char *uuid)
+  {
+    return (N == 36) ? parse_uuid2(uuid) : ((N == 38) ? parse_uuid2(uuid + 1) : SYSTEM_ERROR2_FAIL_CONSTEXPR("UUID does not have correct length"));
+  }
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
@@ -681,7 +698,8 @@ public:
     }
   public:
     //! Construct from a C string literal
-    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str, size_type len = static_cast<size_type>(-1), void *state0 = nullptr, void *state1 = nullptr, void *state2 = nullptr,
+    SYSTEM_ERROR2_CONSTEXPR14 explicit string_ref(const char *str, size_type len = static_cast<size_type>(-1), void *state0 = nullptr, void *state1 = nullptr,
+                                                  void *state2 = nullptr,
 #ifndef NDEBUG
                                                   _thunk_spec thunk = _checking_string_thunk
 #else
@@ -763,25 +781,55 @@ public:
       _begin = _end = nullptr;
     }
     //! Returns whether the reference is empty or not
-    SYSTEM_ERROR2_NODISCARD constexpr bool empty() const noexcept { return _begin == _end; }
+    SYSTEM_ERROR2_NODISCARD constexpr bool empty() const noexcept
+    {
+      return _begin == _end;
+    }
     //! Returns the size of the string
-    constexpr size_type size() const noexcept { return _end - _begin; }
+    constexpr size_type size() const noexcept
+    {
+      return _end - _begin;
+    }
     //! Returns a null terminated C string
-    constexpr const_pointer c_str() const noexcept { return _begin; }
+    constexpr const_pointer c_str() const noexcept
+    {
+      return _begin;
+    }
     //! Returns a null terminated C string
-    constexpr const_pointer data() const noexcept { return _begin; }
+    constexpr const_pointer data() const noexcept
+    {
+      return _begin;
+    }
     //! Returns the beginning of the string
-    SYSTEM_ERROR2_CONSTEXPR14 iterator begin() noexcept { return _begin; }
+    SYSTEM_ERROR2_CONSTEXPR14 iterator begin() noexcept
+    {
+      return _begin;
+    }
     //! Returns the beginning of the string
-    SYSTEM_ERROR2_CONSTEXPR14 const_iterator begin() const noexcept { return _begin; }
+    SYSTEM_ERROR2_CONSTEXPR14 const_iterator begin() const noexcept
+    {
+      return _begin;
+    }
     //! Returns the beginning of the string
-    constexpr const_iterator cbegin() const noexcept { return _begin; }
+    constexpr const_iterator cbegin() const noexcept
+    {
+      return _begin;
+    }
     //! Returns the end of the string
-    SYSTEM_ERROR2_CONSTEXPR14 iterator end() noexcept { return _end; }
+    SYSTEM_ERROR2_CONSTEXPR14 iterator end() noexcept
+    {
+      return _end;
+    }
     //! Returns the end of the string
-    SYSTEM_ERROR2_CONSTEXPR14 const_iterator end() const noexcept { return _end; }
+    SYSTEM_ERROR2_CONSTEXPR14 const_iterator end() const noexcept
+    {
+      return _end;
+    }
     //! Returns the end of the string
-    constexpr const_iterator cend() const noexcept { return _end; }
+    constexpr const_iterator cend() const noexcept
+    {
+      return _end;
+    }
   };
   /*! A reference counted, threadsafe reference to a message string.
    */
@@ -889,13 +937,25 @@ protected:
   ~status_code_domain() = default;
 public:
   //! True if the unique ids match.
-  constexpr bool operator==(const status_code_domain &o) const noexcept { return _id == o._id; }
+  constexpr bool operator==(const status_code_domain &o) const noexcept
+  {
+    return _id == o._id;
+  }
   //! True if the unique ids do not match.
-  constexpr bool operator!=(const status_code_domain &o) const noexcept { return _id != o._id; }
+  constexpr bool operator!=(const status_code_domain &o) const noexcept
+  {
+    return _id != o._id;
+  }
   //! True if this unique is lower than the other's unique id.
-  constexpr bool operator<(const status_code_domain &o) const noexcept { return _id < o._id; }
+  constexpr bool operator<(const status_code_domain &o) const noexcept
+  {
+    return _id < o._id;
+  }
   //! Returns the unique id used to identify identical category instances.
-  constexpr unique_id_type id() const noexcept { return _id; }
+  constexpr unique_id_type id() const noexcept
+  {
+    return _id;
+  }
   //! Name of this category.
   SYSTEM_ERROR2_CONSTEXPR20 virtual string_ref name() const noexcept = 0;
   //! Information about the payload of the code for this domain
@@ -928,9 +988,13 @@ protected:
   SYSTEM_ERROR2_NORETURN SYSTEM_ERROR2_CONSTEXPR20 virtual void _do_throw_exception(const status_code<void> &code) const = 0;
 #else
   // Keep a vtable slot for binary compatibility
-  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> & /*code*/) const { abort(); }
+  SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> & /*code*/) const
+  {
+    abort();
+  }
 #endif
-  // For a `status_code<erased<T>>` only, copy from `src` to `dst`. Default implementation uses `memcpy()`. You should return false here if your payload is not trivially copyable or would not fit.
+  // For a `status_code<erased<T>>` only, copy from `src` to `dst`. Default implementation uses `memcpy()`. You should return false here if your payload is not
+  // trivially copyable or would not fit.
   virtual bool _do_erased_copy(status_code<void> &dst, const status_code<void> &src, payload_info_t dstinfo) const
   {
     // Note that dst may not have its domain set
@@ -2886,14 +2950,16 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include <cstring> // for strchr and strerror_r
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 // Fix for issue #48 Issue compiling on arm-none-eabi (newlib) with GNU extensions off
-#if !defined(__APPLE__) && !defined(_MSC_VER)
+#ifdef __APPLE__
+#include <cstring>
+#elif !defined(_MSC_VER)
 namespace detail
 {
-  namespace avoid_stdio_include
+  namespace avoid_string_include
   {
     // This returns int for non-glibc strerror_r, but glibc's is particularly weird so we retain it
     extern "C" char *strerror_r(int errnum, char *buf, size_t buflen);
-  } // namespace avoid_stdio_include
+  } // namespace avoid_string_include
 } // namespace detail
 #endif
 class _posix_code_domain;
@@ -2921,14 +2987,16 @@ class _posix_code_domain : public status_code_domain
   {
     char buffer[1024] = "";
 #if defined(__gnu_linux__) && !defined(__ANDROID__) // handle glibc's weird strerror_r()
-    char *s = detail::avoid_stdio_include::strerror_r(c, buffer, sizeof(buffer)); // NOLINT
+    char *s = detail::avoid_string_include::strerror_r(c, buffer, sizeof(buffer)); // NOLINT
     if(s != nullptr)
     {
       strncpy(buffer, s, sizeof(buffer) - 1); // NOLINT
       buffer[1023] = 0;
     }
+#elif !defined(__APPLE__)
+    detail::avoid_string_include::strerror_r(c, buffer, sizeof(buffer));
 #else
-    detail::avoid_stdio_include::strerror_r(c, buffer, sizeof(buffer));
+    strerror_r(c, buffer, sizeof(buffer));
 #endif
     size_t length = strlen(buffer); // NOLINT
     auto *p = static_cast<char *>(malloc(length + 1)); // NOLINT
@@ -2955,8 +3023,15 @@ public:
   ~_posix_code_domain() = default;
   //! Constexpr singleton getter. Returns constexpr posix_code_domain variable.
   static inline constexpr const _posix_code_domain &get();
-  virtual string_ref name() const noexcept override { return string_ref("posix domain"); } // NOLINT
-  virtual payload_info_t payload_info() const noexcept override { return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type), (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)}; }
+  virtual string_ref name() const noexcept override
+  {
+    return string_ref("posix domain");
+  } // NOLINT
+  virtual payload_info_t payload_info() const noexcept override
+  {
+    return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
+            (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
+  }
 protected:
   virtual bool _do_failure(const status_code<void> &code) const noexcept override // NOLINT
   {
@@ -3011,7 +3086,10 @@ inline constexpr const _posix_code_domain &_posix_code_domain::get()
 }
 namespace mixins
 {
-  template <class Base> inline posix_code mixin<Base, _posix_code_domain>::current() noexcept { return posix_code(errno); }
+  template <class Base> inline posix_code mixin<Base, _posix_code_domain>::current() noexcept
+  {
+    return posix_code(errno);
+  }
 } // namespace mixins
 SYSTEM_ERROR2_NAMESPACE_END
 #endif

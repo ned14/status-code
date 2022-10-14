@@ -36,14 +36,16 @@ http://www.boost.org/LICENSE_1_0.txt)
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 // Fix for issue #48 Issue compiling on arm-none-eabi (newlib) with GNU extensions off
-#if !defined(__APPLE__) && !defined(_MSC_VER)
+#ifdef __APPLE__
+#include <cstring>
+#elif !defined(_MSC_VER)
 namespace detail
 {
-  namespace avoid_stdio_include
+  namespace avoid_string_include
   {
     // This returns int for non-glibc strerror_r, but glibc's is particularly weird so we retain it
     extern "C" char *strerror_r(int errnum, char *buf, size_t buflen);
-  }  // namespace avoid_stdio_include
+  }  // namespace avoid_string_include
 }  // namespace detail
 #endif
 
@@ -78,14 +80,16 @@ class _posix_code_domain : public status_code_domain
 #ifdef _WIN32
     strerror_s(buffer, sizeof(buffer), c);
 #elif defined(__gnu_linux__) && !defined(__ANDROID__)  // handle glibc's weird strerror_r()
-    char *s = detail::avoid_stdio_include::strerror_r(c, buffer, sizeof(buffer));  // NOLINT
+    char *s = detail::avoid_string_include::strerror_r(c, buffer, sizeof(buffer));  // NOLINT
     if(s != nullptr)
     {
       strncpy(buffer, s, sizeof(buffer) - 1);  // NOLINT
       buffer[1023] = 0;
     }
+#elif !defined(__APPLE__)
+    detail::avoid_string_include::strerror_r(c, buffer, sizeof(buffer));
 #else
-    detail::avoid_stdio_include::strerror_r(c, buffer, sizeof(buffer));
+    strerror_r(c, buffer, sizeof(buffer));
 #endif
     size_t length = strlen(buffer);                     // NOLINT
     auto *p = static_cast<char *>(malloc(length + 1));  // NOLINT
@@ -116,9 +120,16 @@ public:
   //! Constexpr singleton getter. Returns constexpr posix_code_domain variable.
   static inline constexpr const _posix_code_domain &get();
 
-  virtual string_ref name() const noexcept override { return string_ref("posix domain"); }  // NOLINT
+  virtual string_ref name() const noexcept override
+  {
+    return string_ref("posix domain");
+  }  // NOLINT
 
-  virtual payload_info_t payload_info() const noexcept override { return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type), (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)}; }
+  virtual payload_info_t payload_info() const noexcept override
+  {
+    return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
+            (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
+  }
 
 protected:
   virtual bool _do_failure(const status_code<void> &code) const noexcept override  // NOLINT
@@ -175,7 +186,10 @@ inline constexpr const _posix_code_domain &_posix_code_domain::get()
 
 namespace mixins
 {
-  template <class Base> inline posix_code mixin<Base, _posix_code_domain>::current() noexcept { return posix_code(errno); }
+  template <class Base> inline posix_code mixin<Base, _posix_code_domain>::current() noexcept
+  {
+    return posix_code(errno);
+  }
 }  // namespace mixins
 
 SYSTEM_ERROR2_NAMESPACE_END
