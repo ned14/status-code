@@ -30,7 +30,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
-/*! An erased `system_code` which is always a failure. The closest equivalent to
+/*! An errored `system_code` which is always a failure. The closest equivalent to
 `std::error_code`, except it cannot be null and cannot be modified.
 
 This refines `system_code` into an `error` object meeting the requirements of

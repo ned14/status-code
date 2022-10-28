@@ -219,9 +219,11 @@ public:
   {
     _check();
   }
-  //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage
+  //! Implicit copy construction from any other status code if its value type is trivially copyable and it would fit into our storage, and it is not an erased
+  //! status code.
   SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::domain_value_type_erasure_is_safe<erased<ErasedType>, DomainType>::value))
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(detail::domain_value_type_erasure_is_safe<erased<ErasedType>, DomainType>::value),
+                          SYSTEM_ERROR2_TPRED(!detail::is_erased_status_code<status_code<typename std::decay<DomainType>::type>>::value))
   errored_status_code(const errored_status_code<DomainType> &v) noexcept
       : _base(static_cast<const status_code<DomainType> &>(v))  // NOLINT
   {
