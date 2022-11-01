@@ -268,6 +268,7 @@ public:
   {
     _check();
   }
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   //! Explicit copy construction from an unknown status code. Note that this will be empty if its value type is not trivially copyable or would not fit into our
   //! storage or the source domain's `_do_erased_copy()` refused the copy.
   explicit errored_status_code(const status_code<void> &v)  // NOLINT
@@ -275,6 +276,7 @@ public:
   {
     _check();
   }
+#endif
 
   //! Always false (including at compile time), as errored status codes are never successful.
   constexpr bool success() const noexcept { return false; }
