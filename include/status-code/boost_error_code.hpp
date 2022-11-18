@@ -33,8 +33,12 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include "win32_code.hpp"
 #endif
 
+#include "std_error_code.hpp"
+
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
+
+#include <system_error>
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
@@ -120,9 +124,16 @@ public:
 
   static inline const _boost_error_code_domain *get(_error_code_type ec);
 
-  virtual string_ref name() const noexcept override { return string_ref(_name.c_str(), _name.size()); }  // NOLINT
+  virtual string_ref name() const noexcept override
+  {
+    return string_ref(_name.c_str(), _name.size());
+  }  // NOLINT
 
-  virtual payload_info_t payload_info() const noexcept override { return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type), (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)}; }
+  virtual payload_info_t payload_info() const noexcept override
+  {
+    return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
+            (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
+  }
 
 protected:
   virtual bool _do_failure(const status_code<void> &code) const noexcept override;
@@ -312,7 +323,15 @@ namespace boost
 {
   namespace system
   {
-    inline SYSTEM_ERROR2_NAMESPACE::boost_error_code make_status_code(error_code c) noexcept { return SYSTEM_ERROR2_NAMESPACE::boost_error_code(c); }
+    inline SYSTEM_ERROR2_NAMESPACE::status_code<SYSTEM_ERROR2_NAMESPACE::erased<int>> make_status_code(error_code c) noexcept
+    {
+      if(c.category() == detail::interop_category())
+      {
+        // This is actually a wrap of std::error_code. If this fails to compile, your Boost is too old.
+        return std::make_status_code(std::error_code(c));
+      }
+      return SYSTEM_ERROR2_NAMESPACE::boost_error_code(c);
+    }
   }  // namespace system
 }  // namespace boost
 

@@ -186,6 +186,16 @@ if(NOT PROJECT_IS_DEPENDENCY)
     add_test(NAME test-result COMMAND $<TARGET_FILE:test-result>)
   endif()
 
+  find_package(Boost COMPONENTS system)
+  if(Boost_FOUND)
+    add_executable(test-boost_error_code "test/boost_error_code.cpp")
+    target_link_libraries(test-boost_error_code PRIVATE status-code Boost::system)
+    set_target_properties(test-boost_error_code PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+    add_test(NAME test-boost_error_code COMMAND $<TARGET_FILE:test-boost_error_code>)
+  endif()
+  
   add_executable(test-issue0050 "test/issue0050.cpp")
   target_link_libraries(test-issue0050 PRIVATE status-code)
   set_target_properties(test-issue0050 PROPERTIES
