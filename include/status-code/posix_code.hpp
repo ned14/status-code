@@ -71,7 +71,7 @@ namespace mixins
 class _posix_code_domain : public status_code_domain
 {
   template <class DomainType> friend class status_code;
-  template <class StatusCode> friend class detail::indirecting_domain;
+  template <class StatusCode, class Allocator> friend class detail::indirecting_domain;
   using _base = status_code_domain;
 
   static _base::string_ref _make_string_ref(int c) noexcept
@@ -120,10 +120,7 @@ public:
   //! Constexpr singleton getter. Returns constexpr posix_code_domain variable.
   static inline constexpr const _posix_code_domain &get();
 
-  virtual string_ref name() const noexcept override
-  {
-    return string_ref("posix domain");
-  }  // NOLINT
+  virtual string_ref name() const noexcept override { return string_ref("posix domain"); }  // NOLINT
 
   virtual payload_info_t payload_info() const noexcept override
   {
