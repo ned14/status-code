@@ -26,7 +26,6 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define SYSTEM_ERROR2_ERRORED_STATUS_CODE_HPP
 
 #include "quick_status_code_from_enum.hpp"
-#include "status_code_ptr.hpp"
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 

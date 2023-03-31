@@ -23,6 +23,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 */
 
 #include "status-code/iostream_support.hpp"
+#include "status-code/nested_status_code.hpp"
 #include "status-code/system_error2.hpp"
 
 #include <cstdio>
@@ -45,7 +46,7 @@ int main()
 
   auto do_evil = [](posix_code c) -> system_code
   {
-    auto p = make_status_code_ptr(c);
+    auto p = make_nested_status_code(c);
     system_code c1 = std::move(p);
     return p;  // moved from, so empty
   };

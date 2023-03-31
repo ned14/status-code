@@ -29,6 +29,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #include "status-code/iostream_support.hpp"
+#include "status-code/nested_status_code.hpp"
 #include "status-code/std_error_code.hpp"
 #include "status-code/system_error2.hpp"
 
@@ -679,8 +680,8 @@ int main()
   }
 
 #ifndef SYSTEM_ERROR2_NOT_POSIX
-  // Test status_code_ptr
-  system_code success11(make_status_code_ptr(success9)), failure11(make_status_code_ptr(failure9));
+  // Test nested_status_code
+  system_code success11(make_nested_status_code(success9)), failure11(make_nested_status_code(failure9));
   printf("\n");
   printf("Indirected success code has domain %s value (%s) and errc::permission_denied == error = %d\n", success11.domain().name().c_str(),
          success11.message().c_str(), static_cast<int>(errc::permission_denied == success11));
