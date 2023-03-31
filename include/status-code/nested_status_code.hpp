@@ -137,7 +137,7 @@ namespace detail
       auto &d = static_cast<_mycode &>(dst);               // NOLINT
       const auto &_s = static_cast<const _mycode &>(src);  // NOLINT
       const payload_type &sp = *_s.value();
-      typename payload_allocator_traits::rebind_alloc<payload_type> payload_alloc(sp.alloc);
+      typename payload_allocator_traits::template rebind_alloc<payload_type> payload_alloc(sp.alloc);
       auto *dp = payload_allocator_traits::allocate(payload_alloc, 1);
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
       try
@@ -160,7 +160,7 @@ namespace detail
       assert(code.domain() == *this);
       auto &c = static_cast<_mycode &>(code);  // NOLINT
       payload_type *p = c.value();
-      typename payload_allocator_traits::rebind_alloc<payload_type> payload_alloc(p->alloc);
+      typename payload_allocator_traits::template rebind_alloc<payload_type> payload_alloc(p->alloc);
       payload_allocator_traits::destroy(payload_alloc, p);
       payload_allocator_traits::deallocate(payload_alloc, p, 1);
     }
@@ -189,7 +189,7 @@ inline status_code<detail::erased<typename std::add_pointer<typename std::decay<
   using status_code_type = typename std::decay<T>::type;
   using domain_type = detail::indirecting_domain<status_code_type, typename std::decay<Alloc>::type>;
   using payload_allocator_traits = typename domain_type::payload_allocator_traits;
-  typename payload_allocator_traits::rebind_alloc<typename domain_type::payload_type> payload_alloc(alloc);
+  typename payload_allocator_traits::template rebind_alloc<typename domain_type::payload_type> payload_alloc(alloc);
   auto *p = payload_allocator_traits::allocate(payload_alloc, 1);
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   try
