@@ -46,11 +46,11 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define strdup _strdup
 #endif
 
-#define CHECK(expr)                                                                                                                                                                                                                                                                                                            \
-  if(!(expr))                                                                                                                                                                                                                                                                                                                  \
-  {                                                                                                                                                                                                                                                                                                                            \
-    fprintf(stderr, #expr " failed at line %d\n", __LINE__);                                                                                                                                                                                                                                                                   \
-    retcode = 1;                                                                                                                                                                                                                                                                                                               \
+#define CHECK(expr)                                                                                                                                            \
+  if(!(expr))                                                                                                                                                  \
+  {                                                                                                                                                            \
+    fprintf(stderr, #expr " failed at line %d\n", __LINE__);                                                                                                   \
+    retcode = 1;                                                                                                                                               \
   }
 
 // An error coding with multiple success values
@@ -96,7 +96,8 @@ public:
         new(reinterpret_cast<shared_ptr_type *>(dest->_state)) shared_ptr_type(*reinterpret_cast<const shared_ptr_type *>(src->_state));  // NOLINT
         return;
       case _base::string_ref::_thunk_op::move:
-        new(reinterpret_cast<shared_ptr_type *>(dest->_state)) shared_ptr_type(std::move(*reinterpret_cast<shared_ptr_type *>(const_cast<void **>(src->_state))));  // NOLINT
+        new(reinterpret_cast<shared_ptr_type *>(dest->_state))
+        shared_ptr_type(std::move(*reinterpret_cast<shared_ptr_type *>(const_cast<void **>(src->_state))));  // NOLINT
         return;
       case _base::string_ref::_thunk_op::destruct:
       {
@@ -148,13 +149,18 @@ public:
     static string_ref v("Code_category_impl");
     return v;  // NOLINT
   }
-  virtual payload_info_t payload_info() const noexcept override { return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type), (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)}; }
+  virtual payload_info_t payload_info() const noexcept override
+  {
+    return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
+            (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
+  }
   virtual bool _do_failure(const system_error2::status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
     return (static_cast<size_t>(static_cast<const StatusCode &>(code).value()) & 1) != 0;  // NOLINT
   }
-  virtual bool _do_equivalent(const system_error2::status_code<void> &code1, const system_error2::status_code<void> &code2) const noexcept override final  // NOLINT
+  virtual bool _do_equivalent(const system_error2::status_code<void> &code1,
+                              const system_error2::status_code<void> &code2) const noexcept override final  // NOLINT
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const StatusCode &>(code1);  // NOLINT
@@ -310,7 +316,8 @@ template <> struct quick_status_code_from_enum<another_namespace::AnotherCode> :
     constexpr int custom_method() const { return 42; }
   };
 };
-template <> struct quick_status_code_from_enum<another_namespace::AnotherCodeWithPayload> : quick_status_code_from_enum_defaults<another_namespace::AnotherCodeWithPayload>
+template <>
+struct quick_status_code_from_enum<another_namespace::AnotherCodeWithPayload> : quick_status_code_from_enum_defaults<another_namespace::AnotherCodeWithPayload>
 {
   // Text name of the enum
   static constexpr const auto domain_name = "Another Code With Payload";
@@ -347,7 +354,8 @@ namespace another_namespace
     return c;
 #endif
   }
-  SYSTEM_ERROR2_CONSTEXPR14 inline SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCodeWithPayload> status_code(AnotherCodeWithPayload c)
+  SYSTEM_ERROR2_CONSTEXPR14 inline SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCodeWithPayload>
+  status_code(AnotherCodeWithPayload c)
   {
 #if __GNUC__ < 8
     return SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCodeWithPayload>(c);
@@ -392,16 +400,22 @@ int main()
   CHECK(!failure1.empty());
   CHECK(success1.success());
   CHECK(failure1.failure());
-  printf("generic_code empty has value %d (%s) is success %d is failure %d\n", static_cast<int>(empty1.value()), empty1.message().c_str(), static_cast<int>(empty1.success()), static_cast<int>(empty1.failure()));
-  printf("generic_code success has value %d (%s) is success %d is failure %d\n", static_cast<int>(success1.value()), success1.message().c_str(), static_cast<int>(success1.success()), static_cast<int>(success1.failure()));
-  printf("generic_code failure has value %d (%s) is success %d is failure %d\n", static_cast<int>(failure1.value()), failure1.message().c_str(), static_cast<int>(failure1.success()), static_cast<int>(failure1.failure()));
+  printf("generic_code empty has value %d (%s) is success %d is failure %d\n", static_cast<int>(empty1.value()), empty1.message().c_str(),
+         static_cast<int>(empty1.success()), static_cast<int>(empty1.failure()));
+  printf("generic_code success has value %d (%s) is success %d is failure %d\n", static_cast<int>(success1.value()), success1.message().c_str(),
+         static_cast<int>(success1.success()), static_cast<int>(success1.failure()));
+  printf("generic_code failure has value %d (%s) is success %d is failure %d\n", static_cast<int>(failure1.value()), failure1.message().c_str(),
+         static_cast<int>(failure1.success()), static_cast<int>(failure1.failure()));
 
   constexpr StatusCode empty2, success2(Code::success1), failure2(Code::goaway);
   CHECK(success2.success());
   CHECK(failure2.failure());
-  printf("\nStatusCode empty has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(empty2.value()), empty2.message().c_str(), static_cast<int>(empty2.success()), static_cast<int>(empty2.failure()));
-  printf("StatusCode success has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(success2.value()), success2.message().c_str(), static_cast<int>(success2.success()), static_cast<int>(success2.failure()));
-  printf("StatusCode failure has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(failure2.value()), failure2.message().c_str(), static_cast<int>(failure2.success()), static_cast<int>(failure2.failure()));
+  printf("\nStatusCode empty has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(empty2.value()), empty2.message().c_str(),
+         static_cast<int>(empty2.success()), static_cast<int>(empty2.failure()));
+  printf("StatusCode success has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(success2.value()), success2.message().c_str(),
+         static_cast<int>(success2.success()), static_cast<int>(success2.failure()));
+  printf("StatusCode failure has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(failure2.value()), failure2.message().c_str(),
+         static_cast<int>(failure2.success()), static_cast<int>(failure2.failure()));
 
   printf("\n(empty1 == empty2) = %d\n", static_cast<int>(empty1 == empty2));        // True, empty ec's always compare equal no matter the type
   printf("(success1 == success2) = %d\n", static_cast<int>(success1 == success2));  // True, success maps onto success
@@ -415,12 +429,16 @@ int main()
   CHECK(failure1 == failure2);
 
   // Test the quick enumeration facility
-  SYSTEM_ERROR2_CONSTEXPR14 quick_status_code_from_enum_code<another_namespace::AnotherCode> empty2a, success2a(another_namespace::AnotherCode::success1), failure2a(another_namespace::AnotherCode::goaway);
+  SYSTEM_ERROR2_CONSTEXPR14 quick_status_code_from_enum_code<another_namespace::AnotherCode> empty2a, success2a(another_namespace::AnotherCode::success1),
+  failure2a(another_namespace::AnotherCode::goaway);
   CHECK(success2a.success());
   CHECK(failure2a.failure());
-  printf("\nStatusCode empty has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(empty2a.value()), empty2a.message().c_str(), static_cast<int>(empty2a.success()), static_cast<int>(empty2a.failure()));
-  printf("StatusCode success has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(success2a.value()), success2a.message().c_str(), static_cast<int>(success2a.success()), static_cast<int>(success2a.failure()));
-  printf("StatusCode failure has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(failure2a.value()), failure2a.message().c_str(), static_cast<int>(failure2a.success()), static_cast<int>(failure2a.failure()));
+  printf("\nStatusCode empty has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(empty2a.value()), empty2a.message().c_str(),
+         static_cast<int>(empty2a.success()), static_cast<int>(empty2a.failure()));
+  printf("StatusCode success has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(success2a.value()), success2a.message().c_str(),
+         static_cast<int>(success2a.success()), static_cast<int>(success2a.failure()));
+  printf("StatusCode failure has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(failure2a.value()), failure2a.message().c_str(),
+         static_cast<int>(failure2a.success()), static_cast<int>(failure2a.failure()));
 
   printf("\n(empty1 == empty2) = %d\n", static_cast<int>(empty1 == empty2a));        // True, empty ec's always compare equal no matter the type
   printf("(success1 == success2) = %d\n", static_cast<int>(success1 == success2a));  // True, success maps onto success
@@ -437,13 +455,15 @@ int main()
   retcode += out_of_namespace_quick_status_code_test();
 
   // Test status code erasure
-  status_code<erased<int>> success3(success1), failure3(failure1);
+  erased_status_code<int> success3(success1), failure3(failure1);
   CHECK(success3.success());
   CHECK(success3.domain() == success1.domain());
   CHECK(failure3.failure());
   CHECK(failure3.domain() == failure1.domain());
-  printf("\nerased<int> success has value %d (%s) is success %d is failure %d\n", success3.value(), success3.message().c_str(), static_cast<int>(success3.success()), static_cast<int>(success3.failure()));
-  printf("erased<int> failure has value %d (%s) is success %d is failure %d\n", failure3.value(), failure3.message().c_str(), static_cast<int>(failure3.success()), static_cast<int>(failure3.failure()));
+  printf("\nerased<int> success has value %d (%s) is success %d is failure %d\n", success3.value(), success3.message().c_str(),
+         static_cast<int>(success3.success()), static_cast<int>(success3.failure()));
+  printf("erased<int> failure has value %d (%s) is success %d is failure %d\n", failure3.value(), failure3.message().c_str(),
+         static_cast<int>(failure3.success()), static_cast<int>(failure3.failure()));
   generic_code success4(success3), failure4(failure3);
   CHECK(success4.value() == success1.value());
   CHECK(success4.domain() == success1.domain());
@@ -458,8 +478,8 @@ int main()
     {
       int a[2];
     };
-    status_code<erased<Foo2>> test1;
-    status_code<erased<Foo1>> test2(std::move(test1));
+    erased_status_code<Foo2> test1;
+    erased_status_code<Foo1> test2(std::move(test1));
     (void) test2;
   }
 
@@ -496,8 +516,10 @@ int main()
   constexpr win32_code success5(0 /*ERROR_SUCCESS*/), failure5(0x5 /*ERROR_ACCESS_DENIED*/);
   CHECK(success5.success());
   CHECK(failure5.failure());
-  printf("\nWin32 code success has value %lu (%s) is success %d is failure %d\n", success5.value(), success5.message().c_str(), static_cast<int>(success5.success()), static_cast<int>(success5.failure()));
-  printf("Win32 code failure has value %lu (%s) is success %d is failure %d\n", failure5.value(), failure5.message().c_str(), static_cast<int>(failure5.success()), static_cast<int>(failure5.failure()));
+  printf("\nWin32 code success has value %lu (%s) is success %d is failure %d\n", success5.value(), success5.message().c_str(),
+         static_cast<int>(success5.success()), static_cast<int>(success5.failure()));
+  printf("Win32 code failure has value %lu (%s) is success %d is failure %d\n", failure5.value(), failure5.message().c_str(),
+         static_cast<int>(failure5.success()), static_cast<int>(failure5.failure()));
   CHECK(success5 == errc::success);
   CHECK(failure5 == errc::permission_denied);
   CHECK(failure5 == failure1);
@@ -519,8 +541,10 @@ int main()
   constexpr nt_code success7(1 /* positive */), failure7(0xC0000022 /*STATUS_ACCESS_DENIED*/);
   CHECK(success7.success());
   CHECK(failure7.failure());
-  printf("\nNT code success has value %ld (%s) is success %d is failure %d\n", success7.value(), success7.message().c_str(), static_cast<int>(success7.success()), static_cast<int>(success7.failure()));
-  printf("NT code warning has value %ld (%s) is success %d is failure %d\n", failure7.value(), failure7.message().c_str(), static_cast<int>(failure7.success()), static_cast<int>(failure7.failure()));
+  printf("\nNT code success has value %ld (%s) is success %d is failure %d\n", success7.value(), success7.message().c_str(),
+         static_cast<int>(success7.success()), static_cast<int>(success7.failure()));
+  printf("NT code warning has value %ld (%s) is success %d is failure %d\n", failure7.value(), failure7.message().c_str(), static_cast<int>(failure7.success()),
+         static_cast<int>(failure7.failure()));
   CHECK(success7 == errc::success);
   CHECK(failure7 == errc::permission_denied);
   CHECK(failure7 == failure1);
@@ -537,14 +561,16 @@ int main()
   {
     // Does com_code correctly handle a wrapped Win32 error code?
     com_code win32failure(HRESULT_FROM_WIN32(0x5 /*ERROR_ACCESS_DENIED*/));
-    printf("\nCOM code win32 failure has value %ld (%s) is success %d is failure %d\n", win32failure.value(), win32failure.message().c_str(), static_cast<int>(win32failure.success()), static_cast<int>(win32failure.failure()));
+    printf("\nCOM code win32 failure has value %ld (%s) is success %d is failure %d\n", win32failure.value(), win32failure.message().c_str(),
+           static_cast<int>(win32failure.success()), static_cast<int>(win32failure.failure()));
     CHECK(win32failure == errc::permission_denied);
     CHECK(win32failure == failure5);
     CHECK(win32failure == failure7);
 
     // Does com_code correctly handle a wrapped Win32 error code?
     com_code ntfailure(HRESULT_FROM_NT(0xC0000022 /*STATUS_ACCESS_DENIED*/));
-    printf("COM code nt failure has value %ld (%s) is success %d is failure %d\n", ntfailure.value(), ntfailure.message().c_str(), static_cast<int>(ntfailure.success()), static_cast<int>(ntfailure.failure()));
+    printf("COM code nt failure has value %ld (%s) is success %d is failure %d\n", ntfailure.value(), ntfailure.message().c_str(),
+           static_cast<int>(ntfailure.success()), static_cast<int>(ntfailure.failure()));
     CHECK(ntfailure == errc::permission_denied);
     CHECK(ntfailure == failure5);
     CHECK(ntfailure == failure7);
@@ -562,7 +588,8 @@ int main()
     {
       auto &c = i.first;
       auto &e = i.second;
-      printf("COM code common has value %ld (%s) is success %d is failure %d\n", c.value(), c.message().c_str(), static_cast<int>(c.success()), static_cast<int>(c.failure()));
+      printf("COM code common has value %ld (%s) is success %d is failure %d\n", c.value(), c.message().c_str(), static_cast<int>(c.success()),
+             static_cast<int>(c.failure()));
       CHECK(c == e);
     }
   }
@@ -578,8 +605,10 @@ int main()
   constexpr posix_code success9(0), failure9(EACCES);
   CHECK(success9.success());
   CHECK(failure9.failure());
-  printf("\nPOSIX code success has value %d (%s) is success %d is failure %d\n", success9.value(), success9.message().c_str(), static_cast<int>(success9.success()), static_cast<int>(success9.failure()));
-  printf("POSIX code failure has value %d (%s) is success %d is failure %d\n", failure9.value(), failure9.message().c_str(), static_cast<int>(failure9.success()), static_cast<int>(failure9.failure()));
+  printf("\nPOSIX code success has value %d (%s) is success %d is failure %d\n", success9.value(), success9.message().c_str(),
+         static_cast<int>(success9.success()), static_cast<int>(success9.failure()));
+  printf("POSIX code failure has value %d (%s) is success %d is failure %d\n", failure9.value(), failure9.message().c_str(),
+         static_cast<int>(failure9.success()), static_cast<int>(failure9.failure()));
   CHECK(success9 == errc::success);
   CHECK(failure9 == errc::permission_denied);
   CHECK(failure9 == failure1);
@@ -595,7 +624,8 @@ int main()
   printf("\n");
   for(size_t n = 0; n < sizeof(errors) / sizeof(errors[0]); n++)
   {
-    printf("error[%zu] has domain %s value %zd (%s) and errc::permission_denied == error = %d\n", n, errors[n].domain().name().c_str(), errors[n].value(), errors[n].message().c_str(), static_cast<int>(errc::permission_denied == errors[n]));
+    printf("error[%zu] has domain %s value %zd (%s) and errc::permission_denied == error = %d\n", n, errors[n].domain().name().c_str(), errors[n].value(),
+           errors[n].message().c_str(), static_cast<int>(errc::permission_denied == errors[n]));
     CHECK(errors[n] == errc::permission_denied);
   }
 
@@ -614,12 +644,15 @@ int main()
   StatusCode adl1(ADLHelper1{}), adl2(ADLHelper1{}, ADLHelper2{});
   CHECK(adl1.value() == Code::success1);
   CHECK(adl2.value() == Code::goaway);
-  status_code<erased<int>> adl3(ADLHelper1{}), adl4(ADLHelper1{}, ADLHelper2{});
+  erased_status_code<int> adl3(ADLHelper1{}), adl4(ADLHelper1{}, ADLHelper2{});
   CHECK(adl3.value() == static_cast<int>(Code::success1));
   CHECK(adl4.value() == static_cast<int>(Code::goaway));
   system_code adl5(errc::no_link);
   CHECK(adl5.value() == static_cast<int>(errc::no_link));
-  (void) []()->generic_code { return errc::no_link; }
+  (void) []()->generic_code
+  {
+    return errc::no_link;
+  }
   ();
 
   // Test std_error_code
@@ -628,7 +661,8 @@ int main()
   for(size_t n = 0; n < sizeof(error_codes) / sizeof(error_codes[0]); n++)
   {
     std_error_code ec(error_codes[n]);
-    printf("error_code[%zu] has domain %s value (%s) and errc::permission_denied == error = %d\n", n, ec.domain().name().c_str(), ec.message().c_str(), static_cast<int>(errc::permission_denied == ec));
+    printf("error_code[%zu] has domain %s value (%s) and errc::permission_denied == error = %d\n", n, ec.domain().name().c_str(), ec.message().c_str(),
+           static_cast<int>(errc::permission_denied == ec));
     CHECK(n != 0 || ec == errc::permission_denied);
   }
   system_code ec1(error_codes[0]), ec2(error_codes[1]);
@@ -640,15 +674,18 @@ int main()
       system_code::value_type _system_code;
       char bytes[16];
     };
-    static_assert(std::is_constructible<status_code<erased<error_info>>, std::error_code>::value, "An erased status code is not constructible from a std::error_code");
+    static_assert(std::is_constructible<erased_status_code<error_info>, std::error_code>::value,
+                  "An erased status code is not constructible from a std::error_code");
   }
 
 #ifndef SYSTEM_ERROR2_NOT_POSIX
   // Test status_code_ptr
   system_code success11(make_status_code_ptr(success9)), failure11(make_status_code_ptr(failure9));
   printf("\n");
-  printf("Indirected success code has domain %s value (%s) and errc::permission_denied == error = %d\n", success11.domain().name().c_str(), success11.message().c_str(), static_cast<int>(errc::permission_denied == success11));
-  printf("Indirected failure code has domain %s value (%s) and errc::permission_denied == error = %d\n", failure11.domain().name().c_str(), failure11.message().c_str(), static_cast<int>(errc::permission_denied == failure11));
+  printf("Indirected success code has domain %s value (%s) and errc::permission_denied == error = %d\n", success11.domain().name().c_str(),
+         success11.message().c_str(), static_cast<int>(errc::permission_denied == success11));
+  printf("Indirected failure code has domain %s value (%s) and errc::permission_denied == error = %d\n", failure11.domain().name().c_str(),
+         failure11.message().c_str(), static_cast<int>(errc::permission_denied == failure11));
   CHECK(*get_if<posix_code>(&success11) == success9);
   CHECK(get_if<StatusCode>(&success11) == nullptr);
   CHECK(get_id(success11) == success9.domain().id());

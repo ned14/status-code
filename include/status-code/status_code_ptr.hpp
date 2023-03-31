@@ -62,7 +62,11 @@ namespace detail
 
     virtual string_ref name() const noexcept override { return typename StatusCode::domain_type().name(); }  // NOLINT
 
-    virtual payload_info_t payload_info() const noexcept override { return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type), (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)}; }
+    virtual payload_info_t payload_info() const noexcept override
+    {
+      return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
+              (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
+    }
 
   protected:
     using _mycode = status_code<indirecting_domain>;
@@ -123,7 +127,10 @@ namespace detail
   };
 #if __cplusplus >= 201402L || defined(_MSC_VER)
   template <class StatusCode> constexpr indirecting_domain<StatusCode> _indirecting_domain{};
-  template <class StatusCode> inline constexpr const indirecting_domain<StatusCode> &indirecting_domain<StatusCode>::get() { return _indirecting_domain<StatusCode>; }
+  template <class StatusCode> inline constexpr const indirecting_domain<StatusCode> &indirecting_domain<StatusCode>::get()
+  {
+    return _indirecting_domain<StatusCode>;
+  }
 #endif
 }  // namespace detail
 
@@ -134,7 +141,7 @@ function is compatible. Note that this function can throw due to `bad_alloc`.
 */
 SYSTEM_ERROR2_TEMPLATE(class T)
 SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<T>::value))  //
-inline status_code<erased<typename std::add_pointer<typename std::decay<T>::type>::type>> make_status_code_ptr(T &&v)
+inline status_code<detail::erased<typename std::add_pointer<typename std::decay<T>::type>::type>> make_status_code_ptr(T &&v)
 {
   using status_code_type = typename std::decay<T>::type;
   return status_code<detail::indirecting_domain<status_code_type>>(in_place, new status_code_type(static_cast<T &&>(v)));
@@ -144,7 +151,7 @@ inline status_code<erased<typename std::add_pointer<typename std::decay<T>::type
 code of type `StatusCode`, return a pointer to that `StatusCode`. Otherwise return null.
 */
 SYSTEM_ERROR2_TEMPLATE(class StatusCode, class U)
-SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<StatusCode>::value)) inline StatusCode *get_if(status_code<erased<U>> *v) noexcept
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<StatusCode>::value)) inline StatusCode *get_if(status_code<detail::erased<U>> *v) noexcept
 {
   if((0xc44f7bdeb2cc50e9 ^ typename StatusCode::domain_type().id()) != v->domain().id())
   {
@@ -161,7 +168,7 @@ SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<StatusCode>::value)) 
 //! \overload Const overload
 SYSTEM_ERROR2_TEMPLATE(class StatusCode, class U)
 SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<StatusCode>::value))
-inline const StatusCode *get_if(const status_code<erased<U>> *v) noexcept
+inline const StatusCode *get_if(const status_code<detail::erased<U>> *v) noexcept
 {
   if((0xc44f7bdeb2cc50e9 ^ typename StatusCode::domain_type().id()) != v->domain().id())
   {
@@ -179,7 +186,7 @@ inline const StatusCode *get_if(const status_code<erased<U>> *v) noexcept
 /*! If a status code refers to a `status_code_ptr`, return the id of the erased
 status code's domain. Otherwise return a meaningless number.
 */
-template <class U> inline typename status_code_domain::unique_id_type get_id(const status_code<erased<U>> &v) noexcept
+template <class U> inline typename status_code_domain::unique_id_type get_id(const status_code<detail::erased<U>> &v) noexcept
 {
   return 0xc44f7bdeb2cc50e9 ^ v.domain().id();
 }
