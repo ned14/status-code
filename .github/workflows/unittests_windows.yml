@@ -13,6 +13,10 @@ jobs:
   WinVS2019:
     name: Windows VS2019
     runs-on: windows-2019
+    strategy:
+      fail-fast: false
+      matrix:
+        standard: [14, 20]
           
     steps:
     - uses: actions/checkout@v2
@@ -20,10 +24,8 @@ jobs:
     - name: CMake build tests Windows
       shell: bash
       run: |
-       mkdir build
-       cd build
-       cmake ..
-       cmake --build . --config Release
+       cmake -S . -B build -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
+       cmake --build build --config Release
       
     - name: CMake run tests Windows
       shell: bash
