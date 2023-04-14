@@ -90,6 +90,7 @@ foreach(source
     "include/status-code/config.hpp"
     "include/status-code/error.hpp"
     "include/status-code/errored_status_code.hpp"
+    "include/status-code/fmt_support.hpp"
     "include/status-code/generic_code.hpp"
     "include/status-code/getaddrinfo_code.hpp"
     "include/status-code/http_status_code.hpp"
@@ -233,6 +234,13 @@ if(NOT PROJECT_IS_DEPENDENCY)
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   )
   add_test(NAME test-status-code-p0709a COMMAND $<TARGET_FILE:test-status-code-p0709a>)
+
+  add_executable(test-cxx20-format "test/format.cpp")
+  target_link_libraries(test-cxx20-format PRIVATE status-code)
+  set_target_properties(test-cxx20-format PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+  add_test(NAME test-cxx20-format COMMAND $<TARGET_FILE:test-cxx20-format>)
   
   if(WIN32)
     add_executable(generate-tables "utils/generate-tables.cpp")

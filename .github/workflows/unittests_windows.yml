@@ -30,6 +30,7 @@ jobs:
       run: |
         cd build
         bin/Release/test-result
+        bin/Release/test-cxx20-format
         bin/Release/test-status-code
         bin/Release/test-status-code-noexcept
         bin/Release/test-status-code-not-posix
