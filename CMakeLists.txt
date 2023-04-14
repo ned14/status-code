@@ -3,10 +3,12 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 project(status-code VERSION 1.0 LANGUAGES CXX)
 include(GNUInstallDirs)
 enable_testing()
-if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  set(PROJECT_IS_DEPENDENCY OFF)
-else()
-  set(PROJECT_IS_DEPENDENCY ON)
+if (NOT DEFINED PROJECT_IS_DEPENDENCY) # don't override cache variables
+  if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(PROJECT_IS_DEPENDENCY OFF)
+  else()
+    set(PROJECT_IS_DEPENDENCY ON)
+  endif()
 endif()
 
 # On MSVC very annoyingly cmake puts /EHsc into the global flags which means you
