@@ -11,8 +11,8 @@ on:
 
 jobs:
   Linux:
-    name: Ubuntu 18.04
-    runs-on: ubuntu-18.04
+    name: Ubuntu 22.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
