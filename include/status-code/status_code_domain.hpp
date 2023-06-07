@@ -292,8 +292,8 @@ public:
       auto dest = static_cast<atomic_refcounted_string_ref *>(_dest);      // NOLINT
       auto src = static_cast<const atomic_refcounted_string_ref *>(_src);  // NOLINT
       (void) src;
-      assert(dest->_thunk == _refcounted_string_thunk);                   // NOLINT
-      assert(src == nullptr || src->_thunk == _refcounted_string_thunk);  // NOLINT
+      assert(dest->_thunk == _refcounted_string_thunk);                    // NOLINT
+      assert(src == nullptr || src->_thunk == _refcounted_string_thunk);   // NOLINT
       switch(op)
       {
       case _thunk_op::copy:
@@ -446,10 +446,10 @@ protected:
     return true;
   }  // NOLINT
   // For a `status_code<erased<T>>` only, destroy the erased value type. Default implementation does nothing.
-  SYSTEM_ERROR2_CONSTEXPR20 virtual void _do_erased_destroy(status_code<void> &code, size_t bytes) const noexcept  // NOLINT
+  SYSTEM_ERROR2_CONSTEXPR20 virtual void _do_erased_destroy(status_code<void> &code, payload_info_t info) const noexcept  // NOLINT
   {
     (void) code;
-    (void) bytes;
+    (void) info;
   }
 };
 

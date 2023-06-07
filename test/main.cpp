@@ -54,6 +54,18 @@ http://www.boost.org/LICENSE_1_0.txt)
     retcode = 1;                                                                                                                                               \
   }
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+template <class T> struct is_literal_type
+{
+  static constexpr bool value = std::is_literal_type<T>::value;
+};
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
 // An error coding with multiple success values
 enum class Code : size_t
 {
@@ -137,7 +149,7 @@ public:
       auto p = std::make_shared<std::string>(str, len);
       new(reinterpret_cast<shared_ptr_type *>(this->_state)) shared_ptr_type(p);  // NOLINT
       this->_begin = p->data();
-      this->_end = p->data() + p->size();  // NOLINT
+      this->_end = p->data() + p->size();                                         // NOLINT
     }
   };
   constexpr Code_domain_impl() noexcept
@@ -237,7 +249,7 @@ public:
       return v;  // NOLINT
     }
     }
-    return string_ref{};  // NOLINT
+    return string_ref{};                                                                               // NOLINT
   }
   virtual void _do_throw_exception(const system_error2::status_code<void> &code) const override final  // NOLINT
   {
@@ -409,6 +421,7 @@ int main()
          static_cast<int>(failure1.success()), static_cast<int>(failure1.failure()));
 
   constexpr StatusCode empty2, success2(Code::success1), failure2(Code::goaway);
+  static_assert(is_literal_type<StatusCode>::value, "StatusCode is not a literal type!");
   CHECK(success2.success());
   CHECK(failure2.failure());
   printf("\nStatusCode empty has value %zu (%s) is success %d is failure %d\n", static_cast<size_t>(empty2.value()), empty2.message().c_str(),
@@ -457,6 +470,7 @@ int main()
 
   // Test status code erasure
   erased_status_code<int> success3(success1), failure3(failure1);
+  static_assert(is_literal_type<erased_status_code<int>>::value, "erased_status_code<int> is not a literal type!");
   CHECK(success3.success());
   CHECK(success3.domain() == success1.domain());
   CHECK(failure3.failure());
@@ -655,6 +669,7 @@ int main()
     return errc::no_link;
   }
   ();
+  static_assert(is_literal_type<system_code>::value, "system_code is not a literal type!");
 
   // Test std_error_code
   std::error_code error_codes[] = {make_error_code(std::errc::permission_denied), {ERANGE, std::generic_category()}};
@@ -707,6 +722,9 @@ int main()
           }
         }());
 #endif
+
+  // Ensure errored status code is literal
+  static_assert(is_literal_type<error>::value, "error is not a literal type!");
 
   printf("\nExiting tests with code %d\n", retcode);
   return retcode;

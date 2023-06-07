@@ -67,7 +67,7 @@ namespace detail
     {
     }
     indirecting_domain(const indirecting_domain &) = default;
-    indirecting_domain(indirecting_domain &&) = default;  // NOLINT
+    indirecting_domain(indirecting_domain &&) = default;             // NOLINT
     indirecting_domain &operator=(const indirecting_domain &) = default;
     indirecting_domain &operator=(indirecting_domain &&) = default;  // NOLINT
     ~indirecting_domain() = default;
@@ -122,7 +122,7 @@ namespace detail
       assert(code.domain() == *this);
       const auto &c = static_cast<const _mycode &>(code);  // NOLINT
       typename StatusCode::domain_type()._do_throw_exception(c.value()->sc);
-      abort();  // suppress buggy GCC warning
+      abort();                                             // suppress buggy GCC warning
     }
 #endif
     virtual bool _do_erased_copy(status_code<void> &dst, const status_code<void> &src, payload_info_t dstinfo) const override  // NOLINT
@@ -144,7 +144,7 @@ namespace detail
 #endif
       {
         payload_allocator_traits::construct(payload_alloc, dp, sp.sc, sp.alloc);
-        new(&d) _mycode(in_place, dp);
+        new(std::addressof(d)) _mycode(in_place, dp);
       }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
       catch(...)
@@ -155,7 +155,7 @@ namespace detail
 #endif
       return true;
     }
-    virtual void _do_erased_destroy(status_code<void> &code, size_t /*unused*/) const noexcept override  // NOLINT
+    virtual void _do_erased_destroy(status_code<void> &code, payload_info_t /*unused*/) const noexcept override  // NOLINT
     {
       assert(code.domain() == *this);
       auto &c = static_cast<_mycode &>(code);  // NOLINT

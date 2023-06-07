@@ -963,10 +963,10 @@ protected:
     return true;
   } // NOLINT
   // For a `status_code<erased<T>>` only, destroy the erased value type. Default implementation does nothing.
-  SYSTEM_ERROR2_CONSTEXPR20 virtual void _do_erased_destroy(status_code<void> &code, size_t bytes) const noexcept // NOLINT
+  SYSTEM_ERROR2_CONSTEXPR20 virtual void _do_erased_destroy(status_code<void> &code, payload_info_t info) const noexcept // NOLINT
   {
     (void) code;
-    (void) bytes;
+    (void) info;
   }
 };
 SYSTEM_ERROR2_NAMESPACE_END
@@ -1264,18 +1264,18 @@ namespace detail
     {
       this->_value.~value_type();
       this->_domain = nullptr;
-      new(&this->_value) value_type();
+      new(std::addressof(this->_value)) value_type();
     }
 #if __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
     //! Return a reference to the `value_type`.
-    constexpr value_type &value() &noexcept { return this->_value; }
+    constexpr value_type &value() & noexcept { return this->_value; }
     //! Return a reference to the `value_type`.
-    constexpr value_type &&value() &&noexcept { return static_cast<value_type &&>(this->_value); }
+    constexpr value_type &&value() && noexcept { return static_cast<value_type &&>(this->_value); }
 #endif
     //! Return a reference to the `value_type`.
-    constexpr const value_type &value() const &noexcept { return this->_value; }
+    constexpr const value_type &value() const & noexcept { return this->_value; }
     //! Return a reference to the `value_type`.
-    constexpr const value_type &&value() const &&noexcept { return static_cast<const value_type &&>(this->_value); }
+    constexpr const value_type &&value() const && noexcept { return static_cast<const value_type &&>(this->_value); }
   protected:
     status_code_storage() = default;
     status_code_storage(const status_code_storage &) = default;
@@ -1484,7 +1484,8 @@ public:
   {
     if(nullptr != this->_domain)
     {
-      this->_domain->_do_erased_destroy(*this, sizeof(*this));
+      status_code_domain::payload_info_t info{sizeof(value_type), sizeof(status_code), alignof(status_code)};
+      this->_domain->_do_erased_destroy(*this, info);
     }
   }
   //! Return a copy of the erased code by asking the domain to perform the erased copy.
@@ -1517,6 +1518,13 @@ public:
   SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept // NOLINT
       : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), detail::erasure_cast<value_type>(v.value()))
   {
+    union
+    {
+      int a;
+      typename DomainType::value_type b;
+    };
+    new(std::addressof(b)) typename DomainType::value_type(static_cast<status_code<DomainType> &&>(v).value());
+    // deliberately do not destruct b
     v._domain = nullptr;
   }
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.

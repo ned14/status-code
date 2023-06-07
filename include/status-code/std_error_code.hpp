@@ -188,7 +188,7 @@ namespace detail
         }
         if(ret == nullptr && count < max_items)
         {
-          ret = new(&items[count++].domain) _std_error_code_domain(category);
+          ret = new(std::addressof(items[count++].domain)) _std_error_code_domain(category);
         }
         unlock();
         return ret;
