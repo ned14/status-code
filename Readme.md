@@ -1,10 +1,10 @@
 # Reference implementation for proposed SG14 `status_code` (`<system_error2>`) in C++ 11
 
-(C) 2018 - 2020 Niall Douglas [http://www.nedproductions.biz/](http://www.nedproductions.biz/)
+(C) 2018 - 2021 Niall Douglas [http://www.nedproductions.biz/](http://www.nedproductions.biz/)
 Please send feedback to the SG14 study group mailing list at [https://lists.isocpp.org/mailman/listinfo.cgi/sg14/](https://lists.isocpp.org/mailman/listinfo.cgi/sg14/).
 
 Docs: [https://ned14.github.io/status-code/](https://ned14.github.io/status-code/)
-(reference API docs are at bottom of page) Linux: [![Build Status](https://travis-ci.org/ned14/status-code.svg?branch=master)](https://travis-ci.org/ned14/status-code) Windows: [![Build status](https://ci.appveyor.com/api/projects/status/doyh9rol1gupcwd0/branch/master?svg=true)](https://ci.appveyor.com/project/ned14/status-code/branch/master)
+(reference API docs are at bottom of page) Linux: [![Build Status](https://github.com/ned14/status-code/workflows/Unit%20tests%20Linux/badge.svg?branch=master)](https://github.com/ned14/status-code/actions) Windows: [![Build status](https://github.com/ned14/status-code/workflows/Unit%20tests%20Windows/badge.svg?branch=master)](https://github.com/ned14/status-code/actions)
 
 Solves the problems for low latency/large code base users with `<system_error>`
 as listed by [WG21 P0824](https://wg21.link/P0824). This proposed `<system_error2>`
@@ -149,14 +149,14 @@ struct quick_status_code_from_enum&lt;another_namespace::AnotherCode&gt;
   static constexpr const auto domain_uuid = "{be201f65-3962-dd0e-1266-a72e63776a42}";
 
   // Map of each enum value to its text string, and list of semantically equivalent errc's
-  static const std::initializer_list<mapping> &value_mappings()
+  static const std::initializer_list&lt;mapping&lg; &value_mappings()
   {
     static const std::initializer_list&lt;mapping&gt; v = {
     // Format is: { enum value, "string representation", { list of errc mappings ... } }
-    {AnotherCode::success1, "Success 1", {errc::success}},        //
-    {AnotherCode::goaway, "Go away", {errc::permission_denied}},  //
-    {AnotherCode::success2, "Success 2", {errc::success}},        //
-    {AnotherCode::error2, "Error 2", {}},                         //
+    {another_namespace::AnotherCode::success1, "Success 1", {errc::success}},             //
+    {another_namespace::AnotherCode::goaway, "Go away", {errc::permission_denied}},       //
+    {another_namespace::AnotherCode::success2, "Success 2", {errc::success}},             //
+    {another_namespace::AnotherCode::error2, "Error 2", {errc::function_not_supported}},  //
     };
     return v;
   }
@@ -178,7 +178,7 @@ namespace another_namespace
 {
   // ADL discovered, must be in same namespace as AnotherCode
   constexpr inline
-  SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode>
+  SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code&lt;another_namespace::AnotherCode&gt;
   status_code(AnotherCode c) { return c; }
 }  // namespace another_namespace
 
@@ -189,8 +189,8 @@ assert(v.value() == another_namespace::AnotherCode::error2);
 assert(v.custom_method() == 42);
 
 // If you don't need custom methods, just use system_code, all erased
-// status codes recognise quick_status_code_from_enum<Enum>
-SYSTEM_ERROR2_NAMESPACE::system_code v2(another_namespace::AnotherCode::error2)
+// status codes recognise quick_status_code_from_enum&lt;Enum&gt;
+SYSTEM_ERROR2_NAMESPACE::system_code v2(another_namespace::AnotherCode::error2);
 </code></pre>
 
 

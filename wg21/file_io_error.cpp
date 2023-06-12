@@ -25,7 +25,8 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>  // for sprintf
 
-#include "system_error2.hpp"
+#include "status-code/nested_status_code.hpp"
+#include "status-code/system_error2.hpp"
 
 
 using namespace SYSTEM_ERROR2_NAMESPACE;
@@ -42,7 +43,7 @@ a specific piece of code, or library. In our case, `file_io_error`
 will be lightweight and deterministic by being trivially copyable.
 
 We secondly will tell the type system that an implicit conversion
-between `file_io_error` and `error` exists via `make_status_code_ptr()`.
+between `file_io_error` and `error` exists via `make_nested_status_code()`.
 This bundles the `file_io_error` instance into dynamically allocated
 memory, and returns an `error` instance referring to that.
 
@@ -83,7 +84,10 @@ public:
   };
 
   // unique id must be from a hard random number source
-  constexpr explicit _file_io_error_domain(typename _base::unique_id_type id = 0x230f170194fcc6c7) noexcept : _base(id) {}
+  constexpr explicit _file_io_error_domain(typename _base::unique_id_type id = 0x230f170194fcc6c7) noexcept
+      : _base(id)
+  {
+  }
   static inline constexpr const _file_io_error_domain &get();
 
   // Return the name of our custom code domain
@@ -140,7 +144,7 @@ inline constexpr const _file_io_error_domain &_file_io_error_domain::get()
 // is guaranteed to do nothing.
 inline system_code make_status_code(file_io_error v)
 {
-  // `make_status_code_ptr()` dynamically allocates memory to store an
+  // `make_nested_status_code()` dynamically allocates memory to store an
   // instance of `file_io_error`, then returns a status code whose domain
   // specifies that its value type is a pointer to `file_io_error`. The
   // domain is a templated instance which indirects all observers of the
@@ -150,8 +154,8 @@ inline system_code make_status_code(file_io_error v)
   // by definition fits into `intptr_t` and is trivially copyable.
   // Therefore `system_code` (which is also a type alias to
   // `status_code<erased<intptr_t>>`) is happy to implicitly construct
-  // from the status code returned by `make_status_code_ptr()`.
-  return make_status_code_ptr(std::move(v));
+  // from the status code returned by `make_nested_status_code()`.
+  return make_nested_status_code(std::move(v));
 }
 
 

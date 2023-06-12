@@ -1,0 +1,43 @@
+name: Unit tests Linux
+
+on:
+  push:
+    branches:
+    - develop
+    - master
+  pull_request:
+  schedule:
+  - cron: '0 0 1 * *'
+
+jobs:
+  Linux:
+    name: Ubuntu 22.04
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [clang++, g++]
+        standard: [11, 20]
+    env:
+      CXX: ${{ matrix.compiler }}
+          
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: CMake build tests Linux
+      shell: bash
+      run: |
+       mkdir build
+       cd build
+       cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS="-fno-omit-frame-pointer -fsanitize=undefined" -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=undefined -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
+       cmake --build .
+      
+    - name: CMake run tests Linux
+      shell: bash
+      run: |
+        cd build
+        bin/test-result
+        bin/test-status-code
+        bin/test-status-code-noexcept
+        bin/test-status-code-not-posix
+        bin/test-status-code-p0709a

@@ -1,0 +1,36 @@
+name: Unit tests Windows
+
+on:
+  push:
+    branches:
+    - develop
+    - master
+  pull_request:
+  schedule:
+  - cron: '0 0 1 * *'
+
+jobs:
+  WinVS2019:
+    name: Windows VS2019
+    runs-on: windows-2019
+          
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: CMake build tests Windows
+      shell: bash
+      run: |
+       mkdir build
+       cd build
+       cmake ..
+       cmake --build . --config Release
+      
+    - name: CMake run tests Windows
+      shell: bash
+      run: |
+        cd build
+        bin/Release/test-result
+        bin/Release/test-status-code
+        bin/Release/test-status-code-noexcept
+        bin/Release/test-status-code-not-posix
+        bin/Release/test-status-code-p0709a

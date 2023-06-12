@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 project(status-code VERSION 1.0 LANGUAGES CXX)
+include(GNUInstallDirs)
 enable_testing()
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(PROJECT_IS_DEPENDENCY OFF)
@@ -76,33 +77,68 @@ endif()
 
 add_library(status-code INTERFACE)
 target_compile_features(status-code INTERFACE cxx_std_11)
-target_include_directories(status-code INTERFACE "include")
-target_sources(status-code INTERFACE
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/com_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/config.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/error.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/errored_status_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/generic_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/getaddrinfo_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/iostream_support.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/nt_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/posix_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/result.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/status_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/status_code_domain.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/status_code_ptr.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/status_error.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/std_error_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/system_code.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/system_error2.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/win32_code.hpp"
+target_include_directories(status-code INTERFACE
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>"
 )
+foreach(source 
+    "include/status-code/detail/nt_code_to_generic_code.ipp"
+    "include/status-code/detail/nt_code_to_win32_code.ipp"
+    "include/status-code/detail/win32_code_to_generic_code.ipp"
+    "include/status-code/boost_error_code.hpp"
+    "include/status-code/com_code.hpp"
+    "include/status-code/config.hpp"
+    "include/status-code/error.hpp"
+    "include/status-code/errored_status_code.hpp"
+    "include/status-code/generic_code.hpp"
+    "include/status-code/getaddrinfo_code.hpp"
+    "include/status-code/http_status_code.hpp"
+    "include/status-code/iostream_support.hpp"
+    "include/status-code/nested_status_code.hpp"
+    "include/status-code/nt_code.hpp"
+    "include/status-code/posix_code.hpp"
+    "include/status-code/quick_status_code_from_enum.hpp"
+    "include/status-code/result.hpp"
+    "include/status-code/status_code.hpp"
+    "include/status-code/status_code_domain.hpp"
+    "include/status-code/status_error.hpp"
+    "include/status-code/std_error_code.hpp"
+    "include/status-code/system_code.hpp"
+    "include/status-code/system_code_from_exception.hpp"
+    "include/status-code/system_error2.hpp"
+    "include/status-code/win32_code.hpp"
+  )
+  target_sources(status-code INTERFACE
+    "$<INSTALL_INTERFACE:${source}>"
+  )
+  get_filename_component(dir ${source} DIRECTORY)
+  install(FILES "${source}"
+    DESTINATION "${dir}"
+  )
+endforeach()
 
-#export(
-#  TARGETS status-code
-#  FILE "StatusCodeTargets.cmake"
-#  EXPORT_LINK_INTERFACE_LIBRARIES
-#)
+install(TARGETS status-code
+        EXPORT status-codeExports
+        INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+)
+set_target_properties(status-code PROPERTIES EXPORT_NAME hl)
+
+configure_file(
+  "${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectConfig.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  @ONLY
+)
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+)
+install(EXPORT status-codeExports
+  NAMESPACE status-code::
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/status-code"
+)
 
 if(NOT PROJECT_IS_DEPENDENCY)
   include(FindPythonInterp)
@@ -111,22 +147,31 @@ if(NOT PROJECT_IS_DEPENDENCY)
     message(WARNING "NOT rebuilding preprocessed edition of library due to python not being installed")
   else()
     # See if the ply package is installed so pcpp can run
-    execute_process(COMMAND python -c "import pcpp" RESULT_VARIABLE python_has_pcpp)
+    execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c "import pcpp" RESULT_VARIABLE python_has_pcpp)
     if(NOT python_has_pcpp EQUAL 0)
       message(WARNING "NOT rebuilding preprocessed edition of library due to installed python not having the pcpp package installed. "
         "Do '(sudo) pip install pcpp' to fix.")
     else()
       add_custom_target(status-code-pp 
         pcpp -o "${CMAKE_CURRENT_SOURCE_DIR}/single-header/system_error2.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/system_error2.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/status-code/system_error2.hpp"
         --passthru-defines --passthru-unfound-includes --passthru-unknown-exprs
         --passthru-comments --line-directive --compress # --debug
         -U STANDARDESE_IS_IN_THE_HOUSE
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         COMMENT "Preprocessing ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}.hpp into ${CMAKE_CURRENT_SOURCE_DIR}/single-header/${PROJECT_NAME}.hpp ..."
       )
+      add_custom_target(status-code-nowindows-pp 
+        pcpp -o "${CMAKE_CURRENT_SOURCE_DIR}/single-header/system_error2-nowindows.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/status-code/system_error2.hpp"
+        --passthru-defines --passthru-unfound-includes --passthru-unknown-exprs
+        --passthru-comments --line-directive --compress # --debug
+        -U STANDARDESE_IS_IN_THE_HOUSE -U _WIN32
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMENT "Preprocessing ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}.hpp into ${CMAKE_CURRENT_SOURCE_DIR}/single-header/${PROJECT_NAME}-nowindows.hpp ..."
+      )
       if(NOT CMAKE_VERSION VERSION_LESS 3.3)
-        add_dependencies(status-code status-code-pp)
+        add_dependencies(status-code status-code-pp status-code-nowindows-pp)
       endif()
     endif()
   endif()
@@ -141,6 +186,23 @@ if(NOT PROJECT_IS_DEPENDENCY)
     add_test(NAME test-result COMMAND $<TARGET_FILE:test-result>)
   endif()
 
+  find_package(Boost COMPONENTS system)
+  if(Boost_FOUND)
+    add_executable(test-boost_error_code "test/boost_error_code.cpp")
+    target_link_libraries(test-boost_error_code PRIVATE status-code Boost::system)
+    set_target_properties(test-boost_error_code PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+    add_test(NAME test-boost_error_code COMMAND $<TARGET_FILE:test-boost_error_code>)
+  endif()
+  
+  add_executable(test-issue0050 "test/issue0050.cpp")
+  target_link_libraries(test-issue0050 PRIVATE status-code)
+  set_target_properties(test-issue0050 PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+  add_test(NAME test-issue0050 COMMAND $<TARGET_FILE:test-issue0050>)
+  
   add_executable(test-status-code "test/main.cpp")
   target_link_libraries(test-status-code PRIVATE status-code)
   set_target_properties(test-status-code PROPERTIES
@@ -179,4 +241,23 @@ if(NOT PROJECT_IS_DEPENDENCY)
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
   endif()
+
+  # Compile examples
+  add_executable(example-quick_status_code_from_enum "example/quick_status_code_from_enum.cpp")
+  target_link_libraries(example-quick_status_code_from_enum PRIVATE status-code)
+  set_target_properties(example-quick_status_code_from_enum PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+  add_executable(example-thrown_exception "example/thrown_exception.cpp")
+  target_link_libraries(example-thrown_exception PRIVATE status-code)
+  set_target_properties(example-thrown_exception PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+  target_compile_features(example-thrown_exception PRIVATE cxx_std_17)
+  add_executable(example-file_io_error "wg21/file_io_error.cpp")
+  target_link_libraries(example-file_io_error PRIVATE status-code)
+  set_target_properties(example-file_io_error PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+  
 endif()

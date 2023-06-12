@@ -293,7 +293,7 @@ namespace detail
 class _generic_code_domain : public status_code_domain
 {
   template <class> friend class status_code;
-  template <class StatusCode> friend class detail::indirecting_domain;
+  template <class StatusCode, class Allocator> friend class detail::indirecting_domain;
   using _base = status_code_domain;
 
 public:
@@ -317,6 +317,13 @@ public:
   static inline constexpr const _generic_code_domain &get();
 
   virtual _base::string_ref name() const noexcept override { return string_ref("generic domain"); }  // NOLINT
+
+  virtual payload_info_t payload_info() const noexcept override
+  {
+    return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
+            (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
+  }
+
 protected:
   virtual bool _do_failure(const status_code<void> &code) const noexcept override  // NOLINT
   {
@@ -372,7 +379,7 @@ SYSTEM_ERROR2_CONSTEXPR14 inline generic_code make_status_code(errc c) noexcept
 /*************************************************************************************************************/
 
 
-template <class T> inline bool status_code<void>::equivalent(const status_code<T> &o) const noexcept
+template <class T> inline SYSTEM_ERROR2_CONSTEXPR14 bool status_code<void>::equivalent(const status_code<T> &o) const noexcept
 {
   if(_domain && o._domain)
   {
@@ -399,44 +406,50 @@ template <class T> inline bool status_code<void>::equivalent(const status_code<T
   return (!_domain && !o._domain);
 }
 //! True if the status code's are semantically equal via `equivalent()`.
-template <class DomainType1, class DomainType2> inline bool operator==(const status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
+template <class DomainType1, class DomainType2>
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator==(const status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
 {
   return a.equivalent(b);
 }
 //! True if the status code's are not semantically equal via `equivalent()`.
-template <class DomainType1, class DomainType2> inline bool operator!=(const status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
+template <class DomainType1, class DomainType2>
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator!=(const status_code<DomainType1> &a, const status_code<DomainType2> &b) noexcept
 {
   return !a.equivalent(b);
 }
 //! True if the status code's are semantically equal via `equivalent()` to `make_status_code(T)`.
-template <class DomainType1, class T,                                                                       //
-          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type,  // Safe ADL lookup of make_status_code(), returns void if not found
-          typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true>          // ADL makes a status code
-inline bool operator==(const status_code<DomainType1> &a, const T &b)
+SYSTEM_ERROR2_TEMPLATE(class DomainType1, class T,  //
+                       class MakeStatusCodeResult =
+                       typename detail::safe_get_make_status_code_result<const T &>::type)  // Safe ADL lookup of make_status_code(), returns void if not found
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<MakeStatusCodeResult>::value))   // ADL makes a status code
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator==(const status_code<DomainType1> &a, const T &b)
 {
   return a.equivalent(make_status_code(b));
 }
 //! True if the status code's are semantically equal via `equivalent()` to `make_status_code(T)`.
-template <class T, class DomainType1,                                                                       //
-          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type,  // Safe ADL lookup of make_status_code(), returns void if not found
-          typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true>          // ADL makes a status code
-inline bool operator==(const T &a, const status_code<DomainType1> &b)
+SYSTEM_ERROR2_TEMPLATE(class T, class DomainType1,  //
+                       class MakeStatusCodeResult =
+                       typename detail::safe_get_make_status_code_result<const T &>::type)  // Safe ADL lookup of make_status_code(), returns void if not found
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<MakeStatusCodeResult>::value))   // ADL makes a status code
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator==(const T &a, const status_code<DomainType1> &b)
 {
   return b.equivalent(make_status_code(a));
 }
 //! True if the status code's are not semantically equal via `equivalent()` to `make_status_code(T)`.
-template <class DomainType1, class T,                                                                       //
-          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type,  // Safe ADL lookup of make_status_code(), returns void if not found
-          typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true>          // ADL makes a status code
-inline bool operator!=(const status_code<DomainType1> &a, const T &b)
+SYSTEM_ERROR2_TEMPLATE(class DomainType1, class T,  //
+                       class MakeStatusCodeResult =
+                       typename detail::safe_get_make_status_code_result<const T &>::type)  // Safe ADL lookup of make_status_code(), returns void if not found
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<MakeStatusCodeResult>::value))   // ADL makes a status code
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator!=(const status_code<DomainType1> &a, const T &b)
 {
   return !a.equivalent(make_status_code(b));
 }
 //! True if the status code's are semantically equal via `equivalent()` to `make_status_code(T)`.
-template <class T, class DomainType1,                                                                       //
-          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<const T &>::type,  // Safe ADL lookup of make_status_code(), returns void if not found
-          typename std::enable_if<is_status_code<MakeStatusCodeResult>::value, bool>::type = true>          // ADL makes a status code
-inline bool operator!=(const T &a, const status_code<DomainType1> &b)
+SYSTEM_ERROR2_TEMPLATE(class T, class DomainType1,  //
+                       class MakeStatusCodeResult =
+                       typename detail::safe_get_make_status_code_result<const T &>::type)  // Safe ADL lookup of make_status_code(), returns void if not found
+SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_status_code<MakeStatusCodeResult>::value))   // ADL makes a status code
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator!=(const T &a, const status_code<DomainType1> &b)
 {
   return !b.equivalent(make_status_code(a));
 }
@@ -444,7 +457,7 @@ inline bool operator!=(const T &a, const status_code<DomainType1> &b)
 template <class DomainType1, class T,                                                     //
           class QuickStatusCodeType = typename quick_status_code_from_enum<T>::code_type  // Enumeration has been activated
           >
-inline bool operator==(const status_code<DomainType1> &a, const T &b)
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator==(const status_code<DomainType1> &a, const T &b)
 {
   return a.equivalent(QuickStatusCodeType(b));
 }
@@ -452,7 +465,7 @@ inline bool operator==(const status_code<DomainType1> &a, const T &b)
 template <class T, class DomainType1,                                                     //
           class QuickStatusCodeType = typename quick_status_code_from_enum<T>::code_type  // Enumeration has been activated
           >
-inline bool operator==(const T &a, const status_code<DomainType1> &b)
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator==(const T &a, const status_code<DomainType1> &b)
 {
   return b.equivalent(QuickStatusCodeType(a));
 }
@@ -460,7 +473,7 @@ inline bool operator==(const T &a, const status_code<DomainType1> &b)
 template <class DomainType1, class T,                                                     //
           class QuickStatusCodeType = typename quick_status_code_from_enum<T>::code_type  // Enumeration has been activated
           >
-inline bool operator!=(const status_code<DomainType1> &a, const T &b)
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator!=(const status_code<DomainType1> &a, const T &b)
 {
   return !a.equivalent(QuickStatusCodeType(b));
 }
@@ -468,7 +481,7 @@ inline bool operator!=(const status_code<DomainType1> &a, const T &b)
 template <class T, class DomainType1,                                                     //
           class QuickStatusCodeType = typename quick_status_code_from_enum<T>::code_type  // Enumeration has been activated
           >
-inline bool operator!=(const T &a, const status_code<DomainType1> &b)
+SYSTEM_ERROR2_CONSTEXPR14 inline bool operator!=(const T &a, const status_code<DomainType1> &b)
 {
   return !b.equivalent(QuickStatusCodeType(a));
 }

@@ -30,7 +30,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
-/*! An erased `system_code` which is always a failure. The closest equivalent to
+/*! An errored `system_code` which is always a failure. The closest equivalent to
 `std::error_code`, except it cannot be null and cannot be modified.
 
 This refines `system_code` into an `error` object meeting the requirements of
@@ -47,7 +47,7 @@ the program is terminated as this is a logic error)
 As with `system_code`, it remains guaranteed to be two CPU registers in size,
 and move bitcopying.
 */
-using error = errored_status_code<erased<system_code::value_type>>;
+using error = erased_errored_status_code<system_code::value_type>;
 
 #ifndef NDEBUG
 static_assert(sizeof(error) == 2 * sizeof(void *), "error is not exactly two pointers in size!");

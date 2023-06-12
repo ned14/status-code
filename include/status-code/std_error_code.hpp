@@ -1,5 +1,5 @@
 /* Proposed SG14 status_code
-(C) 2018 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
+(C) 2018 - 2021 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
 File Created: Aug 2018
 
 
@@ -61,7 +61,7 @@ namespace mixins
 class _std_error_code_domain final : public status_code_domain
 {
   template <class DomainType> friend class status_code;
-  template <class StatusCode> friend class detail::indirecting_domain;
+  template <class StatusCode, class Allocator> friend class detail::indirecting_domain;
   using _base = status_code_domain;
   using _error_code_type = std::error_code;
   using _error_category_type = std::error_category;
@@ -70,7 +70,9 @@ class _std_error_code_domain final : public status_code_domain
 
   static _base::string_ref _make_string_ref(_error_code_type c) noexcept
   {
+#if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
     try
+#endif
     {
       std::string msg = c.message();
       auto *p = static_cast<char *>(malloc(msg.size() + 1));  // NOLINT
@@ -81,10 +83,12 @@ class _std_error_code_domain final : public status_code_domain
       memcpy(p, msg.c_str(), msg.size() + 1);
       return _base::atomic_refcounted_string_ref(p, msg.size());
     }
+#if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
     catch(...)
     {
       return _base::string_ref("failed to allocate message");
     }
+#endif
   }
 
 public:
@@ -116,6 +120,13 @@ public:
   static inline const _std_error_code_domain *get(_error_code_type ec);
 
   virtual string_ref name() const noexcept override { return string_ref(_name.c_str(), _name.size()); }  // NOLINT
+
+  virtual payload_info_t payload_info() const noexcept override
+  {
+    return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
+            (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
+  }
+
 protected:
   virtual bool _do_failure(const status_code<void> &code) const noexcept override;
   virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override;
@@ -134,7 +145,8 @@ namespace detail
     static struct storage_t
     {
       std::atomic<unsigned> _lock;
-      union item_t {
+      union item_t
+      {
         int _init;
         _std_error_code_domain domain;
         constexpr item_t()
@@ -176,7 +188,7 @@ namespace detail
         }
         if(ret == nullptr && count < max_items)
         {
-          ret = new(&items[count++].domain) _std_error_code_domain(category);
+          ret = new(std::addressof(items[count++].domain)) _std_error_code_domain(category);
         }
         unlock();
         return ret;
@@ -264,7 +276,18 @@ inline generic_code _std_error_code_domain::_generic_code(const status_code<void
   assert(code.domain() == *this);
   const auto &c = static_cast<const std_error_code &>(code);  // NOLINT
   // Ask my embedded error code for its mapping to std::errc, which is a subset of our generic_code errc.
-  return generic_code(static_cast<errc>(c.category().default_error_condition(c.value()).value()));
+  std::error_condition cond(c.category().default_error_condition(c.value()));
+  if(cond.category() == std::generic_category())
+  {
+    return generic_code(static_cast<errc>(cond.value()));
+  }
+#if !defined(SYSTEM_ERROR2_NOT_POSIX) && !defined(_WIN32)
+  if(cond.category() == std::system_category())
+  {
+    return generic_code(static_cast<errc>(cond.value()));
+  }
+#endif
+  return errc::unknown;
 }
 
 inline _std_error_code_domain::string_ref _std_error_code_domain::_do_message(const status_code<void> &code) const noexcept
@@ -290,7 +313,10 @@ SYSTEM_ERROR2_NAMESPACE_END
 // Enable implicit construction of `std_error_code` from `std::error_code`.
 namespace std
 {
-  inline SYSTEM_ERROR2_NAMESPACE::std_error_code make_status_code(error_code c) noexcept { return SYSTEM_ERROR2_NAMESPACE::std_error_code(c); }
+  inline SYSTEM_ERROR2_NAMESPACE::std_error_code make_status_code(error_code c) noexcept
+  {
+    return SYSTEM_ERROR2_NAMESPACE::std_error_code(c);
+  }
 }  // namespace std
 
 #endif

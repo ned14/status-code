@@ -1,5 +1,5 @@
 /* Proposed SG14 status_code
-(C) 2018 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
+(C) 2018 - 2022 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
 File Created: Feb 2018
 
 
@@ -32,11 +32,11 @@ http://www.boost.org/LICENSE_1_0.txt)
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 /*! Exception type representing a thrown status_code
-*/
+ */
 template <class DomainType> class status_error;
 
 /*! The erased type edition of status_error.
-*/
+ */
 template <> class status_error<void> : public std::exception
 {
 protected:
@@ -53,19 +53,27 @@ protected:
   //! Destructor. Not publicly available.
   ~status_error() override = default;
 
+  virtual const status_code<void> &_do_code() const noexcept = 0;
+
 public:
   //! The type of the status domain
   using domain_type = void;
   //! The type of the status code
   using status_code_type = status_code<void>;
+
+public:
+  //! The erased status code which generated this exception instance.
+  const status_code<void> &code() const noexcept { return _do_code(); }
 };
 
 /*! Exception type representing a thrown status_code
-*/
+ */
 template <class DomainType> class status_error : public status_error<void>
 {
   status_code<DomainType> _code;
   typename DomainType::string_ref _msgref;
+
+  virtual const status_code<void> &_do_code() const noexcept override final { return _code; }
 
 public:
   //! The type of the status domain
@@ -76,6 +84,41 @@ public:
   //! Constructs an instance
   explicit status_error(status_code<DomainType> code)
       : _code(static_cast<status_code<DomainType> &&>(code))
+      , _msgref(_code.message())
+  {
+  }
+
+  //! Return an explanatory string
+  virtual const char *what() const noexcept override { return _msgref.c_str(); }  // NOLINT
+
+  //! Returns a reference to the code
+  const status_code_type &code() const & { return _code; }
+  //! Returns a reference to the code
+  status_code_type &code() & { return _code; }
+  //! Returns a reference to the code
+  const status_code_type &&code() const && { return _code; }
+  //! Returns a reference to the code
+  status_code_type &&code() && { return _code; }
+};
+
+/*! Exception type representing a thrown erased status_code
+ */
+template <class ErasedType> class status_error<detail::erased<ErasedType>> : public status_error<void>
+{
+  status_code<detail::erased<ErasedType>> _code;
+  typename status_code_domain::string_ref _msgref;
+
+  virtual const status_code<detail::erased<ErasedType>> &_do_code() const noexcept override final { return _code; }
+
+public:
+  //! The type of the status domain
+  using domain_type = void;
+  //! The type of the status code
+  using status_code_type = status_code<detail::erased<ErasedType>>;
+
+  //! Constructs an instance
+  explicit status_error(status_code<detail::erased<ErasedType>> code)
+      : _code(static_cast<status_code<detail::erased<ErasedType>> &&>(code))
       , _msgref(_code.message())
   {
   }

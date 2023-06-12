@@ -41,18 +41,26 @@ namespace win32
   // Used to retrieve the current Win32 error code
   extern DWORD __stdcall GetLastError();
   // Used to retrieve a locale-specific message string for some error code
-  extern DWORD __stdcall FormatMessageW(DWORD dwFlags, const void *lpSource, DWORD dwMessageId, DWORD dwLanguageId, wchar_t *lpBuffer, DWORD nSize, void /*va_list*/ *Arguments);
+  extern DWORD __stdcall FormatMessageW(DWORD dwFlags, const void *lpSource, DWORD dwMessageId, DWORD dwLanguageId, wchar_t *lpBuffer, DWORD nSize,
+                                        void /*va_list*/ *Arguments);
   // Converts UTF-16 message string to UTF-8
-  extern int __stdcall WideCharToMultiByte(unsigned int CodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, int cchWideChar, char *lpMultiByteStr, int cbMultiByte, const char *lpDefaultChar, int *lpUsedDefaultChar);
+  extern int __stdcall WideCharToMultiByte(unsigned int CodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, int cchWideChar, char *lpMultiByteStr,
+                                           int cbMultiByte, const char *lpDefaultChar, int *lpUsedDefaultChar);
 #pragma comment(lib, "kernel32.lib")
-#if defined(_WIN64)
+#if(defined(__x86_64__) || defined(_M_X64)) || (defined(__aarch64__) || defined(_M_ARM64))
 #pragma comment(linker, "/alternatename:?GetLastError@win32@system_error2@@YAKXZ=GetLastError")
 #pragma comment(linker, "/alternatename:?FormatMessageW@win32@system_error2@@YAKKPEBXKKPEA_WKPEAX@Z=FormatMessageW")
 #pragma comment(linker, "/alternatename:?WideCharToMultiByte@win32@system_error2@@YAHIKPEB_WHPEADHPEBDPEAH@Z=WideCharToMultiByte")
+#elif defined(__x86__) || defined(_M_IX86) || defined(__i386__)
+#pragma comment(linker, "/alternatename:?GetLastError@win32@system_error2@@YGKXZ=_GetLastError@0")
+#pragma comment(linker, "/alternatename:?FormatMessageW@win32@system_error2@@YGKKPBXKKPA_WKPAX@Z=_FormatMessageW@28")
+#pragma comment(linker, "/alternatename:?WideCharToMultiByte@win32@system_error2@@YGHIKPB_WHPADHPBDPAH@Z=_WideCharToMultiByte@32")
+#elif defined(__arm__) || defined(_M_ARM)
+#pragma comment(linker, "/alternatename:?GetLastError@win32@system_error2@@YAKXZ=GetLastError")
+#pragma comment(linker, "/alternatename:?FormatMessageW@win32@system_error2@@YAKKPBXKKPA_WKPAX@Z=FormatMessageW")
+#pragma comment(linker, "/alternatename:?WideCharToMultiByte@win32@system_error2@@YAHIKPB_WHPADHPBDPAH@Z=WideCharToMultiByte")
 #else
-#pragma comment(linker, "/alternatename:?GetLastError@win32@system_error2@@YGKXZ=__imp__GetLastError@0")
-#pragma comment(linker, "/alternatename:?FormatMessageW@win32@system_error2@@YGKKPBXKKPA_WKPAX@Z=__imp__FormatMessageW@28")
-#pragma comment(linker, "/alternatename:?WideCharToMultiByte@win32@system_error2@@YGHIKPB_WHPADHPBDPAH@Z=__imp__WideCharToMultiByte@32")
+#error Unknown architecture
 #endif
 }  // namespace win32
 
@@ -79,7 +87,7 @@ namespace mixins
 class _win32_code_domain : public status_code_domain
 {
   template <class DomainType> friend class status_code;
-  template <class StatusCode> friend class detail::indirecting_domain;
+  template <class StatusCode, class Allocator> friend class detail::indirecting_domain;
   friend class _com_code_domain;
   using _base = status_code_domain;
   static int _win32_code_to_errno(win32::DWORD c)
@@ -96,7 +104,8 @@ class _win32_code_domain : public status_code_domain
   static _base::string_ref _make_string_ref(win32::DWORD c) noexcept
   {
     wchar_t buffer[32768];
-    win32::DWORD wlen = win32::FormatMessageW(0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, nullptr, c, 0, buffer, 32768, nullptr);
+    win32::DWORD wlen =
+    win32::FormatMessageW(0x00001000 /*FORMAT_MESSAGE_FROM_SYSTEM*/ | 0x00000200 /*FORMAT_MESSAGE_IGNORE_INSERTS*/, nullptr, c, 0, buffer, 32768, nullptr);
     size_t allocation = wlen + (wlen >> 1);
     win32::DWORD bytes;
     if(wlen == 0)
@@ -152,6 +161,13 @@ public:
   static inline constexpr const _win32_code_domain &get();
 
   virtual string_ref name() const noexcept override { return string_ref("win32 domain"); }  // NOLINT
+
+  virtual payload_info_t payload_info() const noexcept override
+  {
+    return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
+            (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
+  }
+
 protected:
   virtual bool _do_failure(const status_code<void> &code) const noexcept override  // NOLINT
   {
@@ -207,7 +223,10 @@ inline constexpr const _win32_code_domain &_win32_code_domain::get()
 
 namespace mixins
 {
-  template <class Base> inline win32_code mixin<Base, _win32_code_domain>::current() noexcept { return win32_code(win32::GetLastError()); }
+  template <class Base> inline win32_code mixin<Base, _win32_code_domain>::current() noexcept
+  {
+    return win32_code(win32::GetLastError());
+  }
 }  // namespace mixins
 
 SYSTEM_ERROR2_NAMESPACE_END

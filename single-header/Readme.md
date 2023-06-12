@@ -17,8 +17,8 @@ Herein lie the following single header editions of https://wg21.link/P1028 `stat
   <li><tt>system_code.hpp</tt>
   </ul>
   <ul>
-  <li><tt>nt_code.hpp</tt> (Windows only)
-  <li><tt>win32_code.hpp</tt> (Windows only)
+  <li><tt>nt_code.hpp</tt> (used on Windows only, completely omitted in <tt>system_error2-nowindows.hpp</tt>)
+  <li><tt>win32_code.hpp</tt> (used on Windows only, completely omitted in <tt>system_error2-nowindows.hpp</tt>)
   </ul>
   
   The following headers are specifically NOT included:

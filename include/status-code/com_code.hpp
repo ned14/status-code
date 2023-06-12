@@ -40,10 +40,10 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 class _com_code_domain;
 /*! (Windows only) A COM error code. Note semantic equivalence testing is only implemented for `FACILITY_WIN32`
-and `FACILITY_NT_BIT`. As you can see at [https://blogs.msdn.microsoft.com/eldar/2007/04/03/a-lot-of-hresult-codes/](https://blogs.msdn.microsoft.com/eldar/2007/04/03/a-lot-of-hresult-codes/),
-there are an awful lot of COM error codes, and keeping mapping tables for all of them would be impractical
-(for the Win32 and NT facilities, we actually reuse the mapping tables in `win32_code` and `nt_code`).
-You can, of course, inherit your own COM code domain from this one and override the `_do_equivalent()` function
+and `FACILITY_NT_BIT`. As you can see at
+[https://blogs.msdn.microsoft.com/eldar/2007/04/03/a-lot-of-hresult-codes/](https://blogs.msdn.microsoft.com/eldar/2007/04/03/a-lot-of-hresult-codes/), there
+are an awful lot of COM error codes, and keeping mapping tables for all of them would be impractical (for the Win32 and NT facilities, we actually reuse the
+mapping tables in `win32_code` and `nt_code`). You can, of course, inherit your own COM code domain from this one and override the `_do_equivalent()` function
 to add semantic equivalence testing for whichever extra COM codes that your application specifically needs.
 */
 using com_code = status_code<_com_code_domain>;
@@ -51,15 +51,19 @@ using com_code = status_code<_com_code_domain>;
 using com_error = status_error<_com_code_domain>;
 
 /*! (Windows only) The implementation of the domain for COM error codes and/or `IErrorInfo`.
-*/
+ */
 class _com_code_domain : public status_code_domain
 {
   template <class DomainType> friend class status_code;
-  template <class StatusCode> friend class detail::indirecting_domain;
+  template <class StatusCode, class Allocator> friend class detail::indirecting_domain;
   using _base = status_code_domain;
 
   //! Construct from a `HRESULT` error code
+#ifdef _COMDEF_NOT_WINAPI_FAMILY_DESKTOP_APP
+  static _base::string_ref _make_string_ref(HRESULT c, wchar_t *perrinfo = nullptr) noexcept
+#else
   static _base::string_ref _make_string_ref(HRESULT c, IErrorInfo *perrinfo = nullptr) noexcept
+#endif
   {
     _com_error ce(c, perrinfo);
 #ifdef _UNICODE
@@ -77,7 +81,7 @@ class _com_code_domain : public status_code_domain
       {
         return _base::string_ref("failed to get message from system");
       }
-      bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, ce.ErrorMessage(), wlen + 1, p, allocation, nullptr, nullptr);
+      bytes = win32::WideCharToMultiByte(65001 /*CP_UTF8*/, 0, ce.ErrorMessage(), (int) (wlen + 1), p, (int) allocation, nullptr, nullptr);
       if(bytes != 0)
       {
         char *end = strchr(p, 0);
@@ -121,7 +125,10 @@ public:
 
 public:
   //! Default constructor
-  constexpr explicit _com_code_domain(typename _base::unique_id_type id = 0xdc8275428b4effac) noexcept : _base(id) {}
+  constexpr explicit _com_code_domain(typename _base::unique_id_type id = 0xdc8275428b4effac) noexcept
+      : _base(id)
+  {
+  }
   _com_code_domain(const _com_code_domain &) = default;
   _com_code_domain(_com_code_domain &&) = default;
   _com_code_domain &operator=(const _com_code_domain &) = default;
@@ -132,6 +139,13 @@ public:
   static inline constexpr const _com_code_domain &get();
 
   virtual string_ref name() const noexcept override { return string_ref("COM domain"); }  // NOLINT
+
+  virtual payload_info_t payload_info() const noexcept override
+  {
+    return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
+            (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
+  }
+
 protected:
   virtual bool _do_failure(const status_code<void> &code) const noexcept override  // NOLINT
   {
@@ -139,7 +153,7 @@ protected:
     return static_cast<const com_code &>(code).value() < 0;  // NOLINT
   }
   /*! Note semantic equivalence testing is only implemented for `FACILITY_WIN32` and `FACILITY_NT_BIT`.
-  */
+   */
   virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override  // NOLINT
   {
     assert(code1.domain() == *this);
