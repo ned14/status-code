@@ -522,7 +522,7 @@ namespace detail
   SYSTEM_ERROR2_TEMPLATE(class To, class From)
   SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && (sizeof(To) == sizeof(From))))
   constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(from); }
-#if 0L || defined(__APPLE__) || __LITTLE_ENDIAN__ || __BYTE_ORDER == __LITTLE_ENDIAN
+#if 0L || defined(__APPLE__) || __LITTLE_ENDIAN__ || (defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) && __BYTE_ORDER == __LITTLE_ENDIAN)
   // We can avoid the type pun on little endian architectures which can aid optimisation
   SYSTEM_ERROR2_TEMPLATE(class To, class From, long = 5)
   SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value &&is_static_castable<To, From>::value && (sizeof(To) < sizeof(From))))
