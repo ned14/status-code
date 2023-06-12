@@ -124,15 +124,16 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define SYSTEM_ERROR2_NODISCARD __attribute__((warn_unused_result))
 #elif defined(_MSC_VER)
 // _Must_inspect_result_ expands into this
-#define SYSTEM_ERROR2_NODISCARD                                                                                                                                                                                                                                                                                                \
-  __declspec("SAL_name"                                                                                                                                                                                                                                                                                                        \
-             "("                                                                                                                                                                                                                                                                                                               \
-             "\"_Must_inspect_result_\""                                                                                                                                                                                                                                                                                       \
-             ","                                                                                                                                                                                                                                                                                                               \
-             "\"\""                                                                                                                                                                                                                                                                                                            \
-             ","                                                                                                                                                                                                                                                                                                               \
-             "\"2\""                                                                                                                                                                                                                                                                                                           \
-             ")") __declspec("SAL_begin") __declspec("SAL_post") __declspec("SAL_mustInspect") __declspec("SAL_post") __declspec("SAL_checkReturn") __declspec("SAL_end")
+#define SYSTEM_ERROR2_NODISCARD                                                                                                                                \
+  __declspec(                                                                                                                                                  \
+  "SAL_name"                                                                                                                                                   \
+  "("                                                                                                                                                          \
+  "\"_Must_inspect_result_\""                                                                                                                                  \
+  ","                                                                                                                                                          \
+  "\"\""                                                                                                                                                       \
+  ","                                                                                                                                                          \
+  "\"2\""                                                                                                                                                      \
+  ")") __declspec("SAL_begin") __declspec("SAL_post") __declspec("SAL_mustInspect") __declspec("SAL_post") __declspec("SAL_checkReturn") __declspec("SAL_end")
 #endif
 #endif
 #ifndef SYSTEM_ERROR2_NODISCARD
@@ -174,7 +175,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define SYSTEM_ERROR2_TREQUIRES(...) requires SYSTEM_ERROR2_CALL_OVERLOAD(SYSTEM_ERROR2_TREQUIRES_EXPAND, __VA_ARGS__)
 
 #define SYSTEM_ERROR2_TEMPLATE(...) template <__VA_ARGS__>
-#define SYSTEM_ERROR2_TEXPR(...)                                                                                                                                                                                                                                                                                               \
+#define SYSTEM_ERROR2_TEXPR(...)                                                                                                                               \
   requires { (__VA_ARGS__); }
 #define SYSTEM_ERROR2_TPRED(...) (__VA_ARGS__)
 #if !defined(_MSC_VER) || _MSC_FULL_VER >= 192400000  // VS 2019 16.3 is broken here
@@ -200,8 +201,8 @@ http://www.boost.org/LICENSE_1_0.txt)
 //! The system_error2 namespace name.
 #define SYSTEM_ERROR2_NAMESPACE system_error2
 //! Begins the system_error2 namespace.
-#define SYSTEM_ERROR2_NAMESPACE_BEGIN                                                                                                                                                                                                                                                                                          \
-  namespace system_error2                                                                                                                                                                                                                                                                                                      \
+#define SYSTEM_ERROR2_NAMESPACE_BEGIN                                                                                                                          \
+  namespace system_error2                                                                                                                                      \
   {
 //! Ends the system_error2 namespace.
 #define SYSTEM_ERROR2_NAMESPACE_END }
@@ -268,9 +269,12 @@ namespace detail
 
   template <class To, class From> using is_static_castable = std::integral_constant<bool, is_integral_or_enum<To>::value && is_integral_or_enum<From>::value>;
 
-  template <class To, class From> using is_union_castable = std::integral_constant<bool, !is_static_castable<To, From>::value && !std::is_array<To>::value && !std::is_array<From>::value>;
+  template <class To, class From>
+  using is_union_castable = std::integral_constant<bool, !is_static_castable<To, From>::value && !std::is_array<To>::value && !std::is_array<From>::value>;
 
-  template <class To, class From> using is_bit_castable = std::integral_constant<bool, sizeof(To) == sizeof(From) && traits::is_move_bitcopying<To>::value && traits::is_move_bitcopying<From>::value>;
+  template <class To, class From>
+  using is_bit_castable =
+  std::integral_constant<bool, sizeof(To) == sizeof(From) && traits::is_move_bitcopying<To>::value && traits::is_move_bitcopying<From>::value>;
 
   template <class To, class From> union bit_cast_union
   {
@@ -296,7 +300,8 @@ namespace detail
            && !is_union_castable<To, From>::value       //
            && (!std::is_trivially_copyable_v<From>      //
                || !std::is_trivially_copyable_v<To>) )  //
-  To bit_cast(const From &from) noexcept
+  To bit_cast(const From &from)
+  noexcept
   {
     bit_cast_union<To, From> ret;
     memmove(&ret.source, &from, sizeof(ret.source));
@@ -341,7 +346,8 @@ namespace detail
   types it may insert the value into another object with extra padding bytes
   to satisfy bit_cast's preconditions that both types have the same size. */
 
-  template <class To, class From> using is_erasure_castable = std::integral_constant<bool, traits::is_move_bitcopying<To>::value && traits::is_move_bitcopying<From>::value>;
+  template <class To, class From>
+  using is_erasure_castable = std::integral_constant<bool, traits::is_move_bitcopying<To>::value && traits::is_move_bitcopying<From>::value>;
 
   template <class T, bool = std::is_enum<T>::value> struct identity_or_underlying_type
   {
@@ -353,7 +359,9 @@ namespace detail
   };
 
   template <class OfSize, class OfSign>
-  using erasure_integer_type = typename std::conditional<std::is_signed<typename identity_or_underlying_type<OfSign>::type>::value, typename std::make_signed<typename identity_or_underlying_type<OfSize>::type>::type, typename std::make_unsigned<typename identity_or_underlying_type<OfSize>::type>::type>::type;
+  using erasure_integer_type = typename std::conditional<std::is_signed<typename identity_or_underlying_type<OfSign>::type>::value,
+                                                         typename std::make_signed<typename identity_or_underlying_type<OfSize>::type>::type,
+                                                         typename std::make_unsigned<typename identity_or_underlying_type<OfSize>::type>::type>::type;
 
   template <class ErasedType, std::size_t N> struct padded_erasure_object
   {
@@ -369,19 +377,35 @@ namespace detail
   };
 
   SYSTEM_ERROR2_TEMPLATE(class To, class From)
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && (sizeof(To) == sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(from); }
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && (sizeof(To) == sizeof(From))))
+  constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(from); }
 
+#if defined(_WIN32) || defined(__APPLE__) || __LITTLE_ENDIAN__ || __BYTE_ORDER == __LITTLE_ENDIAN
+  // We can avoid the type pun on little endian architectures which can aid optimisation
   SYSTEM_ERROR2_TEMPLATE(class To, class From, long = 5)
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value &&is_static_castable<To, From>::value && (sizeof(To) < sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return static_cast<To>(bit_cast<erasure_integer_type<From, To>>(from)); }
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value &&is_static_castable<To, From>::value && (sizeof(To) < sizeof(From))))
+  constexpr To erasure_cast(const From &from) noexcept { return static_cast<To>(bit_cast<erasure_integer_type<From, To>>(from)); }
 
   SYSTEM_ERROR2_TEMPLATE(class To, class From, int = 5)
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value &&is_static_castable<To, From>::value && (sizeof(To) > sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(static_cast<erasure_integer_type<To, From>>(from)); }
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value &&is_static_castable<To, From>::value && (sizeof(To) > sizeof(From))))
+  constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(static_cast<erasure_integer_type<To, From>>(from)); }
 
   SYSTEM_ERROR2_TEMPLATE(class To, class From, short = 5)
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && !is_static_castable<To, From>::value && (sizeof(To) < sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return bit_cast<padded_erasure_object<To, sizeof(From) - sizeof(To)>>(from).value; }
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && !is_static_castable<To, From>::value && (sizeof(To) < sizeof(From))))
+  constexpr To erasure_cast(const From &from) noexcept { return bit_cast<padded_erasure_object<To, sizeof(From) - sizeof(To)>>(from).value; }
 
   SYSTEM_ERROR2_TEMPLATE(class To, class From, char = 5)
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && !is_static_castable<To, From>::value && (sizeof(To) > sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(padded_erasure_object<From, sizeof(To) - sizeof(From)>{from}); }
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && !is_static_castable<To, From>::value && (sizeof(To) > sizeof(From))))
+  constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(padded_erasure_object<From, sizeof(To) - sizeof(From)>{from}); }
+#else
+  SYSTEM_ERROR2_TEMPLATE(class To, class From, short = 5)
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && (sizeof(To) < sizeof(From))))
+  constexpr To erasure_cast(const From &from) noexcept { return bit_cast<padded_erasure_object<To, sizeof(From) - sizeof(To)>>(from).value; }
+
+  SYSTEM_ERROR2_TEMPLATE(class To, class From, char = 5)
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && (sizeof(To) > sizeof(From))))
+  constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(padded_erasure_object<From, sizeof(To) - sizeof(From)>{from}); }
+#endif
 }  // namespace detail
 SYSTEM_ERROR2_NAMESPACE_END
 

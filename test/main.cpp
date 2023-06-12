@@ -68,7 +68,7 @@ template <class T> struct is_literal_type
   static constexpr bool value = __is_literal_type(T);
 };
 #else
-#error "Don't know how to implement is_literal_type""
+#error "Don't know how to implement is_literal_type"
 #endif
 
 // An error coding with multiple success values
@@ -737,6 +737,10 @@ int main()
   // Ensure errored status code is literal on C++ 20 or later
   static_assert(is_literal_type<error>::value, "error is not a literal type!");
 #endif
+
+  // Issue #0054 test
+  error issue0054(errc::no_link);
+  (void) issue0054;
 
   printf("\nExiting tests with code %d\n", retcode);
   return retcode;

@@ -312,7 +312,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define SYSTEM_ERROR2_NODISCARD __attribute__((warn_unused_result))
 #elif defined(_MSC_VER)
 // _Must_inspect_result_ expands into this
-#define SYSTEM_ERROR2_NODISCARD __declspec("SAL_name" "(" "\"_Must_inspect_result_\"" "," "\"\"" "," "\"2\"" ")") __declspec("SAL_begin") __declspec("SAL_post") __declspec("SAL_mustInspect") __declspec("SAL_post") __declspec("SAL_checkReturn") __declspec("SAL_end")
+#define SYSTEM_ERROR2_NODISCARD __declspec( "SAL_name" "(" "\"_Must_inspect_result_\"" "," "\"\"" "," "\"2\"" ")") __declspec("SAL_begin") __declspec("SAL_post") __declspec("SAL_mustInspect") __declspec("SAL_post") __declspec("SAL_checkReturn") __declspec("SAL_end")
 #endif
 #endif
 #ifndef SYSTEM_ERROR2_NODISCARD
@@ -424,8 +424,11 @@ namespace detail
   */
   template <class T> using is_integral_or_enum = std::integral_constant<bool, std::is_integral<T>::value || std::is_enum<T>::value>;
   template <class To, class From> using is_static_castable = std::integral_constant<bool, is_integral_or_enum<To>::value && is_integral_or_enum<From>::value>;
-  template <class To, class From> using is_union_castable = std::integral_constant<bool, !is_static_castable<To, From>::value && !std::is_array<To>::value && !std::is_array<From>::value>;
-  template <class To, class From> using is_bit_castable = std::integral_constant<bool, sizeof(To) == sizeof(From) && traits::is_move_bitcopying<To>::value && traits::is_move_bitcopying<From>::value>;
+  template <class To, class From>
+  using is_union_castable = std::integral_constant<bool, !is_static_castable<To, From>::value && !std::is_array<To>::value && !std::is_array<From>::value>;
+  template <class To, class From>
+  using is_bit_castable =
+  std::integral_constant<bool, sizeof(To) == sizeof(From) && traits::is_move_bitcopying<To>::value && traits::is_move_bitcopying<From>::value>;
   template <class To, class From> union bit_cast_union
   {
     From source;
@@ -448,7 +451,8 @@ namespace detail
            && !is_union_castable<To, From>::value //
            && (!std::is_trivially_copyable_v<From> //
                || !std::is_trivially_copyable_v<To>) ) //
-  To bit_cast(const From &from) noexcept
+  To bit_cast(const From &from)
+  noexcept
   {
     bit_cast_union<To, From> ret;
     memmove(&ret.source, &from, sizeof(ret.source));
@@ -489,7 +493,8 @@ namespace detail
   conversion with bit_cast. When casting to or from non-integral, non-enum
   types it may insert the value into another object with extra padding bytes
   to satisfy bit_cast's preconditions that both types have the same size. */
-  template <class To, class From> using is_erasure_castable = std::integral_constant<bool, traits::is_move_bitcopying<To>::value && traits::is_move_bitcopying<From>::value>;
+  template <class To, class From>
+  using is_erasure_castable = std::integral_constant<bool, traits::is_move_bitcopying<To>::value && traits::is_move_bitcopying<From>::value>;
   template <class T, bool = std::is_enum<T>::value> struct identity_or_underlying_type
   {
     using type = T;
@@ -499,7 +504,9 @@ namespace detail
     using type = typename std::underlying_type<T>::type;
   };
   template <class OfSize, class OfSign>
-  using erasure_integer_type = typename std::conditional<std::is_signed<typename identity_or_underlying_type<OfSign>::type>::value, typename std::make_signed<typename identity_or_underlying_type<OfSize>::type>::type, typename std::make_unsigned<typename identity_or_underlying_type<OfSize>::type>::type>::type;
+  using erasure_integer_type = typename std::conditional<std::is_signed<typename identity_or_underlying_type<OfSign>::type>::value,
+                                                         typename std::make_signed<typename identity_or_underlying_type<OfSize>::type>::type,
+                                                         typename std::make_unsigned<typename identity_or_underlying_type<OfSize>::type>::type>::type;
   template <class ErasedType, std::size_t N> struct padded_erasure_object
   {
     static_assert(traits::is_move_bitcopying<ErasedType>::value, "ErasedType must be TriviallyCopyable or MoveBitcopying");
@@ -513,15 +520,30 @@ namespace detail
     }
   };
   SYSTEM_ERROR2_TEMPLATE(class To, class From)
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && (sizeof(To) == sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(from); }
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && (sizeof(To) == sizeof(From))))
+  constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(from); }
+#if defined(_WIN32) || defined(__APPLE__) || __LITTLE_ENDIAN__ || __BYTE_ORDER == __LITTLE_ENDIAN
+  // We can avoid the type pun on little endian architectures which can aid optimisation
   SYSTEM_ERROR2_TEMPLATE(class To, class From, long = 5)
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value &&is_static_castable<To, From>::value && (sizeof(To) < sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return static_cast<To>(bit_cast<erasure_integer_type<From, To>>(from)); }
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value &&is_static_castable<To, From>::value && (sizeof(To) < sizeof(From))))
+  constexpr To erasure_cast(const From &from) noexcept { return static_cast<To>(bit_cast<erasure_integer_type<From, To>>(from)); }
   SYSTEM_ERROR2_TEMPLATE(class To, class From, int = 5)
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value &&is_static_castable<To, From>::value && (sizeof(To) > sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(static_cast<erasure_integer_type<To, From>>(from)); }
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value &&is_static_castable<To, From>::value && (sizeof(To) > sizeof(From))))
+  constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(static_cast<erasure_integer_type<To, From>>(from)); }
   SYSTEM_ERROR2_TEMPLATE(class To, class From, short = 5)
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && !is_static_castable<To, From>::value && (sizeof(To) < sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return bit_cast<padded_erasure_object<To, sizeof(From) - sizeof(To)>>(from).value; }
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && !is_static_castable<To, From>::value && (sizeof(To) < sizeof(From))))
+  constexpr To erasure_cast(const From &from) noexcept { return bit_cast<padded_erasure_object<To, sizeof(From) - sizeof(To)>>(from).value; }
   SYSTEM_ERROR2_TEMPLATE(class To, class From, char = 5)
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && !is_static_castable<To, From>::value && (sizeof(To) > sizeof(From)))) constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(padded_erasure_object<From, sizeof(To) - sizeof(From)>{from}); }
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && !is_static_castable<To, From>::value && (sizeof(To) > sizeof(From))))
+  constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(padded_erasure_object<From, sizeof(To) - sizeof(From)>{from}); }
+#else
+  SYSTEM_ERROR2_TEMPLATE(class To, class From, short = 5)
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && (sizeof(To) < sizeof(From))))
+  constexpr To erasure_cast(const From &from) noexcept { return bit_cast<padded_erasure_object<To, sizeof(From) - sizeof(To)>>(from).value; }
+  SYSTEM_ERROR2_TEMPLATE(class To, class From, char = 5)
+  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(is_erasure_castable<To, From>::value && (sizeof(To) > sizeof(From))))
+  constexpr To erasure_cast(const From &from) noexcept { return bit_cast<To>(padded_erasure_object<From, sizeof(To) - sizeof(From)>{from}); }
+#endif
 } // namespace detail
 SYSTEM_ERROR2_NAMESPACE_END
 #ifndef SYSTEM_ERROR2_FATAL
