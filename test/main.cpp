@@ -57,13 +57,18 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 template <class T> struct is_literal_type
 {
   static constexpr bool value = std::is_literal_type<T>::value;
 };
-#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+template <class T> struct is_literal_type
+{
+  static constexpr bool value = __is_literal_type(T);
+};
+#else
+#error "Don't know how to implement is_literal_type""
 #endif
 
 // An error coding with multiple success values
@@ -470,7 +475,10 @@ int main()
 
   // Test status code erasure
   erased_status_code<int> success3(success1), failure3(failure1);
+#if __cplusplus >= 202000 || _HAS_CXX20
+  constexpr erased_status_code<int> success3c(success1);
   static_assert(is_literal_type<erased_status_code<int>>::value, "erased_status_code<int> is not a literal type!");
+#endif
   CHECK(success3.success());
   CHECK(success3.domain() == success1.domain());
   CHECK(failure3.failure());
@@ -669,7 +677,9 @@ int main()
     return errc::no_link;
   }
   ();
+#if __cplusplus >= 202000 || _HAS_CXX20
   static_assert(is_literal_type<system_code>::value, "system_code is not a literal type!");
+#endif
 
   // Test std_error_code
   std::error_code error_codes[] = {make_error_code(std::errc::permission_denied), {ERANGE, std::generic_category()}};
@@ -723,8 +733,10 @@ int main()
         }());
 #endif
 
-  // Ensure errored status code is literal
+#if __cplusplus >= 202000 || _HAS_CXX20
+  // Ensure errored status code is literal on C++ 20 or later
   static_assert(is_literal_type<error>::value, "error is not a literal type!");
+#endif
 
   printf("\nExiting tests with code %d\n", retcode);
   return retcode;
