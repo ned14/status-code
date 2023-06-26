@@ -21,7 +21,7 @@ just return a `result<T>` which can transport either a success or a failure, con
 [Experimental.Outcome](https://ned14.github.io/outcome/experimental/) which bundles a
 copy of this library inside the standalone Outcome and Boost.Outcome distributions.
 You can find an example of use
-[here](https://github.com/ned14/status-code/tree/master/example/variant_return.cpp]).
+[here](https://github.com/ned14/status-code/tree/master/example/variant_return.cpp).
 Experimental.Outcome works great with C++ exceptions globally disabled, and includes
 only a very minimal set of C++ headers.
 
