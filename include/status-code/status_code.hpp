@@ -622,13 +622,10 @@ public:
   SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept  // NOLINT
       : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), detail::erasure_cast<value_type>(v.value()))
   {
-    union
-    {
-      int a;
-      typename DomainType::value_type b;
-    };
-    new(std::addressof(b)) typename DomainType::value_type(static_cast<status_code<DomainType> &&>(v).value());
-    // deliberately do not destruct b
+    alignas(alignof(typename DomainType::value_type)) char buffer[sizeof(typename DomainType::value_type)];
+    new(buffer) typename DomainType::value_type(static_cast<status_code<DomainType> &&>(v).value());
+    // deliberately do not destruct value moved into buffer
+    (void) buffer;
     v._domain = nullptr;
   }
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a `status_code`.
