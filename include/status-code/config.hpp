@@ -64,6 +64,13 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 #endif
 
+#if SYSTEM_ERROR2_USE_STD_ADDRESSOF
+#include <memory>  // for std::addressof
+#define SYSTEM_ERROR2_ADDRESS_OF(...) std::addressof(__VA_ARGS__)
+#else
+#define SYSTEM_ERROR2_ADDRESS_OF(...) (&__VA_ARGS__)
+#endif
+
 #ifndef SYSTEM_ERROR2_CONSTEXPR14
 #if defined(STANDARDESE_IS_IN_THE_HOUSE) || __cplusplus >= 201400 || _MSC_VER >= 1910 /* VS2017 */
 //! Defined to be `constexpr` when on C++ 14 or better compilers. Usually automatic, can be overriden.

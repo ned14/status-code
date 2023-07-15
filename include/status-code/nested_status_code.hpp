@@ -144,7 +144,7 @@ namespace detail
 #endif
       {
         payload_allocator_traits::construct(payload_alloc, dp, sp.sc, sp.alloc);
-        new(std::addressof(d)) _mycode(in_place, dp);
+        new(SYSTEM_ERROR2_ADDRESS_OF(d)) _mycode(in_place, dp);
       }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
       catch(...)
