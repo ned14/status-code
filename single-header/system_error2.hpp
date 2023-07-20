@@ -2784,8 +2784,12 @@ namespace detail
 {
   namespace avoid_string_include
   {
+#if defined(__GLIBC__) && !defined(__UCLIBC__)
     // This returns int for non-glibc strerror_r, but glibc's is particularly weird so we retain it
     extern "C" char *strerror_r(int errnum, char *buf, size_t buflen);
+#else
+    extern "C" int strerror_r(int errnum, char *buf, size_t buflen);
+#endif
   } // namespace avoid_string_include
 } // namespace detail
 #endif
@@ -2815,7 +2819,7 @@ class _posix_code_domain : public status_code_domain
     char buffer[1024] = "";
 #ifdef _WIN32
     strerror_s(buffer, sizeof(buffer), c);
-#elif defined(__gnu_linux__) && !defined(__ANDROID__) // handle glibc's weird strerror_r()
+#elif defined(__GLIBC__) && !defined(__UCLIBC__) // handle glibc's weird strerror_r()
     char *s = detail::avoid_string_include::strerror_r(c, buffer, sizeof(buffer)); // NOLINT
     if(s != nullptr)
     {

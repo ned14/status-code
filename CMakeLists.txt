@@ -4,9 +4,9 @@ project(status-code VERSION 1.0 LANGUAGES CXX)
 include(GNUInstallDirs)
 enable_testing()
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  set(PROJECT_IS_DEPENDENCY OFF)
+  set(status-code_IS_DEPENDENCY OFF)
 else()
-  set(PROJECT_IS_DEPENDENCY ON)
+  set(status-code_IS_DEPENDENCY ON)
 endif()
 
 # On MSVC very annoyingly cmake puts /EHsc into the global flags which means you
@@ -140,7 +140,7 @@ install(EXPORT status-codeExports
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/status-code"
 )
 
-if(NOT PROJECT_IS_DEPENDENCY)
+if(NOT status-code_IS_DEPENDENCY AND (NOT DEFINED BUILD_TESTING OR BUILD_TESTING))
   include(FindPythonInterp)
   # Make preprocessed edition of this library target
   if(NOT PYTHONINTERP_FOUND)
@@ -186,15 +186,16 @@ if(NOT PROJECT_IS_DEPENDENCY)
     add_test(NAME test-result COMMAND $<TARGET_FILE:test-result>)
   endif()
 
-  find_package(Boost COMPONENTS system)
-  if(Boost_FOUND)
-    add_executable(test-boost_error_code "test/boost_error_code.cpp")
-    target_link_libraries(test-boost_error_code PRIVATE status-code Boost::system)
-    set_target_properties(test-boost_error_code PROPERTIES
-      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-    )
-    add_test(NAME test-boost_error_code COMMAND $<TARGET_FILE:test-boost_error_code>)
-  endif()
+# Forgot to git add this on the other computer
+#  find_package(Boost COMPONENTS system)
+#  if(Boost_FOUND)
+#    add_executable(test-boost_error_code "test/boost_error_code.cpp")
+#    target_link_libraries(test-boost_error_code PRIVATE status-code Boost::system)
+#    set_target_properties(test-boost_error_code PROPERTIES
+#      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+#    )
+#    add_test(NAME test-boost_error_code COMMAND $<TARGET_FILE:test-boost_error_code>)
+#  endif()
   
   add_executable(test-issue0050 "test/issue0050.cpp")
   target_link_libraries(test-issue0050 PRIVATE status-code)
