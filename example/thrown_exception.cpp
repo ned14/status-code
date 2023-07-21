@@ -236,6 +236,7 @@ inline thrown_exception_code make_status_code(std::exception_ptr ep)
   return thrown_exception_code(in_place, exception_ptr_storage.add(std::move(ep)));
 }
 
+#ifndef DONT_DEFINE_MAIN
 int main()
 {
   thrown_exception_code tec(make_status_code(std::make_exception_ptr(std::bad_alloc())));
@@ -244,3 +245,4 @@ int main()
   printf("Thrown exception code == errc::not_enough_memory = %d\n", sc == errc::not_enough_memory);
   return 0;
 }
+#endif

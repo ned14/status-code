@@ -204,6 +204,14 @@ if(NOT status-code_IS_DEPENDENCY AND (NOT DEFINED BUILD_TESTING OR BUILD_TESTING
   )
   add_test(NAME test-issue0050 COMMAND $<TARGET_FILE:test-issue0050>)
   
+  add_executable(test-issue0056 "test/issue0056.cpp")
+  target_compile_features(test-issue0056 PRIVATE cxx_std_17)
+  target_link_libraries(test-issue0056 PRIVATE status-code)
+  set_target_properties(test-issue0056 PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+  add_test(NAME test-issue0056 COMMAND $<TARGET_FILE:test-issue0056>)
+  
   add_executable(test-status-code "test/main.cpp")
   target_link_libraries(test-status-code PRIVATE status-code)
   set_target_properties(test-status-code PROPERTIES
