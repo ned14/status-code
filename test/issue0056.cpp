@@ -37,13 +37,8 @@ void throw_something()
   throw std::logic_error("oops");
 }
 
-int main()
+SYSTEM_ERROR2_NAMESPACE::system_code produce_error()
 {
-  int retcode = 0;
-#ifdef _MSC_VER
-  _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-#endif
-
   using namespace SYSTEM_ERROR2_NAMESPACE;
   try
   {
@@ -54,13 +49,22 @@ int main()
     printf("Exception has message %s\n", e.what());
     auto eptr = std::current_exception();
     thrown_exception_code tec = make_status_code(eptr);
-    system_code sc(tec);
-    printf("Thrown exception code has message %s\n", sc.message().c_str());
-    printf("Thrown exception code == errc::not_enough_memory = %d\n", sc == errc::not_enough_memory);
-    CHECK(strcmp(sc.message().c_str(), "oops") == 0);
-    auto msg = sc.message();
-    CHECK(strcmp(msg.c_str(), "oops") == 0);
-    printf("Thrown exception code has message %s\n", sc.message().c_str());
+    return tec;
   }
+  return errc::success;
+}
+
+int main()
+{
+  int retcode = 0;
+#ifdef _MSC_VER
+  _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+
+  using namespace SYSTEM_ERROR2_NAMESPACE;
+  auto sc = produce_error();
+  auto msg = sc.message();
+  CHECK(strcmp(msg.c_str(), "oops") == 0);
+  printf("Thrown exception code has message %s\n", sc.message().c_str());
   return retcode;
 }
