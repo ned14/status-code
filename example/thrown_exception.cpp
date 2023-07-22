@@ -95,16 +95,20 @@ public:
   virtual _base::string_ref name() const noexcept override final { return _base::string_ref("thrown exception"); }
 
   // Return information about the value type of this domain
-  virtual payload_info_t payload_info() const noexcept override { return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type), (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)}; }
+  virtual payload_info_t payload_info() const noexcept override
+  {
+    return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
+            (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
+  }
 
 protected:
   // This internal routine maps an exception ptr onto a generic_code
   // It is surely hideously slow, but that's all relative in the end
   static errc _to_generic_code(value_type c) noexcept
   {
+    const std::exception_ptr &e = exception_ptr_storage[c];
     try
     {
-      std::exception_ptr e = exception_ptr_storage[c];
       if(!e)
         return errc::unknown;
       std::rethrow_exception(e);
@@ -197,16 +201,31 @@ protected:
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const thrown_exception_code &>(code);
+    const std::exception_ptr &e = exception_ptr_storage[c.value()];
     try
     {
-      std::exception_ptr e = exception_ptr_storage[c.value()];
       if(!e)
         return _base::string_ref("expired");
       std::rethrow_exception(e);
     }
     catch(const std::exception &x)
     {
+      /* MSVC throws a full copy here, because its rethrow_exception()
+      makes copies instead of using the one stored in the array. So
+      for it we actively must copy the message. */
+#ifdef _WIN32
+      auto *msg = x.what();
+      auto len = strlen(msg);
+      auto *p = static_cast<char *>(malloc(len + 1));
+      if(p == nullptr)
+      {
+        return _base::string_ref("failed to allocate memory for what()");
+      }
+      memcpy(p, msg, len + 1);
+      return _base::atomic_refcounted_string_ref(p, len);
+#else
       return _base::string_ref(x.what());
+#endif
     }
     catch(...)
     {
@@ -218,7 +237,7 @@ protected:
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const thrown_exception_code &>(code);
-    std::exception_ptr e = exception_ptr_storage[c.value()];
+    const std::exception_ptr &e = exception_ptr_storage[c.value()];
     std::rethrow_exception(e);
   }
 };
