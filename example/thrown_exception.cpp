@@ -29,6 +29,9 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include <exception>
 #include <mutex>
+#include <stdexcept>
+#include <system_error>
+#include <utility>  // for std::move
 
 static constexpr size_t max_exception_ptrs = 16;
 
