@@ -9,10 +9,10 @@ Herein lie the following single header editions of https://wg21.link/P1028 `stat
   <li><tt>error.hpp</tt>
   <li><tt>errored_status_code.hpp</tt>
   <li><tt>generic_code.hpp</tt>
+  <li><tt>nested_status_code.hpp</tt>
   <li><tt>posix_code.hpp</tt>
   <li><tt>status_code.hpp</tt>
   <li><tt>status_code_domain.hpp</tt>
-  <li><tt>status_code_ptr.hpp</tt>
   <li><tt>status_error.hpp</tt>
   <li><tt>system_code.hpp</tt>
   </ul>

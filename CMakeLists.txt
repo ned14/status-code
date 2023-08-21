@@ -155,6 +155,7 @@ if(NOT status-code_IS_DEPENDENCY AND (NOT DEFINED BUILD_TESTING OR BUILD_TESTING
       add_custom_target(status-code-pp 
         pcpp -o "${CMAKE_CURRENT_SOURCE_DIR}/single-header/system_error2.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/include/status-code/system_error2.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/status-code/nested_status_code.hpp"
         --passthru-defines --passthru-unfound-includes --passthru-unknown-exprs
         --passthru-comments --line-directive --compress # --debug
         -U STANDARDESE_IS_IN_THE_HOUSE
@@ -164,6 +165,7 @@ if(NOT status-code_IS_DEPENDENCY AND (NOT DEFINED BUILD_TESTING OR BUILD_TESTING
       add_custom_target(status-code-nowindows-pp 
         pcpp -o "${CMAKE_CURRENT_SOURCE_DIR}/single-header/system_error2-nowindows.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/include/status-code/system_error2.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/status-code/nested_status_code.hpp"
         --passthru-defines --passthru-unfound-includes --passthru-unknown-exprs
         --passthru-comments --line-directive --compress # --debug
         -U STANDARDESE_IS_IN_THE_HOUSE -U _WIN32
