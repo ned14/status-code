@@ -24,6 +24,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>  // for sprintf
+#include <utility>  // for std::move
 
 #include "status-code/nested_status_code.hpp"
 #include "status-code/system_error2.hpp"
