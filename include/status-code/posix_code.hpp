@@ -36,9 +36,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 // Fix for issue #48 Issue compiling on arm-none-eabi (newlib) with GNU extensions off
-#ifdef __APPLE__
-#include <cstring>
-#elif !defined(_MSC_VER)
+#if !defined(_MSC_VER) && !defined(__APPLE__)
 namespace detail
 {
   namespace avoid_string_include
