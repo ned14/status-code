@@ -67,7 +67,6 @@ template <class Enum> struct quick_status_code_from_enum_defaults
 template <class Enum> class _quick_status_code_from_enum_domain : public status_code_domain
 {
   template <class DomainType> friend class status_code;
-  template <class StatusCode, class Allocator> friend class detail::indirecting_domain;
   using _base = status_code_domain;
   using _src = quick_status_code_from_enum<Enum>;
 
