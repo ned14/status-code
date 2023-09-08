@@ -73,7 +73,6 @@ namespace mixins
 class _posix_code_domain : public status_code_domain
 {
   template <class DomainType> friend class status_code;
-  template <class StatusCode, class Allocator> friend class detail::indirecting_domain;
   using _base = status_code_domain;
 
   static _base::string_ref _make_string_ref(int c) noexcept
