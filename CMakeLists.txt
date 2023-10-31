@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 
 project(status-code VERSION 1.0 LANGUAGES CXX)
 include(GNUInstallDirs)
