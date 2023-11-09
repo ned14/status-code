@@ -1579,7 +1579,7 @@ public:
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   //! Explicit copy construction from an unknown status code. Note that this will throw an exception if its value type is not trivially copyable or would not
   //! fit into our storage or the source domain's `_do_erased_copy()` refused the copy.
-  explicit SYSTEM_ERROR2_CONSTEXPR14 status_code(std::in_place_t, const status_code<void> &v) // NOLINT
+  explicit SYSTEM_ERROR2_CONSTEXPR14 status_code(in_place_t, const status_code<void> &v) // NOLINT
       : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), value_type{})
   {
     status_code_domain::payload_info_t info{sizeof(value_type), sizeof(status_code), alignof(status_code)};

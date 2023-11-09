@@ -55,7 +55,7 @@ inline system_code system_code_from_exception(std::exception_ptr &&ep = std::cur
     {
       try
       {
-        system_code erased(std::in_place, e.code());
+        system_code erased(in_place, e.code());
         if(!erased.empty())
         {
           return erased;
