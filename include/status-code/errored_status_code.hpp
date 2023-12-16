@@ -153,7 +153,7 @@ public:
   //! Always false (including at compile time), as errored status codes are never successful.
   constexpr bool success() const noexcept { return false; }
   //! Return a const reference to the `value_type`.
-  constexpr const value_type &value() const &noexcept { return this->_value; }
+  constexpr const value_type &value() const & noexcept { return this->_value; }
 };
 
 namespace traits
@@ -270,8 +270,8 @@ public:
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   //! Explicit copy construction from an unknown status code. Note that this will be empty if its value type is not trivially copyable or would not fit into our
   //! storage or the source domain's `_do_erased_copy()` refused the copy.
-  explicit errored_status_code(const status_code<void> &v)  // NOLINT
-      : _base(v)
+  explicit errored_status_code(in_place_t _, const status_code<void> &v)  // NOLINT
+      : _base(_, v)
   {
     _check();
   }
