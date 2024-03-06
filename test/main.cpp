@@ -54,7 +54,12 @@ http://www.boost.org/LICENSE_1_0.txt)
     retcode = 1;                                                                                                                                               \
   }
 
-#ifdef __GNUC__
+#if defined(__clang__)
+template <class T> struct is_literal_type
+{
+  static constexpr bool value = __is_literal_type(T);
+};
+#elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 template <class T> struct is_literal_type
