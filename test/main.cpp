@@ -54,7 +54,7 @@ http://www.boost.org/LICENSE_1_0.txt)
     retcode = 1;                                                                                                                                               \
   }
 
-#if defined(__clang__)
+#if defined(__clang__) || defined(_MSC_VER)
 template <class T> struct is_literal_type
 {
   static constexpr bool value = __is_literal_type(T);
@@ -67,12 +67,6 @@ template <class T> struct is_literal_type
   static constexpr bool value = std::is_literal_type<T>::value;
 };
 #pragma GCC diagnostic pop
-#elif defined(_MSC_VER)
-template <class T> struct is_literal_type
-{
-  static constexpr bool value = __is_literal_type(T);
-};
-#else
 #error "Don't know how to implement is_literal_type"
 #endif
 
