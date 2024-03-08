@@ -54,22 +54,10 @@ http://www.boost.org/LICENSE_1_0.txt)
     retcode = 1;                                                                                                                                               \
   }
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-template <class T> struct is_literal_type
-{
-  static constexpr bool value = std::is_literal_type<T>::value;
-};
-#pragma GCC diagnostic pop
-#elif defined(_MSC_VER)
 template <class T> struct is_literal_type
 {
   static constexpr bool value = __is_literal_type(T);
 };
-#else
-#error "Don't know how to implement is_literal_type"
-#endif
 
 // An error coding with multiple success values
 enum class Code : size_t
