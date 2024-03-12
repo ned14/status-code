@@ -33,6 +33,8 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include "win32_code.hpp"
 
 #ifndef STANDARDESE_IS_IN_THE_HOUSE
+#include <stdio.h>  // needed by mingw for comdef.h to work
+
 #include <comdef.h>
 #endif
 

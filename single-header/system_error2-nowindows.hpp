@@ -2470,7 +2470,7 @@ public:
   //! Always false (including at compile time), as errored status codes are never successful.
   constexpr bool success() const noexcept { return false; }
   //! Return a const reference to the `value_type`.
-  constexpr const value_type &value() const &noexcept { return this->_value; }
+  constexpr const value_type &value() const & noexcept { return this->_value; }
 };
 namespace traits
 {
@@ -2580,8 +2580,8 @@ public:
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   //! Explicit copy construction from an unknown status code. Note that this will be empty if its value type is not trivially copyable or would not fit into our
   //! storage or the source domain's `_do_erased_copy()` refused the copy.
-  explicit errored_status_code(const status_code<void> &v) // NOLINT
-      : _base(v)
+  explicit errored_status_code(in_place_t _, const status_code<void> &v) // NOLINT
+      : _base(_, v)
   {
     _check();
   }
@@ -2952,18 +2952,18 @@ static_assert(traits::is_move_bitcopying<system_code>::value, "system_code is no
 SYSTEM_ERROR2_NAMESPACE_END
 #endif
 SYSTEM_ERROR2_NAMESPACE_BEGIN
-/*! An errored `system_code` which is always a failure. The closest equivalent to
-`std::error_code`, except it cannot be null and cannot be modified.
+/*! An errored `system_code` which must be a failure upon copy or move or
+non-default construction. The closest equivalent to `std::error_code`, except
+it cannot be modified.
 
 This refines `system_code` into an `error` object meeting the requirements of
 [P0709 Zero-overhead deterministic exceptions](https://wg21.link/P0709).
 
 Differences from `system_code`:
 
-- Always a failure (this is checked at construction, and if not the case,
-the program is terminated as this is a logic error)
-- No default construction.
-- No empty state possible.
+- Almost always a failure (this is checked at copy or move and non-default
+construction, and if not the case, the program is terminated as this is a logic
+error)
 - Is immutable.
 
 As with `system_code`, it remains guaranteed to be two CPU registers in size,

@@ -2470,7 +2470,7 @@ public:
   //! Always false (including at compile time), as errored status codes are never successful.
   constexpr bool success() const noexcept { return false; }
   //! Return a const reference to the `value_type`.
-  constexpr const value_type &value() const &noexcept { return this->_value; }
+  constexpr const value_type &value() const & noexcept { return this->_value; }
 };
 namespace traits
 {
@@ -2580,8 +2580,8 @@ public:
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0L
   //! Explicit copy construction from an unknown status code. Note that this will be empty if its value type is not trivially copyable or would not fit into our
   //! storage or the source domain's `_do_erased_copy()` refused the copy.
-  explicit errored_status_code(const status_code<void> &v) // NOLINT
-      : _base(v)
+  explicit errored_status_code(in_place_t _, const status_code<void> &v) // NOLINT
+      : _base(_, v)
   {
     _check();
   }
@@ -2992,16 +2992,23 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 //! \exclude
 namespace win32
 {
-  // A Win32 DWORD
-  using DWORD = unsigned long;
-  // Used to retrieve the current Win32 error code
-  extern DWORD __stdcall GetLastError();
-  // Used to retrieve a locale-specific message string for some error code
-  extern DWORD __stdcall FormatMessageW(DWORD dwFlags, const void *lpSource, DWORD dwMessageId, DWORD dwLanguageId, wchar_t *lpBuffer, DWORD nSize,
-                                        void /*va_list*/ *Arguments);
-  // Converts UTF-16 message string to UTF-8
-  extern int __stdcall WideCharToMultiByte(unsigned int CodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, int cchWideChar, char *lpMultiByteStr,
-                                           int cbMultiByte, const char *lpDefaultChar, int *lpUsedDefaultChar);
+#ifdef __MINGW32__
+  extern "C"
+  {
+#endif
+    // A Win32 DWORD
+    using DWORD = unsigned long;
+    // Used to retrieve the current Win32 error code
+    extern DWORD __stdcall GetLastError();
+    // Used to retrieve a locale-specific message string for some error code
+    extern DWORD __stdcall FormatMessageW(DWORD dwFlags, const void *lpSource, DWORD dwMessageId, DWORD dwLanguageId, wchar_t *lpBuffer, DWORD nSize,
+                                          void /*va_list*/ *Arguments);
+    // Converts UTF-16 message string to UTF-8
+    extern int __stdcall WideCharToMultiByte(unsigned int CodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, int cchWideChar, char *lpMultiByteStr,
+                                             int cbMultiByte, const char *lpDefaultChar, int *lpUsedDefaultChar);
+#ifdef __MINGW32__
+  }
+#else
 #pragma comment(lib, "kernel32.lib")
 #if (defined(__x86_64__) || defined(_M_X64)) || (defined(__aarch64__) || defined(_M_ARM64))
 #pragma comment(linker, "/alternatename:?GetLastError@win32@system_error2@@YAKXZ=GetLastError")
@@ -3017,6 +3024,7 @@ namespace win32
 #pragma comment(linker, "/alternatename:?WideCharToMultiByte@win32@system_error2@@YAHIKPB_WHPADHPBDPAH@Z=WideCharToMultiByte")
 #else
 #error Unknown architecture
+#endif
 #endif
 } // namespace win32
 class _win32_code_domain;
@@ -3233,7 +3241,8 @@ protected:
   }
 #endif
 };
-//! (Windows only) A constexpr source variable for the win32 code domain, which is that of `GetLastError()` (Windows). Returned by `_win32_code_domain::get()`.
+//! (Windows only) A constexpr source variable for the win32 code domain, which is that of `GetLastError()` (Windows). Returned by
+//! `_win32_code_domain::get()`.
 constexpr _win32_code_domain win32_code_domain;
 inline constexpr const _win32_code_domain &_win32_code_domain::get()
 {
@@ -3252,12 +3261,19 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 //! \exclude
 namespace win32
 {
-  // A Win32 NTSTATUS
-  using NTSTATUS = long;
-  // A Win32 HMODULE
-  using HMODULE = void *;
-  // Used to retrieve where the NTDLL DLL is mapped into memory
-  extern HMODULE __stdcall GetModuleHandleW(const wchar_t *lpModuleName);
+#ifdef __MINGW32__
+  extern "C"
+  {
+#endif
+    // A Win32 NTSTATUS
+    using NTSTATUS = long;
+    // A Win32 HMODULE
+    using HMODULE = void *;
+    // Used to retrieve where the NTDLL DLL is mapped into memory
+    extern HMODULE __stdcall GetModuleHandleW(const wchar_t *lpModuleName);
+#ifdef __MINGW32__
+  }
+#else
 #pragma comment(lib, "kernel32.lib")
 #if (defined(__x86_64__) || defined(_M_X64)) || (defined(__aarch64__) || defined(_M_ARM64))
 #pragma comment(linker, "/alternatename:?GetModuleHandleW@win32@system_error2@@YAPEAXPEB_W@Z=GetModuleHandleW")
@@ -3267,6 +3283,7 @@ namespace win32
 #pragma comment(linker, "/alternatename:?GetModuleHandleW@win32@system_error2@@YAPAXPB_W@Z=GetModuleHandleW")
 #else
 #error Unknown architecture
+#endif
 #endif
 } // namespace win32
 class _nt_code_domain;
@@ -4570,18 +4587,18 @@ static_assert(traits::is_move_bitcopying<system_code>::value, "system_code is no
 SYSTEM_ERROR2_NAMESPACE_END
 #endif
 SYSTEM_ERROR2_NAMESPACE_BEGIN
-/*! An errored `system_code` which is always a failure. The closest equivalent to
-`std::error_code`, except it cannot be null and cannot be modified.
+/*! An errored `system_code` which must be a failure upon copy or move or
+non-default construction. The closest equivalent to `std::error_code`, except
+it cannot be modified.
 
 This refines `system_code` into an `error` object meeting the requirements of
 [P0709 Zero-overhead deterministic exceptions](https://wg21.link/P0709).
 
 Differences from `system_code`:
 
-- Always a failure (this is checked at construction, and if not the case,
-the program is terminated as this is a logic error)
-- No default construction.
-- No empty state possible.
+- Almost always a failure (this is checked at copy or move and non-default
+construction, and if not the case, the program is terminated as this is a logic
+error)
 - Is immutable.
 
 As with `system_code`, it remains guaranteed to be two CPU registers in size,

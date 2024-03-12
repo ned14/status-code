@@ -36,16 +36,23 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 //! \exclude
 namespace win32
 {
-  // A Win32 DWORD
-  using DWORD = unsigned long;
-  // Used to retrieve the current Win32 error code
-  extern DWORD __stdcall GetLastError();
-  // Used to retrieve a locale-specific message string for some error code
-  extern DWORD __stdcall FormatMessageW(DWORD dwFlags, const void *lpSource, DWORD dwMessageId, DWORD dwLanguageId, wchar_t *lpBuffer, DWORD nSize,
-                                        void /*va_list*/ *Arguments);
-  // Converts UTF-16 message string to UTF-8
-  extern int __stdcall WideCharToMultiByte(unsigned int CodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, int cchWideChar, char *lpMultiByteStr,
-                                           int cbMultiByte, const char *lpDefaultChar, int *lpUsedDefaultChar);
+#ifdef __MINGW32__
+  extern "C"
+  {
+#endif
+    // A Win32 DWORD
+    using DWORD = unsigned long;
+    // Used to retrieve the current Win32 error code
+    extern DWORD __stdcall GetLastError();
+    // Used to retrieve a locale-specific message string for some error code
+    extern DWORD __stdcall FormatMessageW(DWORD dwFlags, const void *lpSource, DWORD dwMessageId, DWORD dwLanguageId, wchar_t *lpBuffer, DWORD nSize,
+                                          void /*va_list*/ *Arguments);
+    // Converts UTF-16 message string to UTF-8
+    extern int __stdcall WideCharToMultiByte(unsigned int CodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, int cchWideChar, char *lpMultiByteStr,
+                                             int cbMultiByte, const char *lpDefaultChar, int *lpUsedDefaultChar);
+#ifdef __MINGW32__
+  }
+#else
 #pragma comment(lib, "kernel32.lib")
 #if(defined(__x86_64__) || defined(_M_X64)) || (defined(__aarch64__) || defined(_M_ARM64))
 #pragma comment(linker, "/alternatename:?GetLastError@win32@system_error2@@YAKXZ=GetLastError")
@@ -61,6 +68,7 @@ namespace win32
 #pragma comment(linker, "/alternatename:?WideCharToMultiByte@win32@system_error2@@YAHIKPB_WHPADHPBDPAH@Z=WideCharToMultiByte")
 #else
 #error Unknown architecture
+#endif
 #endif
 }  // namespace win32
 
@@ -213,7 +221,8 @@ protected:
   }
 #endif
 };
-//! (Windows only) A constexpr source variable for the win32 code domain, which is that of `GetLastError()` (Windows). Returned by `_win32_code_domain::get()`.
+//! (Windows only) A constexpr source variable for the win32 code domain, which is that of `GetLastError()` (Windows). Returned by
+//! `_win32_code_domain::get()`.
 constexpr _win32_code_domain win32_code_domain;
 inline constexpr const _win32_code_domain &_win32_code_domain::get()
 {

@@ -36,12 +36,19 @@ SYSTEM_ERROR2_NAMESPACE_BEGIN
 //! \exclude
 namespace win32
 {
-  // A Win32 NTSTATUS
-  using NTSTATUS = long;
-  // A Win32 HMODULE
-  using HMODULE = void *;
-  // Used to retrieve where the NTDLL DLL is mapped into memory
-  extern HMODULE __stdcall GetModuleHandleW(const wchar_t *lpModuleName);
+#ifdef __MINGW32__
+  extern "C"
+  {
+#endif
+    // A Win32 NTSTATUS
+    using NTSTATUS = long;
+    // A Win32 HMODULE
+    using HMODULE = void *;
+    // Used to retrieve where the NTDLL DLL is mapped into memory
+    extern HMODULE __stdcall GetModuleHandleW(const wchar_t *lpModuleName);
+#ifdef __MINGW32__
+  }
+#else
 #pragma comment(lib, "kernel32.lib")
 #if(defined(__x86_64__) || defined(_M_X64)) || (defined(__aarch64__) || defined(_M_ARM64))
 #pragma comment(linker, "/alternatename:?GetModuleHandleW@win32@system_error2@@YAPEAXPEB_W@Z=GetModuleHandleW")
@@ -51,6 +58,7 @@ namespace win32
 #pragma comment(linker, "/alternatename:?GetModuleHandleW@win32@system_error2@@YAPAXPB_W@Z=GetModuleHandleW")
 #else
 #error Unknown architecture
+#endif
 #endif
 }  // namespace win32
 
