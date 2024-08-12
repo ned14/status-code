@@ -723,8 +723,7 @@ SYSTEM_ERROR2_NAMESPACE_END
 #endif
 __asm__(
 ".pushsection \".debug_gdb_scripts\", \"MS\",@progbits,1\n"
-".ascii \"\\4SYSTEM_ERROR2_INLINE_GDB_PRETTY_PRINTERS_H\\n\"\n"
-".ascii \"gdb.inlined-script\\n\"\n"
+".ascii \"\\4gdb.inlined-script.SYSTEM_ERROR2_INLINE_GDB_PRETTY_PRINTERS_H\\n\"\n"
 ".ascii \"import gdb.printing\\n\"\n"
 ".ascii \"import gdb\\n\"\n"
 ".ascii \"import os\\n\"\n"
