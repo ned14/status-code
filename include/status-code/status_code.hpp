@@ -716,7 +716,7 @@ namespace traits
 SYSTEM_ERROR2_NAMESPACE_END
 
 #ifndef SYSTEM_ERROR2_DISABLE_INLINE_GDB_PRETTY_PRINTERS
-#if defined(__ELF__)
+#if defined(__ELF__) && !defined(__ANDROID__)
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Woverlength-strings"
