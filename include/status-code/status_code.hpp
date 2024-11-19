@@ -716,13 +716,13 @@ namespace traits
 SYSTEM_ERROR2_NAMESPACE_END
 
 #ifndef SYSTEM_ERROR2_DISABLE_INLINE_GDB_PRETTY_PRINTERS
-#if defined(__ELF__) && !defined(__ANDROID__)
+#if defined(__ELF__)
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Woverlength-strings"
 #endif
 __asm__(
-".pushsection \".debug_gdb_scripts\", \"MS\",@progbits,1\n"
+".pushsection \".debug_gdb_scripts\", \"MS\",%progbits,1\n"
 ".ascii \"\\4gdb.inlined-script.SYSTEM_ERROR2_INLINE_GDB_PRETTY_PRINTERS_H\\n\"\n"
 ".ascii \"import gdb.printing\\n\"\n"
 ".ascii \"import gdb\\n\"\n"
