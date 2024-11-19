@@ -74,11 +74,11 @@ inline std::ostream &operator<<(std::ostream &s, Code v)
 
 // "Full fat" custom status code domain
 class Code_domain_impl;
-using StatusCode = system_error2::status_code<Code_domain_impl>;
+using StatusCode = SYSTEM_ERROR2_NAMESPACE::status_code<Code_domain_impl>;
 // Category for Code
-class Code_domain_impl final : public system_error2::status_code_domain
+class Code_domain_impl final : public SYSTEM_ERROR2_NAMESPACE::status_code_domain
 {
-  using _base = system_error2::status_code_domain;
+  using _base = SYSTEM_ERROR2_NAMESPACE::status_code_domain;
 
 public:
   using value_type = Code;
@@ -126,7 +126,7 @@ public:
         : _base::string_ref(_custom_string_thunk)
     {
       new(reinterpret_cast<shared_ptr_type *>(this->_state)) shared_ptr_type();  // NOLINT
-    }                                                                            // NOLINT
+    }  // NOLINT
     string_ref(const string_ref &) = default;
     string_ref(string_ref &&) = default;
     string_ref &operator=(const string_ref &) = default;
@@ -142,7 +142,7 @@ public:
       auto p = std::make_shared<std::string>(str, len);
       new(reinterpret_cast<shared_ptr_type *>(this->_state)) shared_ptr_type(p);  // NOLINT
       this->_begin = p->data();
-      this->_end = p->data() + p->size();                                         // NOLINT
+      this->_end = p->data() + p->size();  // NOLINT
     }
   };
   constexpr Code_domain_impl() noexcept
@@ -160,13 +160,13 @@ public:
     return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
             (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
   }
-  virtual bool _do_failure(const system_error2::status_code<void> &code) const noexcept override final  // NOLINT
+  virtual bool _do_failure(const SYSTEM_ERROR2_NAMESPACE::status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
     return (static_cast<size_t>(static_cast<const StatusCode &>(code).value()) & 1) != 0;  // NOLINT
   }
-  virtual bool _do_equivalent(const system_error2::status_code<void> &code1,
-                              const system_error2::status_code<void> &code2) const noexcept override final  // NOLINT
+  virtual bool _do_equivalent(const SYSTEM_ERROR2_NAMESPACE::status_code<void> &code1,
+                              const SYSTEM_ERROR2_NAMESPACE::status_code<void> &code2) const noexcept override final  // NOLINT
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const StatusCode &>(code1);  // NOLINT
@@ -176,19 +176,19 @@ public:
       return c1.value() == c2.value();
     }
     // If the other category is generic
-    if(code2.domain() == system_error2::generic_code_domain)
+    if(code2.domain() == SYSTEM_ERROR2_NAMESPACE::generic_code_domain)
     {
-      const auto &c2 = static_cast<const system_error2::generic_code &>(code2);  // NOLINT
+      const auto &c2 = static_cast<const SYSTEM_ERROR2_NAMESPACE::generic_code &>(code2);  // NOLINT
       switch(c1.value())
       {
       case Code::success1:
       case Code::success2:
-        return static_cast<system_error2::errc>(c2.value()) == system_error2::errc::success;
+        return static_cast<SYSTEM_ERROR2_NAMESPACE::errc>(c2.value()) == SYSTEM_ERROR2_NAMESPACE::errc::success;
       case Code::goaway:
-        switch(static_cast<system_error2::errc>(c2.value()))
+        switch(static_cast<SYSTEM_ERROR2_NAMESPACE::errc>(c2.value()))
         {
-        case system_error2::errc::permission_denied:
-        case system_error2::errc::operation_not_permitted:
+        case SYSTEM_ERROR2_NAMESPACE::errc::permission_denied:
+        case SYSTEM_ERROR2_NAMESPACE::errc::operation_not_permitted:
           return true;
         default:
           return false;
@@ -199,7 +199,7 @@ public:
     }
     return false;
   }
-  virtual system_error2::generic_code _generic_code(const system_error2::status_code<void> &code) const noexcept override final  // NOLINT
+  virtual SYSTEM_ERROR2_NAMESPACE::generic_code _generic_code(const SYSTEM_ERROR2_NAMESPACE::status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c1 = static_cast<const StatusCode &>(code);  // NOLINT
@@ -207,15 +207,15 @@ public:
     {
     case Code::success1:
     case Code::success2:
-      return system_error2::generic_code(system_error2::errc::success);
+      return SYSTEM_ERROR2_NAMESPACE::generic_code(SYSTEM_ERROR2_NAMESPACE::errc::success);
     case Code::goaway:
-      return system_error2::generic_code(system_error2::errc::permission_denied);
+      return SYSTEM_ERROR2_NAMESPACE::generic_code(SYSTEM_ERROR2_NAMESPACE::errc::permission_denied);
     case Code::error2:
       return {};
     }
     return {};
   }
-  virtual _base::string_ref _do_message(const system_error2::status_code<void> &code) const noexcept override final  // NOLINT
+  virtual _base::string_ref _do_message(const SYSTEM_ERROR2_NAMESPACE::status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c1 = static_cast<const StatusCode &>(code);  // NOLINT
@@ -242,13 +242,13 @@ public:
       return v;  // NOLINT
     }
     }
-    return string_ref{};                                                                               // NOLINT
+    return string_ref{};  // NOLINT
   }
-  virtual void _do_throw_exception(const system_error2::status_code<void> &code) const override final  // NOLINT
+  virtual void _do_throw_exception(const SYSTEM_ERROR2_NAMESPACE::status_code<void> &code) const override final  // NOLINT
   {
     assert(code.domain() == *this);
     const auto &c = static_cast<const StatusCode &>(code);  // NOLINT
-    throw system_error2::status_error<Code_domain_impl>(c);
+    throw SYSTEM_ERROR2_NAMESPACE::status_error<Code_domain_impl>(c);
   }
 };
 constexpr Code_domain_impl Code_domain;

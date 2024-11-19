@@ -1,6 +1,25 @@
 cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 
-project(status-code VERSION 1.0 LANGUAGES CXX)
+option(BEMAN_STATUS_CODE "If we are targeting the Beman project" OFF)
+
+if(BEMAN_STATUS_CODE)
+  set(PROJECT_NAME beman.status_code)
+  set(LIBRARY_NAME beman.status_code)
+  set(PATH_PREFIX "beman/status_code")
+  set(EXPORT_NAME "status_code")
+  set(EXPORT_NAMESPACE "beman::")
+else()
+  set(PROJECT_NAME status-code)
+  set(LIBRARY_NAME status-code)
+  set(PATH_PREFIX "status-code")
+  set(EXPORT_NAME "hl")
+  set(EXPORT_NAMESPACE "status-code::")
+endif()
+
+project(${PROJECT_NAME} VERSION 1.0
+  DESCRIPTION "The reference implementation for https://wg21.link/P1028 status_code"
+  LANGUAGES CXX
+)
 include(GNUInstallDirs)
 enable_testing()
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -75,40 +94,47 @@ else()
   )
 endif()
 
-add_library(status-code INTERFACE)
-target_compile_features(status-code INTERFACE cxx_std_11)
-target_include_directories(status-code INTERFACE
+add_library(${LIBRARY_NAME} INTERFACE)
+target_compile_features(${LIBRARY_NAME} INTERFACE cxx_std_11)
+if(BEMAN_STATUS_CODE)
+  target_compile_definitions(${LIBRARY_NAME} INTERFACE
+    "SYSTEM_ERROR2_NAMESPACE=beman::status_code"
+    "SYSTEM_ERROR2_NAMESPACE_BEGIN=namespace beman { namespace status_code {"
+    "SYSTEM_ERROR2_NAMESPACE_END=} }"
+  )
+endif()
+target_include_directories(${LIBRARY_NAME} INTERFACE
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>"
 )
 foreach(source 
-    "include/status-code/detail/nt_code_to_generic_code.ipp"
-    "include/status-code/detail/nt_code_to_win32_code.ipp"
-    "include/status-code/detail/win32_code_to_generic_code.ipp"
-    "include/status-code/boost_error_code.hpp"
-    "include/status-code/com_code.hpp"
-    "include/status-code/config.hpp"
-    "include/status-code/error.hpp"
-    "include/status-code/errored_status_code.hpp"
-    "include/status-code/generic_code.hpp"
-    "include/status-code/getaddrinfo_code.hpp"
-    "include/status-code/http_status_code.hpp"
-    "include/status-code/iostream_support.hpp"
-    "include/status-code/nested_status_code.hpp"
-    "include/status-code/nt_code.hpp"
-    "include/status-code/posix_code.hpp"
-    "include/status-code/quick_status_code_from_enum.hpp"
-    "include/status-code/result.hpp"
-    "include/status-code/status_code.hpp"
-    "include/status-code/status_code_domain.hpp"
-    "include/status-code/status_error.hpp"
-    "include/status-code/std_error_code.hpp"
-    "include/status-code/system_code.hpp"
-    "include/status-code/system_code_from_exception.hpp"
-    "include/status-code/system_error2.hpp"
-    "include/status-code/win32_code.hpp"
+    "include/${PATH_PREFIX}/detail/nt_code_to_generic_code.ipp"
+    "include/${PATH_PREFIX}/detail/nt_code_to_win32_code.ipp"
+    "include/${PATH_PREFIX}/detail/win32_code_to_generic_code.ipp"
+    "include/${PATH_PREFIX}/boost_error_code.hpp"
+    "include/${PATH_PREFIX}/com_code.hpp"
+    "include/${PATH_PREFIX}/config.hpp"
+    "include/${PATH_PREFIX}/error.hpp"
+    "include/${PATH_PREFIX}/errored_status_code.hpp"
+    "include/${PATH_PREFIX}/generic_code.hpp"
+    "include/${PATH_PREFIX}/getaddrinfo_code.hpp"
+    "include/${PATH_PREFIX}/http_status_code.hpp"
+    "include/${PATH_PREFIX}/iostream_support.hpp"
+    "include/${PATH_PREFIX}/nested_status_code.hpp"
+    "include/${PATH_PREFIX}/nt_code.hpp"
+    "include/${PATH_PREFIX}/posix_code.hpp"
+    "include/${PATH_PREFIX}/quick_status_code_from_enum.hpp"
+    "include/${PATH_PREFIX}/result.hpp"
+    "include/${PATH_PREFIX}/status_code.hpp"
+    "include/${PATH_PREFIX}/status_code_domain.hpp"
+    "include/${PATH_PREFIX}/status_error.hpp"
+    "include/${PATH_PREFIX}/std_error_code.hpp"
+    "include/${PATH_PREFIX}/system_code.hpp"
+    "include/${PATH_PREFIX}/system_code_from_exception.hpp"
+    "include/${PATH_PREFIX}/system_error2.hpp"
+    "include/${PATH_PREFIX}/win32_code.hpp"
   )
-  target_sources(status-code INTERFACE
+  target_sources(${LIBRARY_NAME} INTERFACE
     "$<INSTALL_INTERFACE:${source}>"
   )
   get_filename_component(dir ${source} DIRECTORY)
@@ -117,14 +143,14 @@ foreach(source
   )
 endforeach()
 
-install(TARGETS status-code
-        EXPORT status-codeExports
+install(TARGETS ${LIBRARY_NAME}
+        EXPORT ${LIBRARY_NAME}Exports
         INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
         ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
-set_target_properties(status-code PROPERTIES EXPORT_NAME hl)
+set_target_properties(${LIBRARY_NAME} PROPERTIES EXPORT_NAME ${EXPORT_NAME})
 
 configure_file(
   "${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectConfig.cmake.in"
@@ -135,9 +161,9 @@ install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
 )
-install(EXPORT status-codeExports
-  NAMESPACE status-code::
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/status-code"
+install(EXPORT ${LIBRARY_NAME}Exports
+  NAMESPACE ${EXPORT_NAMESPACE}
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${LIBRARY_NAME}"
 )
 
 if(NOT status-code_IS_DEPENDENCY AND (NOT DEFINED BUILD_TESTING OR BUILD_TESTING))
@@ -154,8 +180,8 @@ if(NOT status-code_IS_DEPENDENCY AND (NOT DEFINED BUILD_TESTING OR BUILD_TESTING
     else()
       add_custom_target(status-code-pp 
         pcpp -o "${CMAKE_CURRENT_SOURCE_DIR}/single-header/system_error2.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/status-code/system_error2.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/status-code/nested_status_code.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/${PATH_PREFIX}/system_error2.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/${PATH_PREFIX}/nested_status_code.hpp"
         --passthru-defines --passthru-unfound-includes --passthru-unknown-exprs
         --passthru-comments --line-directive --compress # --debug
         -U STANDARDESE_IS_IN_THE_HOUSE
@@ -164,8 +190,8 @@ if(NOT status-code_IS_DEPENDENCY AND (NOT DEFINED BUILD_TESTING OR BUILD_TESTING
       )
       add_custom_target(status-code-nowindows-pp 
         pcpp -o "${CMAKE_CURRENT_SOURCE_DIR}/single-header/system_error2-nowindows.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/status-code/system_error2.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/status-code/nested_status_code.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/${PATH_PREFIX}/system_error2.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/${PATH_PREFIX}/nested_status_code.hpp"
         --passthru-defines --passthru-unfound-includes --passthru-unknown-exprs
         --passthru-comments --line-directive --compress # --debug
         -U STANDARDESE_IS_IN_THE_HOUSE -U _WIN32
@@ -178,14 +204,24 @@ if(NOT status-code_IS_DEPENDENCY AND (NOT DEFINED BUILD_TESTING OR BUILD_TESTING
     endif()
   endif()
 
-  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "6.0")
-    add_executable(test-result "test/result.cpp")
-    target_compile_features(test-result PRIVATE cxx_std_17)
-    target_link_libraries(test-result PRIVATE status-code)
-    set_target_properties(test-result PROPERTIES
+  function(add_status_code_example target)
+    cmake_parse_arguments(ADD_EXAMPLE "" "" "SOURCES;FEATURES;PROPERTIES" ${ARGN})
+    add_executable(${target} ${ADD_EXAMPLE_SOURCES})
+    target_compile_features(${target} PRIVATE ${ADD_EXAMPLE_FEATURES})
+    target_compile_definitions(${target} PRIVATE "STATUS_CODE_INCLUDE_PATH=\"${PATH_PREFIX}/system_error2.hpp\"")
+    target_link_libraries(${target} PRIVATE ${LIBRARY_NAME})
+    set_target_properties(${target} PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+      ${ADD_EXAMPLE_PROPERTIES}
     )
-    add_test(NAME test-result COMMAND $<TARGET_FILE:test-result>)
+  endfunction()
+  function(add_status_code_test target)
+    add_status_code_example(${target} ${ARGN})
+    add_test(NAME ${target} COMMAND $<TARGET_FILE:${target}>)
+  endfunction()
+
+  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "6.0")
+    add_status_code_test(test-result SOURCES "test/result.cpp" FEATURES cxx_std_17)
   endif()
 
 # Forgot to git add this on the other computer
@@ -199,76 +235,29 @@ if(NOT status-code_IS_DEPENDENCY AND (NOT DEFINED BUILD_TESTING OR BUILD_TESTING
 #    add_test(NAME test-boost_error_code COMMAND $<TARGET_FILE:test-boost_error_code>)
 #  endif()
   
-  add_executable(test-issue0050 "test/issue0050.cpp")
-  target_link_libraries(test-issue0050 PRIVATE status-code)
-  set_target_properties(test-issue0050 PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-  )
-  add_test(NAME test-issue0050 COMMAND $<TARGET_FILE:test-issue0050>)
-  
-  add_executable(test-issue0056 "test/issue0056.cpp")
-  target_compile_features(test-issue0056 PRIVATE cxx_std_17)
-  target_link_libraries(test-issue0056 PRIVATE status-code)
-  set_target_properties(test-issue0056 PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-  )
-  add_test(NAME test-issue0056 COMMAND $<TARGET_FILE:test-issue0056>)
-  
-  add_executable(test-status-code "test/main.cpp")
-  target_link_libraries(test-status-code PRIVATE status-code)
-  set_target_properties(test-status-code PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-  )
-  add_test(NAME test-status-code COMMAND $<TARGET_FILE:test-status-code>)
-  
-  add_executable(test-status-code-noexcept "test/main.cpp")
-  target_link_libraries(test-status-code-noexcept PRIVATE status-code)
-  set_target_properties(test-status-code-noexcept PROPERTIES
+  add_status_code_test(test-issue0050 SOURCES "test/issue0050.cpp")
+  add_status_code_test(test-issue0056 SOURCES "test/issue0056.cpp" FEATURES cxx_std_17)
+  add_status_code_test(test-status-code SOURCES "test/main.cpp")
+  add_status_code_test(test-status-code-noexcept SOURCES "test/main.cpp" PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     CXX_EXCEPTIONS Off
     CXX_RTTI Off
   )
-  add_test(NAME test-status-code-noexcept COMMAND $<TARGET_FILE:test-status-code-noexcept>)
   
-  add_executable(test-status-code-not-posix "test/main.cpp")
+  add_status_code_test(test-status-code-not-posix SOURCES "test/main.cpp")
   target_compile_definitions(test-status-code-not-posix PRIVATE SYSTEM_ERROR2_NOT_POSIX=1 "SYSTEM_ERROR2_FATAL=::abort()")
-  target_link_libraries(test-status-code-not-posix PRIVATE status-code)
-  set_target_properties(test-status-code-not-posix PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-  )
-  add_test(NAME test-status-code-not-posix COMMAND $<TARGET_FILE:test-status-code-not-posix>)
   
-  add_executable(test-status-code-p0709a "test/p0709a.cpp")
-  target_link_libraries(test-status-code-p0709a PRIVATE status-code)
-  set_target_properties(test-status-code-p0709a PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-  )
-  add_test(NAME test-status-code-p0709a COMMAND $<TARGET_FILE:test-status-code-p0709a>)
+  add_status_code_test(test-status-code-p0709a SOURCES "test/p0709a.cpp")
   
   if(WIN32)
     add_executable(generate-tables "utils/generate-tables.cpp")
-    target_link_libraries(test-status-code PRIVATE status-code)
-    set_target_properties(test-status-code PROPERTIES
+    set_target_properties(generate-tables PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
   endif()
 
   # Compile examples
-  add_executable(example-quick_status_code_from_enum "example/quick_status_code_from_enum.cpp")
-  target_link_libraries(example-quick_status_code_from_enum PRIVATE status-code)
-  set_target_properties(example-quick_status_code_from_enum PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-  )
-  add_executable(example-thrown_exception "example/thrown_exception.cpp")
-  target_link_libraries(example-thrown_exception PRIVATE status-code)
-  set_target_properties(example-thrown_exception PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-  )
-  target_compile_features(example-thrown_exception PRIVATE cxx_std_17)
-  add_executable(example-file_io_error "wg21/file_io_error.cpp")
-  target_link_libraries(example-file_io_error PRIVATE status-code)
-  set_target_properties(example-file_io_error PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-  )
-  
+  add_status_code_example(example-quick_status_code_from_enum SOURCES "example/quick_status_code_from_enum.cpp")
+  add_status_code_example(example-thrown_exception SOURCES "example/thrown_exception.cpp" FEATURES cxx_std_17)
+  add_status_code_example(example-file_io_error SOURCES "wg21/file_io_error.cpp")  
 endif()

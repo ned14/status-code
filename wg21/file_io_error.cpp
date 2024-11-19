@@ -119,7 +119,7 @@ public:
     {
       return _base::string_ref("failed to get message from system");
     }
-    sprintf(p, "%s (%s:%d)", msg.data(), v.file, v.lineno);
+    snprintf(p, length, "%s (%s:%d)", msg.data(), v.file, v.lineno);
     // Return as atomically reference counted string
     return _base::atomic_refcounted_string_ref(p, length);
   }
