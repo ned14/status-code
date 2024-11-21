@@ -31,6 +31,11 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include "quick_status_code_from_enum.hpp"
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#pragma warning(push)
+#pragma warning(disable : 6326)  // constant comparison
+#endif
+
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 //! \exclude
@@ -238,5 +243,9 @@ namespace mixins
 }  // namespace mixins
 
 SYSTEM_ERROR2_NAMESPACE_END
+
+#if defined(_MSC_VER) && !defined(__clang__)
+#pragma warning(pop)
+#endif
 
 #endif

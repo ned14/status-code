@@ -33,6 +33,11 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include <cstring>  // for strchr and strerror_r
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#pragma warning(push)
+#pragma warning(disable : 6326)  // constant comparison
+#endif
+
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
 // Fix for issue #48 Issue compiling on arm-none-eabi (newlib) with GNU extensions off
@@ -191,5 +196,9 @@ namespace mixins
 }  // namespace mixins
 
 SYSTEM_ERROR2_NAMESPACE_END
+
+#if defined(_MSC_VER) && !defined(__clang__)
+#pragma warning(pop)
+#endif
 
 #endif
