@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
 project(status-code VERSION 1.0 LANGUAGES CXX)
 include(GNUInstallDirs)
@@ -141,9 +141,9 @@ install(EXPORT status-codeExports
 )
 
 if(NOT status-code_IS_DEPENDENCY AND (NOT DEFINED BUILD_TESTING OR BUILD_TESTING))
-  include(FindPythonInterp)
+  find_package(Python COMPONENTS Interpreter)
   # Make preprocessed edition of this library target
-  if(NOT PYTHONINTERP_FOUND)
+  if(NOT Python_Interpreter_FOUND)
     message(WARNING "NOT rebuilding preprocessed edition of library due to python not being installed")
   else()
     # See if the ply package is installed so pcpp can run
