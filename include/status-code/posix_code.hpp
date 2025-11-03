@@ -85,6 +85,7 @@ class _posix_code_domain : public status_code_domain
   static _base::string_ref _make_string_ref(int &errcode, int c) noexcept
   {
     char buffer[1024] = "";
+    errno = 0;
 #ifdef _WIN32
     strerror_s(buffer, sizeof(buffer), c);
 #elif defined(__GLIBC__) && !defined(__UCLIBC__)  // handle glibc's weird strerror_r()
@@ -99,15 +100,8 @@ class _posix_code_domain : public status_code_domain
 #else
     strerror_r(c, buffer, sizeof(buffer));
 #endif
-    size_t length = strlen(buffer);                     // NOLINT
-    auto *p = static_cast<char *>(malloc(length + 1));  // NOLINT
-    if(p == nullptr)
-    {
-      errcode = ENOMEM;
-      return _base::string_ref("failed to get message from system");
-    }
-    memcpy(p, buffer, length + 1);  // NOLINT
-    return _base::atomic_refcounted_string_ref(p, length);
+    errcode = errno;
+    return _base::atomic_refcounted_string_ref(buffer);
   }
 
 public:

@@ -226,16 +226,7 @@ protected:
       makes copies instead of using the one stored in the array. So
       for it we actively must copy the message. */
 #ifdef _WIN32
-      auto *msg = x.what();
-      auto len = strlen(msg);
-      auto *p = static_cast<char *>(malloc(len + 1));
-      if(p == nullptr)
-      {
-        args.ret = _base::string_ref("failed to allocate memory for what()");
-        return ENOMEM;
-      }
-      memcpy(p, msg, len + 1);
-      args.ret = _base::atomic_refcounted_string_ref(p, len);
+      args.ret = _base::atomic_refcounted_string_ref(x.what());
       return 0;
 #else
       args.ret = _base::string_ref(x.what());

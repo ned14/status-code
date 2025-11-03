@@ -122,9 +122,10 @@ protected:
       args.ret = _base::string_ref("failed to get message from system");
       return ENOMEM;
     }
-    sprintf(p, "%s (%s:%d)", msg.data(), v.file, v.lineno);
+    snprintf(p, length, "%s (%s:%d)", msg.data(), v.file, v.lineno);
     // Return as atomically reference counted string
     args.ret = _base::atomic_refcounted_string_ref(p, length);
+    free(p);
     return 0;
   }
 };

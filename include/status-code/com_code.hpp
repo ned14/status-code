@@ -95,7 +95,9 @@ class _com_code_domain : public status_code_domain
           --end;
         }
         *end = 0;  // NOLINT
-        return _base::atomic_refcounted_string_ref(p, end - p);
+        _base::atomic_refcounted_string_ref ret(p, end - p);
+        free(p);
+        return ret;
       }
       free(p);  // NOLINT
       if(win32::GetLastError() == 0x7a /*ERROR_INSUFFICIENT_BUFFER*/)
@@ -121,7 +123,9 @@ class _com_code_domain : public status_code_domain
       --end;
     }
     *end = 0;  // NOLINT
-    return _base::atomic_refcounted_string_ref(p, end - p);
+    _base::atomic_refcounted_string_ref ret(p, end - p);
+    free(p);
+    return ret;
 #endif
   }
 

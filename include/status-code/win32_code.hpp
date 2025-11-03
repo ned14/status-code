@@ -60,7 +60,7 @@ namespace win32
   }
 #else
 #pragma comment(lib, "kernel32.lib")
-#if (defined(__x86_64__) || defined(_M_X64)) || (defined(__aarch64__) || defined(_M_ARM64))
+#if(defined(__x86_64__) || defined(_M_X64)) || (defined(__aarch64__) || defined(_M_ARM64))
 #pragma comment(linker, "/alternatename:?GetLastError@win32@system_error2@@YAKXZ=GetLastError")
 #pragma comment(linker, "/alternatename:?FormatMessageW@win32@system_error2@@YAKKPEBXKKPEA_WKPEAX@Z=FormatMessageW")
 #pragma comment(                                                                                                       \
@@ -148,7 +148,9 @@ class _win32_code_domain : public status_code_domain
           --end;
         }
         *end = 0;  // NOLINT
-        return _base::atomic_refcounted_string_ref(p, end - p);
+        _base::atomic_refcounted_string_ref ret(p, end - p);
+        free(p);
+        return ret;
       }
       free(p);  // NOLINT
       if(win32::GetLastError() == 0x7a /*ERROR_INSUFFICIENT_BUFFER*/)

@@ -79,13 +79,7 @@ class _boost_error_code_domain final : public status_code_domain
 #endif
     {
       std::string msg = c.message();
-      auto *p = static_cast<char *>(malloc(msg.size() + 1));  // NOLINT
-      if(p == nullptr)
-      {
-        return _base::string_ref("failed to allocate message");
-      }
-      memcpy(p, msg.c_str(), msg.size() + 1);
-      return _base::atomic_refcounted_string_ref(p, msg.size());
+      return _base::atomic_refcounted_string_ref(msg.c_str(), msg.size());
     }
 #if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
     catch(...)
@@ -96,7 +90,8 @@ class _boost_error_code_domain final : public status_code_domain
   }
 
 public:
-  //! The value type of the `boost::system::error_code` code, which stores the `int` from the `boost::system::error_code`
+  //! The value type of the `boost::system::error_code` code, which stores the `int` from the
+  //! `boost::system::error_code`
   using value_type = int;
   using _base::string_ref;
 
@@ -128,7 +123,8 @@ public:
   virtual payload_info_t payload_info() const noexcept override
   {
     return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
-            (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
+            (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) :
+                                                                    alignof(status_code_domain *)};
   }
 
 protected:
@@ -143,7 +139,8 @@ protected:
 
 namespace detail
 {
-  extern inline _boost_error_code_domain *boost_error_code_domain_from_category(const boost::system::error_category &category)
+  extern inline _boost_error_code_domain *
+  boost_error_code_domain_from_category(const boost::system::error_category &category)
   {
     static constexpr size_t max_items = 64;
     static struct storage_t
@@ -210,7 +207,8 @@ namespace mixins
   {
   }
 
-  template <class Base> inline const boost::system::error_category &mixin<Base, _boost_error_code_domain>::category() const noexcept
+  template <class Base>
+  inline const boost::system::error_category &mixin<Base, _boost_error_code_domain>::category() const noexcept
   {
     const auto &domain = static_cast<const _boost_error_code_domain &>(this->domain());
     return domain.error_category();
@@ -235,7 +233,8 @@ inline bool _boost_error_code_domain::_do_failure(const status_code<void> &code)
   return static_cast<const boost_error_code &>(code).value() != 0;  // NOLINT
 }
 
-inline bool _boost_error_code_domain::_do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept
+inline bool _boost_error_code_domain::_do_equivalent(const status_code<void> &code1,
+                                                     const status_code<void> &code2) const noexcept
 {
   assert(code1.domain() == *this);
   const auto &c1 = static_cast<const boost_error_code &>(code1);  // NOLINT
@@ -294,7 +293,8 @@ inline generic_code _boost_error_code_domain::_generic_code(const status_code<vo
   return errc::unknown;
 }
 
-inline _boost_error_code_domain::string_ref _boost_error_code_domain::_do_message(const status_code<void> &code) const noexcept
+inline _boost_error_code_domain::string_ref
+_boost_error_code_domain::_do_message(const status_code<void> &code) const noexcept
 {
   assert(code.domain() == *this);
   const auto &c = static_cast<const boost_error_code &>(code);  // NOLINT

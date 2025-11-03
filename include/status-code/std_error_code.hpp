@@ -74,14 +74,7 @@ class _std_error_code_domain final : public status_code_domain
 #endif
     {
       std::string msg = c.message();
-      auto *p = static_cast<char *>(malloc(msg.size() + 1));  // NOLINT
-      if(p == nullptr)
-      {
-        errcode = ENOMEM;
-        return _base::string_ref("failed to allocate message");
-      }
-      memcpy(p, msg.c_str(), msg.size() + 1);
-      return _base::atomic_refcounted_string_ref(p, msg.size());
+      return _base::atomic_refcounted_string_ref(msg.c_str(), msg.size());
     }
 #if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
     catch(...)

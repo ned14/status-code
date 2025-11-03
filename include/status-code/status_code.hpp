@@ -1,5 +1,5 @@
 /* Proposed SG14 status_code
-(C) 2018 - 2023 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
+(C) 2018 - 2026 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
 File Created: Feb 2018
 
 
@@ -25,7 +25,6 @@ http://www.boost.org/LICENSE_1_0.txt)
 #ifndef SYSTEM_ERROR2_STATUS_CODE_HPP
 #define SYSTEM_ERROR2_STATUS_CODE_HPP
 
-#include "status-code/config.hpp"
 #include "status_code_domain.hpp"
 
 #if(__cplusplus >= 201700 || _HAS_CXX17) && !defined(SYSTEM_ERROR2_DISABLE_STD_IN_PLACE)
