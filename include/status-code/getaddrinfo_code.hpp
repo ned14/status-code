@@ -69,21 +69,25 @@ public:
   //! Constexpr singleton getter. Returns constexpr getaddrinfo_code_domain variable.
   static inline constexpr const _getaddrinfo_code_domain &get();
 
-  virtual string_ref name() const noexcept override { return string_ref("getaddrinfo() domain"); }  // NOLINT
-
-  virtual payload_info_t payload_info() const noexcept override
-  {
-    return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
-            (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
-  }
-
 protected:
+  virtual int _do_name(_vtable_name_args &args) const noexcept override
+  {
+    args.ret = string_ref("getaddrinfo() domain");
+    return 0;
+  }  // NOLINT
+  virtual void _do_payload_info(_vtable_payload_info_args &args) const noexcept override
+  {
+    args.ret = {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
+                (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) :
+                                                                        alignof(status_code_domain *)};
+  }
   virtual bool _do_failure(const status_code<void> &code) const noexcept override  // NOLINT
   {
     assert(code.domain() == *this);                                   // NOLINT
     return static_cast<const getaddrinfo_code &>(code).value() != 0;  // NOLINT
   }
-  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override  // NOLINT
+  virtual bool _do_equivalent(const status_code<void> &code1,
+                              const status_code<void> &code2) const noexcept override  // NOLINT
   {
     assert(code1.domain() == *this);                                // NOLINT
     const auto &c1 = static_cast<const getaddrinfo_code &>(code1);  // NOLINT
@@ -94,48 +98,59 @@ protected:
     }
     return false;
   }
-  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override  // NOLINT
+  virtual void _do_generic_code(_vtable_generic_code_args &args) const noexcept override
   {
-    assert(code.domain() == *this);                               // NOLINT
-    const auto &c = static_cast<const getaddrinfo_code &>(code);  // NOLINT
+    assert(args.code.domain() == *this);                               // NOLINT
+    const auto &c = static_cast<const getaddrinfo_code &>(args.code);  // NOLINT
     switch(c.value())
     {
 #ifdef EAI_ADDRFAMILY
     case EAI_ADDRFAMILY:
-      return errc::no_such_device_or_address;
+      args.ret = errc::no_such_device_or_address;
+      return;
 #endif
     case EAI_FAIL:
-      return errc::io_error;
+      args.ret = errc::io_error;
+      return;
     case EAI_MEMORY:
-      return errc::not_enough_memory;
+      args.ret = errc::not_enough_memory;
+      return;
 #ifdef EAI_NODATA
     case EAI_NODATA:
-      return errc::no_such_device_or_address;
+      args.ret = errc::no_such_device_or_address;
+      return;
 #endif
     case EAI_NONAME:
-      return errc::no_such_device_or_address;
+      args.ret = errc::no_such_device_or_address;
+      return;
 #ifdef EAI_OVERFLOW
     case EAI_OVERFLOW:
-      return errc::argument_list_too_long;
+      args.ret = errc::argument_list_too_long;
+      return;
 #endif
     case EAI_BADFLAGS:  // fallthrough
     case EAI_SERVICE:
-      return errc::invalid_argument;
+      args.ret = errc::invalid_argument;
+      return;
     case EAI_FAMILY:  // fallthrough
     case EAI_SOCKTYPE:
-      return errc::operation_not_supported;
+      args.ret = errc::operation_not_supported;
+      return;
     case EAI_AGAIN:  // fallthrough
     case EAI_SYSTEM:
-      return errc::resource_unavailable_try_again;
+      args.ret = errc::resource_unavailable_try_again;
+      return;
     default:
-      return errc::unknown;
+      args.ret = errc::unknown;
+      return;
     }
   }
-  virtual string_ref _do_message(const status_code<void> &code) const noexcept override  // NOLINT
+  virtual int _do_message(_vtable_message_args &args) const noexcept override
   {
-    assert(code.domain() == *this);                               // NOLINT
-    const auto &c = static_cast<const getaddrinfo_code &>(code);  // NOLINT
-    return string_ref(gai_strerror(c.value()));
+    assert(args.code.domain() == *this);                               // NOLINT
+    const auto &c = static_cast<const getaddrinfo_code &>(args.code);  // NOLINT
+    args.ret = string_ref(gai_strerror(c.value()));
+    return 0;
   }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override  // NOLINT
@@ -146,7 +161,8 @@ protected:
   }
 #endif
 };
-//! A constexpr source variable for the `getaddrinfo()` code domain, which is that of `getaddrinfo()`. Returned by `_getaddrinfo_code_domain::get()`.
+//! A constexpr source variable for the `getaddrinfo()` code domain, which is that of `getaddrinfo()`. Returned by
+//! `_getaddrinfo_code_domain::get()`.
 constexpr _getaddrinfo_code_domain getaddrinfo_code_domain;
 inline constexpr const _getaddrinfo_code_domain &_getaddrinfo_code_domain::get()
 {

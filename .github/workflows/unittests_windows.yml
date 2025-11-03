@@ -11,8 +11,8 @@ on:
 
 jobs:
   WinVS2019:
-    name: Windows VS2019
-    runs-on: windows-2019
+    name: Windows VS2022
+    runs-on: windows-2022
           
     steps:
     - uses: actions/checkout@v4

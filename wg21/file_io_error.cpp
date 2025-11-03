@@ -91,37 +91,41 @@ public:
   }
   static inline constexpr const _file_io_error_domain &get();
 
+protected:
   // Return the name of our custom code domain
-  virtual _base::string_ref name() const noexcept override final  // NOLINT
+  virtual int _do_name(_vtable_name_args &args) const noexcept override final
   {
-    static string_ref v("file i/o error domain");
-    return v;  // NOLINT
+    args.ret = string_ref("file i/o error domain");
+    return 0;
   }
 
   // Return a string describing a specific code. We will return the
   // string returned by our POSIX code base domain, with the source
   // file and line number appended
-  virtual _base::string_ref _do_message(const status_code<void> &code) const noexcept override final  // NOLINT
+  virtual int _do_message(_vtable_message_args &args) const noexcept override final
   {
-    assert(code.domain() == *this);
+    assert(args.code.domain() == *this);
     // Fetch message from base (POSIX)
-    auto msg = _base::_do_message(code);
-    const auto &c1 = static_cast<const file_io_error &>(code);  // NOLINT
+    _base::_do_message(args);
+    const auto &c1 = static_cast<const file_io_error &>(args.code);  // NOLINT
     const auto &v = c1.value();
     // Append my source file and line number
     if(v.file == nullptr)
     {
-      return msg;
+      return 0;
     }
+    auto msg(std::move(args.ret));
     size_t length = strlen(v.file) + 16 + msg.size();
     auto *p = static_cast<char *>(malloc(length));  // NOLINT
     if(p == nullptr)
     {
-      return _base::string_ref("failed to get message from system");
+      args.ret = _base::string_ref("failed to get message from system");
+      return ENOMEM;
     }
     sprintf(p, "%s (%s:%d)", msg.data(), v.file, v.lineno);
     // Return as atomically reference counted string
-    return _base::atomic_refcounted_string_ref(p, length);
+    args.ret = _base::atomic_refcounted_string_ref(p, length);
+    return 0;
   }
 };
 
@@ -198,6 +202,8 @@ int main(void)
 {
   error e = open_resource();
   // A quick demonstration that the indirection works as indicated
-  printf("Returned error has a code domain of '%s', a message of '%s'\n", e.domain().name().c_str(), e.message().c_str());
-  printf("\nAnd semantically comparing it to 'errc::operation_not_permitted' = %d\n", e == errc::operation_not_permitted);
+  printf("Returned error has a code domain of '%s', a message of '%s'\n", e.domain().name().c_str(),
+         e.message().c_str());
+  printf("\nAnd semantically comparing it to 'errc::operation_not_permitted' = %d\n",
+         e == errc::operation_not_permitted);
 }

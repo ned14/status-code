@@ -231,7 +231,7 @@ if(NOT status-code_IS_DEPENDENCY AND (NOT DEFINED BUILD_TESTING OR BUILD_TESTING
   add_test(NAME test-status-code-noexcept COMMAND $<TARGET_FILE:test-status-code-noexcept>)
   
   add_executable(test-status-code-not-posix "test/main.cpp")
-  target_compile_definitions(test-status-code-not-posix PRIVATE SYSTEM_ERROR2_NOT_POSIX=1 "SYSTEM_ERROR2_FATAL=::abort()")
+  target_compile_definitions(test-status-code-not-posix PRIVATE SYSTEM_ERROR2_NOT_POSIX=1)
   target_link_libraries(test-status-code-not-posix PRIVATE status-code)
   set_target_properties(test-status-code-not-posix PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"

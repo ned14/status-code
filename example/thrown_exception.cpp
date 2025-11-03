@@ -94,17 +94,22 @@ public:
   // Fetch a constexpr instance of this domain
   static inline constexpr const _thrown_exception_domain &get();
 
+protected:
   // Return the name of this domain
-  virtual _base::string_ref name() const noexcept override final { return _base::string_ref("thrown exception"); }
-
-  // Return information about the value type of this domain
-  virtual payload_info_t payload_info() const noexcept override
+  virtual int _do_name(_vtable_name_args &args) const noexcept override final
   {
-    return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
-            (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
+    args.ret = _base::string_ref("thrown exception");
+    return 0;
   }
 
-protected:
+  // Return information about the value type of this domain
+  virtual void _do_payload_info(_vtable_payload_info_args &args) const noexcept override final
+  {
+    args.ret = {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
+                (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) :
+                                                                        alignof(status_code_domain *)};
+  }
+
   // This internal routine maps an exception ptr onto a generic_code
   // It is surely hideously slow, but that's all relative in the end
   static errc _to_generic_code(value_type c) noexcept
@@ -169,7 +174,8 @@ protected:
     return true;
   }
   // True if the exception ptr is equivalent to some other status code
-  virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override final
+  virtual bool _do_equivalent(const status_code<void> &code1,
+                              const status_code<void> &code2) const noexcept override final
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const thrown_exception_code &>(code1);
@@ -193,22 +199,25 @@ protected:
     return false;
   }
   // Called as a fallback if _equivalent() fails
-  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override final
+  virtual void _do_generic_code(_vtable_generic_code_args &args) const noexcept override final
   {
-    assert(code.domain() == *this);
-    const auto &c1 = static_cast<const thrown_exception_code &>(code);
-    return generic_code(_to_generic_code(c1.value()));
+    assert(args.code.domain() == *this);
+    const auto &c1 = static_cast<const thrown_exception_code &>(args.code);
+    args.ret = generic_code(_to_generic_code(c1.value()));
   }
   // Extract the what() from the exception
-  virtual _base::string_ref _do_message(const status_code<void> &code) const noexcept override final
+  virtual int _do_message(_vtable_message_args &args) const noexcept override final
   {
-    assert(code.domain() == *this);
-    const auto &c = static_cast<const thrown_exception_code &>(code);
+    assert(args.code.domain() == *this);
+    const auto &c = static_cast<const thrown_exception_code &>(args.code);
     const std::exception_ptr &e = exception_ptr_storage[c.value()];
     try
     {
       if(!e)
-        return _base::string_ref("expired");
+      {
+        args.ret = _base::string_ref("expired");
+        return 0;
+      }
       std::rethrow_exception(e);
     }
     catch(const std::exception &x)
@@ -222,17 +231,21 @@ protected:
       auto *p = static_cast<char *>(malloc(len + 1));
       if(p == nullptr)
       {
-        return _base::string_ref("failed to allocate memory for what()");
+        args.ret = _base::string_ref("failed to allocate memory for what()");
+        return ENOMEM;
       }
       memcpy(p, msg, len + 1);
-      return _base::atomic_refcounted_string_ref(p, len);
+      args.ret = _base::atomic_refcounted_string_ref(p, len);
+      return 0;
 #else
-      return _base::string_ref(x.what());
+      args.ret = _base::string_ref(x.what());
+      return 0;
 #endif
     }
     catch(...)
     {
-      return _base::string_ref("unknown thrown exception");
+      args.ret = _base::string_ref("unknown thrown exception");
+      return EAGAIN;
     }
   }
   // Throw the code as a C++ exception

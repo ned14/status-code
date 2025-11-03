@@ -67,7 +67,7 @@ class _std_error_code_domain final : public status_code_domain
 
   std::string _name;
 
-  static _base::string_ref _make_string_ref(_error_code_type c) noexcept
+  static _base::string_ref _make_string_ref(int &errcode, _error_code_type c) noexcept
   {
 #if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
     try
@@ -77,6 +77,7 @@ class _std_error_code_domain final : public status_code_domain
       auto *p = static_cast<char *>(malloc(msg.size() + 1));  // NOLINT
       if(p == nullptr)
       {
+        errcode = ENOMEM;
         return _base::string_ref("failed to allocate message");
       }
       memcpy(p, msg.c_str(), msg.size() + 1);
@@ -85,6 +86,7 @@ class _std_error_code_domain final : public status_code_domain
 #if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
     catch(...)
     {
+      errcode = ENOMEM;
       return _base::string_ref("failed to allocate message");
     }
 #endif
@@ -118,19 +120,22 @@ public:
 
   static inline const _std_error_code_domain *get(_error_code_type ec);
 
-  virtual string_ref name() const noexcept override { return string_ref(_name.c_str(), _name.size()); }  // NOLINT
-
-  virtual payload_info_t payload_info() const noexcept override
-  {
-    return {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
-            (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) : alignof(status_code_domain *)};
-  }
-
 protected:
+  virtual int _do_name(_vtable_name_args &args) const noexcept override
+  {
+    args.ret = string_ref(_name.c_str(), _name.size());
+    return 0;
+  }  // NOLINT
+  virtual void _do_payload_info(_vtable_payload_info_args &args) const noexcept override
+  {
+    args.ret = {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
+                (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) :
+                                                                        alignof(status_code_domain *)};
+  }
   virtual bool _do_failure(const status_code<void> &code) const noexcept override;
   virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override;
-  virtual generic_code _generic_code(const status_code<void> &code) const noexcept override;
-  virtual string_ref _do_message(const status_code<void> &code) const noexcept override;
+  virtual void _do_generic_code(_vtable_generic_code_args &args) const noexcept override;
+  virtual int _do_message(_vtable_message_args &args) const noexcept override;
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
   SYSTEM_ERROR2_NORETURN virtual void _do_throw_exception(const status_code<void> &code) const override;
 #endif
@@ -230,7 +235,8 @@ inline bool _std_error_code_domain::_do_failure(const status_code<void> &code) c
   return static_cast<const std_error_code &>(code).value() != 0;  // NOLINT
 }
 
-inline bool _std_error_code_domain::_do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept
+inline bool _std_error_code_domain::_do_equivalent(const status_code<void> &code1,
+                                                   const status_code<void> &code2) const noexcept
 {
   assert(code1.domain() == *this);
   const auto &c1 = static_cast<const std_error_code &>(code1);  // NOLINT
@@ -270,30 +276,34 @@ inline bool _std_error_code_domain::_do_equivalent(const status_code<void> &code
   return false;
 }
 
-inline generic_code _std_error_code_domain::_generic_code(const status_code<void> &code) const noexcept
+inline void _std_error_code_domain::_do_generic_code(_vtable_generic_code_args &args) const noexcept
 {
-  assert(code.domain() == *this);
-  const auto &c = static_cast<const std_error_code &>(code);  // NOLINT
+  assert(args.code.domain() == *this);
+  const auto &c = static_cast<const std_error_code &>(args.code);  // NOLINT
   // Ask my embedded error code for its mapping to std::errc, which is a subset of our generic_code errc.
   std::error_condition cond(c.category().default_error_condition(c.value()));
   if(cond.category() == std::generic_category())
   {
-    return generic_code(static_cast<errc>(cond.value()));
+    args.ret = generic_code(static_cast<errc>(cond.value()));
+    return;
   }
 #if !defined(SYSTEM_ERROR2_NOT_POSIX) && !defined(_WIN32)
   if(cond.category() == std::system_category())
   {
-    return generic_code(static_cast<errc>(cond.value()));
+    args.ret = generic_code(static_cast<errc>(cond.value()));
+    return;
   }
 #endif
-  return errc::unknown;
+  args.ret = errc::unknown;
 }
 
-inline _std_error_code_domain::string_ref _std_error_code_domain::_do_message(const status_code<void> &code) const noexcept
+inline int _std_error_code_domain::_do_message(_vtable_message_args &args) const noexcept
 {
-  assert(code.domain() == *this);
-  const auto &c = static_cast<const std_error_code &>(code);  // NOLINT
-  return _make_string_ref(_error_code_type(c.value(), c.category()));
+  assert(args.code.domain() == *this);
+  const auto &c = static_cast<const std_error_code &>(args.code);  // NOLINT
+  int ret = 0;
+  args.ret = _make_string_ref(ret, _error_code_type(c.value(), c.category()));
+  return ret;
 }
 
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || defined(STANDARDESE_IS_IN_THE_HOUSE)
