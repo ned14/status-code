@@ -51,6 +51,8 @@ SYSTEM_ERROR2_NAMESPACE_END
 
 SYSTEM_ERROR2_NAMESPACE_BEGIN
 
+template <class DomainType> class errored_status_code;
+
 //! Namespace for user injected mixins
 namespace mixins
 {
@@ -131,11 +133,36 @@ namespace detail
   {
     static constexpr bool value = true;
   };
+  template <class T> struct is_status_code<errored_status_code<T>>
+  {
+    static constexpr bool value = true;
+  };
+  template <class T> struct is_errored_status_code
+  {
+    static constexpr bool value = false;
+  };
+  template <class T> struct is_errored_status_code<errored_status_code<T>>
+  {
+    static constexpr bool value = true;
+  };
+
   template <class T> struct is_erased_status_code
   {
     static constexpr bool value = false;
   };
   template <class T> struct is_erased_status_code<status_code<detail::erased<T>>>
+  {
+    static constexpr bool value = true;
+  };
+  template <class T> struct is_erased_status_code<errored_status_code<detail::erased<T>>>
+  {
+    static constexpr bool value = true;
+  };
+  template <class T> struct is_erased_errored_status_code
+  {
+    static constexpr bool value = false;
+  };
+  template <class T> struct is_erased_errored_status_code<errored_status_code<erased<T>>>
   {
     static constexpr bool value = true;
   };
@@ -207,6 +234,13 @@ template <class T> struct is_status_code
   static constexpr bool value = detail::is_status_code<typename std::decay<T>::type>::value ||
                                 detail::is_erased_status_code<typename std::decay<T>::type>::value;
 };
+//! Trait returning true if the type is an errored status code.
+template <class T> struct is_errored_status_code
+{
+  static constexpr bool value = detail::is_errored_status_code<typename std::decay<T>::type>::value ||
+                                detail::is_erased_errored_status_code<typename std::decay<T>::type>::value;
+};
+
 
 /*! A type erased lightweight status code reflecting empty, success, or failure.
 Differs from `status_code<erased<>>` by being always available irrespective of
