@@ -25,6 +25,11 @@ You can find an example of use
 Experimental.Outcome works great with C++ exceptions globally disabled, and includes
 only a very minimal set of C++ headers.
 
+If you want a 100% pure C edition with multiple language bindings, the reference
+implementation for WG14 the C programming language is available at https://github.com/ned14/wg14_result.
+This C++ implementation is 100% ABI compatible with the pure C edition and objects
+can be freely reinterpet casted between both implementations.
+
 ## Features:
 
 - Portable to any C++ 11 compiler. These are known to work:

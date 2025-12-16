@@ -261,6 +261,10 @@ public:
           SYSTEM_ERROR2_FATAL(buffer);
         }
       }
+      o._begin = nullptr;
+      o._end = nullptr;
+      o._state[0] = o._state[1] = o._state[2] = nullptr;
+      *(_thunk_spec *) (&o._thunk) = nullptr;
     }
     //! Copy assignment
     SYSTEM_ERROR2_CONSTEXPR20 string_ref &operator=(const string_ref &o)
