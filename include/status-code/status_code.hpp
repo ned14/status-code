@@ -27,7 +27,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #include "status_code_domain.hpp"
 
-#if(__cplusplus >= 201700 || _HAS_CXX17) && !defined(SYSTEM_ERROR2_DISABLE_STD_IN_PLACE)
+#if (__cplusplus >= 201700 || _HAS_CXX17) && !defined(SYSTEM_ERROR2_DISABLE_STD_IN_PLACE)
 // 0.26
 #include <utility>  // for in_place
 
@@ -226,6 +226,21 @@ namespace detail
     using type = typename impl::make_status_code_rettype<impl::types<Args...>>::type;
   };
 #endif
+
+  template <class T> struct safe_get_make_status_code_noexcept_select
+  {
+    static constexpr bool value = false;
+  };
+  template <> struct safe_get_make_status_code_noexcept_select<int>
+  {
+    static constexpr bool value = true;
+  };
+  template <class T, class... Args>
+  using get_make_status_code_noexcept =
+  typename std::conditional<noexcept(make_status_code(std::declval<T>(), std::declval<Args>()...)), int, void>::type;
+  template <class T, class... Args>
+  using safe_get_make_status_code_noexcept =
+  safe_get_make_status_code_noexcept_select<test_apply<get_make_status_code_noexcept, Args...>>;
 }  // namespace detail
 
 //! Trait returning true if the type is a status code.
@@ -528,8 +543,8 @@ public:
   && !std::is_same<typename std::decay<T>::type, in_place_t>::value     // not in_place_t
   && is_status_code<MakeStatusCodeResult>::value                        // ADL makes a status code
   && std::is_constructible<status_code, MakeStatusCodeResult>::value))  // ADLed status code is compatible
-  constexpr status_code(T &&v, Args &&...args) noexcept(noexcept(make_status_code(std::declval<T>(),
-                                                                                  std::declval<Args>()...)))  // NOLINT
+  constexpr status_code(T &&v, Args &&...args) noexcept(
+  detail::safe_get_make_status_code_noexcept<T, Args...>::value)  // NOLINT
       : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
   }
@@ -700,8 +715,8 @@ public:
   && !std::is_same<typename std::decay<T>::type, value_type>::value     // not copy/move of value type
   && is_status_code<MakeStatusCodeResult>::value                        // ADL makes a status code
   && std::is_constructible<status_code, MakeStatusCodeResult>::value))  // ADLed status code is compatible
-  constexpr status_code(T &&v, Args &&...args) noexcept(noexcept(make_status_code(std::declval<T>(),
-                                                                                  std::declval<Args>()...)))  // NOLINT
+  constexpr status_code(T &&v, Args &&...args) noexcept(
+  detail::safe_get_make_status_code_noexcept<T, Args...>::value)  // NOLINT
       : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
   }
