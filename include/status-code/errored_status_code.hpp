@@ -296,6 +296,13 @@ public:
     _check();
   }
 #endif
+  //! Tagged copy construction from an unknown status code. Note that this will be empty if its value type is not
+  //! trivially copyable or would not fit into our storage or the source domain's `_do_erased_copy()` refused the copy.
+  SYSTEM_ERROR2_CONSTEXPR20 errored_status_code(std::nothrow_t _, const status_code<void> &v) noexcept  // NOLINT
+      : _base(_, v)
+  {
+    _check();
+  }
 
   //! Always false (including at compile time), as errored status codes are never successful.
   constexpr bool success() const noexcept { return false; }
