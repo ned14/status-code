@@ -421,7 +421,7 @@ inline void _generic_code_domain::_do_generic_code(_vtable_generic_code_args &ar
 SYSTEM_ERROR2_CONSTEXPR20 inline generic_code
 status_code_domain::_generic_code(const status_code<void> &code) const noexcept
 {
-  _vtable_generic_code_args args{{}, code};
+  _vtable_generic_code_args args(generic_code{}, code);
   _do_generic_code(args);
   return args.ret;
 }

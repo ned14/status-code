@@ -766,6 +766,20 @@ public:
   //! The type of a reference to a message string.
   using string_ref = typename _base::string_ref;
 
+public:
+  //! Default construction to empty
+  status_code() = default;
+  //! Copy constructor
+  status_code(const status_code &) = default;
+  //! Move constructor
+  status_code(status_code &&) = default;  // NOLINT
+  //! Copy assignment
+  status_code &operator=(const status_code &) = default;
+  //! Move assignment
+  status_code &operator=(status_code &&) = default;  // NOLINT
+  ~status_code() = default;
+
+
   //! Return a copy of the code.
   SYSTEM_ERROR2_CONSTEXPR14 status_code clone() const { return *this; }
 
