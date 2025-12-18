@@ -52,9 +52,13 @@ template <class DomainType> class status_code;
 class _generic_code_domain;
 //! The generic code is a status code with the generic code domain, which is that of `errc` (POSIX).
 using generic_code = status_code<_generic_code_domain>;
+template <class DomainType> class errored_status_code;
 
 namespace detail
 {
+  template <class DomainType> class SYSTEM_ERROR2_TRIVIAL_ABI status_code_storage;
+  template <class DomainType, void CheckFunction(detail::status_code_storage<DomainType> *)> class status_code_impl;
+
   SYSTEM_ERROR2_CONSTEXPR20 inline void generic_code_check_throw(int errcode);
 
   template <class StatusCode, class Allocator> class indirecting_domain;
@@ -122,7 +126,10 @@ namespace detail
  */
 class status_code_domain
 {
+  template <class DomainType, void CheckFunction(detail::status_code_storage<DomainType> *)>
+  friend class detail::status_code_impl;
   template <class DomainType> friend class status_code;
+  template <class DomainType> friend class errored_status_code;
   template <class StatusCode, class Allocator> friend class detail::indirecting_domain;
 
 public:
