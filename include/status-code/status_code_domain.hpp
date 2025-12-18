@@ -55,6 +55,9 @@ using generic_code = status_code<_generic_code_domain>;
 
 namespace detail
 {
+  template <class DomainType> class SYSTEM_ERROR2_TRIVIAL_ABI status_code_storage;
+  template <class DomainType, void CheckFunction(detail::status_code_storage<DomainType> *)> class status_code_impl;
+
   SYSTEM_ERROR2_CONSTEXPR20 inline void generic_code_check_throw(int errcode);
 
   template <class StatusCode, class Allocator> class indirecting_domain;
@@ -122,7 +125,9 @@ namespace detail
  */
 class status_code_domain
 {
-  template <class DomainType> friend class status_code;
+  template <class DomainType, void CheckFunction(detail::status_code_storage<DomainType> *)>
+  friend class detail::status_code_impl;
+  friend class status_code<void>;
   template <class StatusCode, class Allocator> friend class detail::indirecting_domain;
 
 public:
