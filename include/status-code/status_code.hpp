@@ -577,7 +577,7 @@ namespace detail
     SYSTEM_ERROR2_TEMPLATE(class ErasedType)  //
     SYSTEM_ERROR2_TREQUIRES(
     SYSTEM_ERROR2_TPRED(detail::domain_value_type_erasure_is_safe<domain_type, detail::erased<ErasedType>>::value))
-    constexpr explicit status_code_impl(const status_code<detail::erased<ErasedType>> &v) noexcept(
+    constexpr explicit status_code_impl(const status_code_impl<detail::erased<ErasedType>> &v) noexcept(
     std::is_nothrow_copy_constructible<value_type>::value)
         : status_code_impl(detail::erasure_cast<value_type>(v.value()))
     {
@@ -877,14 +877,6 @@ public:
       SYSTEM_ERROR2_FATAL("status_code<erased>::clone() failed");
     }
     return x;
-  }
-
-  //! Implicit construct from any similar status code
-  template <void CheckFunction(detail::status_code_storage<detail::erased<ErasedType>> *)>
-  status_code(detail::status_code_impl<detail::erased<ErasedType>, CheckFunction> &&o) noexcept(
-  std::is_nothrow_move_constructible<_base>::value)
-      : _base(static_cast<_base &&>(static_cast<detail::status_code_storage<detail::erased<ErasedType>> &&>(o)))
-  {
   }
 
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a
