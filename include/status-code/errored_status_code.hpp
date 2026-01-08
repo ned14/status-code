@@ -1,5 +1,5 @@
 /* Proposed SG14 status_code
-(C) 2018 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
+(C) 2018-2026 Niall Douglas <http://www.nedproductions.biz/> (5 commits)
 File Created: Jun 2018
 
 
@@ -91,14 +91,14 @@ public:
   SYSTEM_ERROR2_TEMPLATE(class T, class... Args,  //
                          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<
                          T, Args...>::type)  // Safe ADL lookup of make_status_code(), returns void if not found
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(
-  !std::is_same<typename std::decay<T>::type, errored_status_code>::value       // not copy/move of self
-  && !std::is_same<typename std::decay<T>::type, in_place_t>::value             // not in_place_t
-  && is_status_code<MakeStatusCodeResult>::value                                // ADL makes a status code
-  && std::is_constructible<errored_status_code, MakeStatusCodeResult>::value))  // ADLed status code is compatible
+  SYSTEM_ERROR2_TREQUIRES(
+  SYSTEM_ERROR2_TPRED(!std::is_same<typename std::decay<T>::type, errored_status_code>::value  // not copy/move of self
+                      && !std::is_same<typename std::decay<T>::type, in_place_t>::value        // not in_place_t
+                      && is_status_code<MakeStatusCodeResult>::value                  // ADL makes a status code
+                      && std::is_constructible<_base, MakeStatusCodeResult>::value))  // ADLed status code is compatible
   errored_status_code(T &&v,
                       Args &&...args) noexcept(detail::safe_get_make_status_code_noexcept<T, Args...>::value)  // NOLINT
-      : errored_status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
+      : _base(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
     _check();
   }
@@ -264,14 +264,14 @@ public:
   SYSTEM_ERROR2_TEMPLATE(class T, class... Args,  //
                          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<
                          T, Args...>::type)  // Safe ADL lookup of make_status_code(), returns void if not found
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(
-  !std::is_same<typename std::decay<T>::type, errored_status_code>::value       // not copy/move of self
-  && !std::is_same<typename std::decay<T>::type, value_type>::value             // not copy/move of value type
-  && is_status_code<MakeStatusCodeResult>::value                                // ADL makes a status code
-  && std::is_constructible<errored_status_code, MakeStatusCodeResult>::value))  // ADLed status code is compatible
+  SYSTEM_ERROR2_TREQUIRES(
+  SYSTEM_ERROR2_TPRED(!std::is_same<typename std::decay<T>::type, errored_status_code>::value  // not copy/move of self
+                      && !std::is_same<typename std::decay<T>::type, value_type>::value  // not copy/move of value type
+                      && is_status_code<MakeStatusCodeResult>::value                     // ADL makes a status code
+                      && std::is_constructible<_base, MakeStatusCodeResult>::value))  // ADLed status code is compatible
   errored_status_code(T &&v,
                       Args &&...args) noexcept(detail::safe_get_make_status_code_noexcept<T, Args...>::value)  // NOLINT
-      : errored_status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
+      : _base(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
     _check();
   }

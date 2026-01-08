@@ -281,6 +281,14 @@ inline StatusCode make_status_code(ADLHelper1, ADLHelper2)
   return StatusCode(Code::goaway);
 }
 
+static_assert(
+!std::is_void<typename SYSTEM_ERROR2_NAMESPACE::detail::safe_get_make_status_code_result<ADLHelper1>::type>::value,
+"make_status_code(ADLHelper1) isn't found!");
+static_assert(
+!std::is_void<
+typename SYSTEM_ERROR2_NAMESPACE::detail::safe_get_make_status_code_result<ADLHelper1, ADLHelper2>::type>::value,
+"make_status_code(ADLHelper1, ADLHelper2) isn't found!");
+
 namespace another_namespace
 {
   // "Initialiser list" custom status code domain

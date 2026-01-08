@@ -538,14 +538,14 @@ public:
   SYSTEM_ERROR2_TEMPLATE(class T, class... Args,  //
                          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<
                          T, Args...>::type)  // Safe ADL lookup of make_status_code(), returns void if not found
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(
-  !std::is_same<typename std::decay<T>::type, status_code>::value       // not copy/move of self
-  && !std::is_same<typename std::decay<T>::type, in_place_t>::value     // not in_place_t
-  && is_status_code<MakeStatusCodeResult>::value                        // ADL makes a status code
-  && std::is_constructible<status_code, MakeStatusCodeResult>::value))  // ADLed status code is compatible
+  SYSTEM_ERROR2_TREQUIRES(
+  SYSTEM_ERROR2_TPRED(!std::is_same<typename std::decay<T>::type, status_code>::value    // not copy/move of self
+                      && !std::is_same<typename std::decay<T>::type, in_place_t>::value  // not in_place_t
+                      && is_status_code<MakeStatusCodeResult>::value                     // ADL makes a status code
+                      && std::is_constructible<_base, MakeStatusCodeResult>::value))  // ADLed status code is compatible
   constexpr status_code(T &&v, Args &&...args) noexcept(
   detail::safe_get_make_status_code_noexcept<T, Args...>::value)  // NOLINT
-      : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
+      : _base(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
   }
   //! Implicit construction from any `quick_status_code_from_enum<Enum>` enumerated type.
@@ -680,23 +680,33 @@ public:
     return x;
   }
 
-  /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
-  //! Implicit copy construction from any other status code if its value type is trivially copyable, it would fit into
-  //! our storage, and it is not an erased status code.
+  // Recursive ADL lookup bug avoidance for AppleClang and older compilers
+protected:
+  struct _nonerased_to_erased_tag
+  {
+  };
+
+public:
+  constexpr status_code(_nonerased_to_erased_tag, const _base &o)
+      : _base(o)
+  {
+  }
+  constexpr status_code(_nonerased_to_erased_tag, _base &&o)
+      : _base(static_cast<_base &&>(o))
+  {
+  }
   SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
   SYSTEM_ERROR2_TREQUIRES(
   SYSTEM_ERROR2_TPRED(detail::domain_value_type_erasure_is_safe<detail::erased<ErasedType>, DomainType>::value),
   SYSTEM_ERROR2_TPRED(!detail::is_erased_status_code<status_code<typename std::decay<DomainType>::type>>::value))
-  constexpr status_code(const status_code<DomainType> &v) noexcept  // NOLINT
+  constexpr status_code(_nonerased_to_erased_tag, const status_code<DomainType> &v) noexcept  // NOLINT
       : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), detail::erasure_cast<value_type>(v.value()))
   {
   }
-  //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying
-  //! and it would fit into our storage
   SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
   SYSTEM_ERROR2_TREQUIRES(
   SYSTEM_ERROR2_TPRED(detail::domain_value_type_erasure_is_safe<detail::erased<ErasedType>, DomainType>::value))
-  SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept  // NOLINT
+  SYSTEM_ERROR2_CONSTEXPR14 status_code(_nonerased_to_erased_tag, status_code<DomainType> &&v) noexcept  // NOLINT
       : _base(typename _base::_value_type_constructor{}, v._domain_ptr(), detail::erasure_cast<value_type>(v.value()))
   {
     alignas(alignof(typename DomainType::value_type)) char buffer[sizeof(typename DomainType::value_type)];
@@ -705,19 +715,44 @@ public:
     (void) buffer;
     v._domain = nullptr;
   }
+
+public:
+  /***** KEEP THESE IN SYNC WITH ERRORED_STATUS_CODE *****/
+  //! Implicit copy construction from any other status code if its value type is trivially copyable, it would fit into
+  //! our storage, and it is not an erased status code.
+  SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
+  SYSTEM_ERROR2_TREQUIRES(
+  SYSTEM_ERROR2_TPRED(detail::domain_value_type_erasure_is_safe<detail::erased<ErasedType>, DomainType>::value),
+  SYSTEM_ERROR2_TPRED(!detail::is_erased_status_code<status_code<typename std::decay<DomainType>::type>>::value))
+  constexpr status_code(const status_code<DomainType> &v) noexcept  // NOLINT
+      : status_code(_nonerased_to_erased_tag{}, v)
+  {
+  }
+
+  //! Implicit move construction from any other status code if its value type is trivially copyable or move bitcopying
+  //! and it would fit into our storage
+  SYSTEM_ERROR2_TEMPLATE(class DomainType)  //
+  SYSTEM_ERROR2_TREQUIRES(
+  SYSTEM_ERROR2_TPRED(detail::domain_value_type_erasure_is_safe<detail::erased<ErasedType>, DomainType>::value))
+  SYSTEM_ERROR2_CONSTEXPR14 status_code(status_code<DomainType> &&v) noexcept  // NOLINT
+      : status_code(_nonerased_to_erased_tag{}, static_cast<status_code<DomainType> &&>(v))
+  {
+  }
+
   //! Implicit construction from any type where an ADL discovered `make_status_code(T, Args ...)` returns a
   //! `status_code`.
   SYSTEM_ERROR2_TEMPLATE(class T, class... Args,  //
                          class MakeStatusCodeResult = typename detail::safe_get_make_status_code_result<
                          T, Args...>::type)  // Safe ADL lookup of make_status_code(), returns void if not found
-  SYSTEM_ERROR2_TREQUIRES(SYSTEM_ERROR2_TPRED(
-  !std::is_same<typename std::decay<T>::type, status_code>::value       // not copy/move of self
-  && !std::is_same<typename std::decay<T>::type, value_type>::value     // not copy/move of value type
-  && is_status_code<MakeStatusCodeResult>::value                        // ADL makes a status code
-  && std::is_constructible<status_code, MakeStatusCodeResult>::value))  // ADLed status code is compatible
+  SYSTEM_ERROR2_TREQUIRES(
+  SYSTEM_ERROR2_TPRED(!std::is_same<typename std::decay<T>::type, status_code>::value    // not copy/move of self
+                      && !std::is_same<typename std::decay<T>::type, value_type>::value  // not copy/move of value type
+                      && is_status_code<MakeStatusCodeResult>::value                     // ADL makes a status code
+                      && std::is_constructible<status_code, _nonerased_to_erased_tag,
+                                               MakeStatusCodeResult>::value))  // ADLed status code is compatible
   constexpr status_code(T &&v, Args &&...args) noexcept(
   detail::safe_get_make_status_code_noexcept<T, Args...>::value)  // NOLINT
-      : status_code(make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
+      : status_code(_nonerased_to_erased_tag{}, make_status_code(static_cast<T &&>(v), static_cast<Args &&>(args)...))
   {
   }
 
