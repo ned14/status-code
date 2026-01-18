@@ -721,7 +721,7 @@ int main()
     using shared_string_ref = status_code_domain::atomic_refcounted_string_ref;
     const char msg[] = "status test message";
 
-    shared_string_ref shared_str1(strdup(msg));
+    shared_string_ref shared_str1(msg);
     string_ref shared_str2(shared_str1);
     CHECK(!shared_str1.empty());
     CHECK(!shared_str2.empty());
