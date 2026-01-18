@@ -37,6 +37,11 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include "status-code/system_code_from_exception.hpp"
 #endif
 
+#if __has_include(<boost/system.hpp>)
+#include "status-code/boost_error_code.hpp"
+#define TEST_BOOST_SYSTEM_CODE 1
+#endif
+
 #include <cstdio>
 #include <cstring>  // for strdup, strlen
 #include <iostream>
@@ -705,27 +710,57 @@ int main()
 #endif
 
   // Test std_error_code
-  std::error_code error_codes[] = {make_error_code(std::errc::permission_denied), {ERANGE, std::generic_category()}};
-  printf("\n");
-  for(size_t n = 0; n < sizeof(error_codes) / sizeof(error_codes[0]); n++)
   {
-    std_error_code ec(error_codes[n]);
-    printf("error_code[%zu] has domain %s value (%s) and errc::permission_denied == error = %d\n", n,
-           ec.domain().name().c_str(), ec.message().c_str(), static_cast<int>(errc::permission_denied == ec));
-    CHECK(n != 0 || ec == errc::permission_denied);
-  }
-  system_code ec1(error_codes[0]), ec2(error_codes[1]);
-  CHECK(ec1 == errc::permission_denied);
-  CHECK(ec2 == errc::result_out_of_range);
-  {
-    struct error_info
+    std::error_code error_codes[] = {make_error_code(std::errc::permission_denied), {ERANGE, std::generic_category()}};
+    printf("\n");
+    for(size_t n = 0; n < sizeof(error_codes) / sizeof(error_codes[0]); n++)
     {
-      system_code::value_type _system_code;
-      char bytes[16];
-    };
-    static_assert(std::is_constructible<erased_status_code<error_info>, std::error_code>::value,
-                  "An erased status code is not constructible from a std::error_code");
+      std_error_code ec(error_codes[n]);
+      printf("error_code[%zu] has domain %s value (%s) and errc::permission_denied == error = %d\n", n,
+             ec.domain().name().c_str(), ec.message().c_str(), static_cast<int>(errc::permission_denied == ec));
+      CHECK(n != 0 || ec == errc::permission_denied);
+    }
+    system_code ec1(error_codes[0]), ec2(error_codes[1]);
+    CHECK(ec1 == errc::permission_denied);
+    CHECK(ec2 == errc::result_out_of_range);
+    {
+      struct error_info
+      {
+        system_code::value_type _system_code;
+        char bytes[16];
+      };
+      static_assert(std::is_constructible<erased_status_code<error_info>, std::error_code>::value,
+                    "An erased status code is not constructible from a std::error_code");
+    }
   }
+
+#ifdef TEST_BOOST_SYSTEM_CODE
+  // Test boost_error_code
+  {
+    boost::system::error_code error_codes[] = {make_error_code(boost::system::errc::permission_denied),
+                                               {ERANGE, boost::system::generic_category()}};
+    printf("\n");
+    for(size_t n = 0; n < sizeof(error_codes) / sizeof(error_codes[0]); n++)
+    {
+      boost_error_code ec(error_codes[n]);
+      printf("error_code[%zu] has domain %s value (%s) and errc::permission_denied == error = %d\n", n,
+             ec.domain().name().c_str(), ec.message().c_str(), static_cast<int>(errc::permission_denied == ec));
+      CHECK(n != 0 || ec == errc::permission_denied);
+    }
+    system_code ec1(error_codes[0]), ec2(error_codes[1]);
+    CHECK(ec1 == errc::permission_denied);
+    CHECK(ec2 == errc::result_out_of_range);
+    {
+      struct error_info
+      {
+        system_code::value_type _system_code;
+        char bytes[16];
+      };
+      static_assert(std::is_constructible<erased_status_code<error_info>, boost::system::error_code>::value,
+                    "An erased status code is not constructible from a boost::system::error_code");
+    }
+  }
+#endif
 
 #ifndef SYSTEM_ERROR2_NOT_POSIX
   // Test nested_status_code
