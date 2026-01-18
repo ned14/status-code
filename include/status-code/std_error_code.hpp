@@ -114,7 +114,7 @@ public:
   static inline const _std_error_code_domain *get(_error_code_type ec);
 
 protected:
-  SYSTEM_ERROR2_CONSTEXPR20 virtual int _do_name(_vtable_name_args &args) const noexcept override
+  virtual int _do_name(_vtable_name_args &args) const noexcept override
   {
     args.ret = string_ref(_name.c_str(), _name.size());
     return 0;
