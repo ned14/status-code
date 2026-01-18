@@ -28,6 +28,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include "status-code/getaddrinfo_code.hpp"
 #endif
 
+#include "status-code/http_status_code.hpp"
 #include "status-code/iostream_support.hpp"
 #include "status-code/nested_status_code.hpp"
 #include "status-code/std_error_code.hpp"
@@ -420,6 +421,183 @@ inline int out_of_namespace_quick_status_code_test()
   return retcode;
 }
 
+// Test http_status_code functionality
+inline int test_http_status_code_function()
+{
+  using namespace SYSTEM_ERROR2_NAMESPACE;
+  int retcode = 0;
+
+  // Test basic construction and value access
+  {
+    http_status_code empty;
+    CHECK(empty.empty());
+    CHECK(empty.value() == 0);
+
+    http_status_code ok(200);
+    CHECK(!ok.empty());
+    CHECK(ok.value() == 200);
+
+    http_status_code not_found(404);
+    CHECK(!not_found.empty());
+    CHECK(not_found.value() == 404);
+
+    http_status_code server_error(500);
+    CHECK(!server_error.empty());
+    CHECK(server_error.value() == 500);
+  }
+
+  // Test message retrieval
+  {
+    http_status_code ok(200);
+    CHECK(strcmp(ok.message().c_str(), "OK") == 0);
+
+    http_status_code not_found(404);
+    CHECK(strcmp(not_found.message().c_str(), "Not Found") == 0);
+
+    http_status_code server_error(500);
+    CHECK(strcmp(server_error.message().c_str(), "Internal Server Error") == 0);
+
+    http_status_code teapot(418);
+    CHECK(strcmp(teapot.message().c_str(), "I'm a teapot") == 0);
+
+    http_status_code unknown(999);  // Unknown code
+    CHECK(strcmp(unknown.message().c_str(), "Unknown") == 0);
+  }
+
+  // Test success/failure detection
+  {
+    http_status_code success1(199);
+    CHECK(success1.success());
+    CHECK(!success1.failure());
+
+    http_status_code success2(200);
+    CHECK(success2.success());
+    CHECK(!success2.failure());
+
+    http_status_code success3(299);
+    CHECK(success3.success());
+    CHECK(!success3.failure());
+
+    http_status_code redirection(301);
+    CHECK(redirection.success());  // Should be success since it's < 400
+    CHECK(!redirection.failure());
+
+    http_status_code client_error(400);
+    CHECK(client_error.failure());
+    CHECK(!client_error.success());
+
+    http_status_code client_error2(404);
+    CHECK(client_error2.failure());
+    CHECK(!client_error2.success());
+
+    http_status_code server_error(500);
+    CHECK(server_error.failure());
+    CHECK(!server_error.success());
+
+    http_status_code server_error2(599);
+    CHECK(server_error2.failure());
+    CHECK(!server_error2.success());
+  }
+
+  // Test category detection methods
+  {
+    // Test informational (1xx)
+    http_status_code info(101);
+    CHECK(info.is_http_informational());
+    CHECK(!info.is_http_success());
+    CHECK(!info.is_http_redirection());
+    CHECK(!info.is_http_client_error());
+    CHECK(!info.is_http_server_error());
+
+    // Test success (2xx)
+    http_status_code success(201);
+    CHECK(!success.is_http_informational());
+    CHECK(success.is_http_success());
+    CHECK(!success.is_http_redirection());
+    CHECK(!success.is_http_client_error());
+    CHECK(!success.is_http_server_error());
+
+    // Test redirection (3xx)
+    http_status_code redirect(302);
+    CHECK(!redirect.is_http_informational());
+    CHECK(!redirect.is_http_success());
+    CHECK(redirect.is_http_redirection());
+    CHECK(!redirect.is_http_client_error());
+    CHECK(!redirect.is_http_server_error());
+
+    // Test client error (4xx)
+    http_status_code client_err(401);
+    CHECK(!client_err.is_http_informational());
+    CHECK(!client_err.is_http_success());
+    CHECK(!client_err.is_http_redirection());
+    CHECK(client_err.is_http_client_error());
+    CHECK(!client_err.is_http_server_error());
+
+    // Test server error (5xx)
+    http_status_code server_err(502);
+    CHECK(!server_err.is_http_informational());
+    CHECK(!server_err.is_http_success());
+    CHECK(!server_err.is_http_redirection());
+    CHECK(!server_err.is_http_client_error());
+    CHECK(server_err.is_http_server_error());
+  }
+
+  // Test equivalence
+  {
+    http_status_code code1(404);
+    http_status_code code2(404);
+    http_status_code code3(500);
+
+    CHECK(code1 == code2);
+    CHECK(!(code1 == code3));
+    CHECK(code1 != code3);
+    CHECK(!(code1 != code2));
+  }
+
+  // Test generic code mapping through comparison with errc directly
+  {
+    http_status_code bad_request(400);
+    CHECK(bad_request == errc::invalid_argument);
+
+    http_status_code unauthorized(401);
+    CHECK(unauthorized == errc::operation_not_permitted);
+
+    http_status_code forbidden(403);
+    CHECK(forbidden == errc::permission_denied);
+
+    http_status_code not_found(404);
+    CHECK(not_found == errc::no_such_file_or_directory);
+
+    http_status_code timeout(408);
+    CHECK(timeout == errc::timed_out);
+
+    http_status_code service_unavailable(503);
+    CHECK(service_unavailable == errc::resource_unavailable_try_again);
+
+    http_status_code accepted(202);
+    CHECK(accepted == errc::operation_in_progress);
+  }
+
+  // Test domain properties
+  {
+    http_status_code code(200);
+    CHECK(strcmp(code.domain().name().c_str(), "HTTP status domain") == 0);
+  }
+
+  // Test constexpr functionality if supported
+#if __cplusplus >= 202000 || _HAS_CXX20
+  {
+    constexpr http_status_code constexpr_ok(200);
+    static_assert(constexpr_ok.value() == 200);
+    static_assert(constexpr_ok.success());
+    static_assert(!constexpr_ok.failure());
+  }
+#endif
+
+  printf("http_status_code tests passed\n");
+  return retcode;
+}
+
 int main()
 {
   using namespace SYSTEM_ERROR2_NAMESPACE;
@@ -801,6 +979,9 @@ int main()
   // Issue #0054 test
   error issue0054(errc::no_link);
   (void) issue0054;
+
+  // Test http_status_code functionality
+  retcode += test_http_status_code_function();
 
   printf("\nExiting tests with code %d\n", retcode);
   return retcode;
