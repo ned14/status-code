@@ -120,20 +120,20 @@ public:
   static inline const _boost_error_code_domain *get(_error_code_type ec);
 
 protected:
-  virtual int _do_name(_vtable_name_args &args) const noexcept override
+  SYSTEM_ERROR2_CONSTEXPR20 virtual int _do_name(_vtable_name_args &args) const noexcept override
   {
     args.ret = string_ref(_name.c_str(), _name.size());
     return 0;
   }  // NOLINT
 
-  virtual void _do_payload_info(_vtable_payload_info_args &args) const noexcept override
+  SYSTEM_ERROR2_CONSTEXPR20 virtual void _do_payload_info(_vtable_payload_info_args &args) const noexcept override
   {
     args.ret = {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
                 (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) :
                                                                         alignof(status_code_domain *)};
   }
 
-  virtual bool _do_failure(const status_code<void> &code) const noexcept override;
+  SYSTEM_ERROR2_CONSTEXPR20 virtual bool _do_failure(const status_code<void> &code) const noexcept override;
   virtual bool _do_equivalent(const status_code<void> &code1, const status_code<void> &code2) const noexcept override;
   virtual void _do_generic_code(_vtable_generic_code_args &args) const noexcept override;
   virtual int _do_message(_vtable_message_args &args) const noexcept override;
@@ -232,7 +232,8 @@ inline const _boost_error_code_domain *_boost_error_code_domain::get(boost::syst
 }
 
 
-inline bool _boost_error_code_domain::_do_failure(const status_code<void> &code) const noexcept
+SYSTEM_ERROR2_CONSTEXPR20 inline bool
+_boost_error_code_domain::_do_failure(const status_code<void> &code) const noexcept
 {
   assert(code.domain() == *this);
   return static_cast<const boost_error_code &>(code).value() != 0;  // NOLINT

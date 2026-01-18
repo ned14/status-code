@@ -42,7 +42,9 @@ namespace another_namespace
 // To synthesise a custom status code domain for `AnotherCode`, inject the following
 // template specialisation:
 SYSTEM_ERROR2_NAMESPACE_BEGIN
-template <> struct quick_status_code_from_enum<another_namespace::AnotherCode> : quick_status_code_from_enum_defaults<another_namespace::AnotherCode>
+template <>
+struct quick_status_code_from_enum<another_namespace::AnotherCode>
+    : quick_status_code_from_enum_defaults<another_namespace::AnotherCode>
 {
   // Text name of the enum
   static constexpr const auto domain_name = "Another Code";
@@ -79,7 +81,12 @@ SYSTEM_ERROR2_NAMESPACE_END
 namespace another_namespace
 {
   // ADL discovered, must be in same namespace as AnotherCode
-  SYSTEM_ERROR2_CONSTEXPR14 inline SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode> status_code(AnotherCode c) { return SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode>(c); }
+  SYSTEM_ERROR2_CONSTEXPR14 inline SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<
+  another_namespace::AnotherCode>
+  status_code(AnotherCode c)
+  {
+    return SYSTEM_ERROR2_NAMESPACE::quick_status_code_from_enum_code<another_namespace::AnotherCode>(c);
+  }
 }  // namespace another_namespace
 
 

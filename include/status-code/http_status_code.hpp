@@ -79,27 +79,28 @@ public:
   //! Constexpr singleton getter. Returns constexpr http_status_code_domain variable.
   static inline constexpr const _http_status_code_domain &get();
 
-  virtual int _do_name(_vtable_name_args &args) const noexcept override
+protected:
+  SYSTEM_ERROR2_CONSTEXPR20 virtual int _do_name(_vtable_name_args &args) const noexcept override
   {
     args.ret = string_ref("HTTP status domain");
     return 0;
   }  // NOLINT
 
-  virtual void _do_payload_info(_vtable_payload_info_args &args) const noexcept override
+  SYSTEM_ERROR2_CONSTEXPR20 virtual void _do_payload_info(_vtable_payload_info_args &args) const noexcept override
   {
     args.ret = {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
                 (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) :
                                                                         alignof(status_code_domain *)};
   }
 
-protected:
-  virtual bool _do_failure(const status_code<void> &code) const noexcept override  // NOLINT
+  SYSTEM_ERROR2_CONSTEXPR20 virtual bool _do_failure(const status_code<void> &code) const noexcept override  // NOLINT
   {
     assert(code.domain() == *this);                                     // NOLINT
     return static_cast<const http_status_code &>(code).value() >= 400;  // NOLINT
   }
-  virtual bool _do_equivalent(const status_code<void> &code1,
-                              const status_code<void> &code2) const noexcept override  // NOLINT
+  SYSTEM_ERROR2_CONSTEXPR20 virtual bool
+  _do_equivalent(const status_code<void> &code1,
+                 const status_code<void> &code2) const noexcept override  // NOLINT
   {
     assert(code1.domain() == *this);                                // NOLINT
     const auto &c1 = static_cast<const http_status_code &>(code1);  // NOLINT
@@ -110,7 +111,8 @@ protected:
     }
     return false;
   }
-  virtual void _do_generic_code(_vtable_generic_code_args &args) const noexcept override  // NOLINT
+  SYSTEM_ERROR2_CONSTEXPR20 virtual void
+  _do_generic_code(_vtable_generic_code_args &args) const noexcept override  // NOLINT
   {
     assert(args.code.domain() == *this);                               // NOLINT
     const auto &c = static_cast<const http_status_code &>(args.code);  // NOLINT
@@ -163,7 +165,7 @@ protected:
       break;
     }
   }
-  virtual int _do_message(_vtable_message_args &args) const noexcept override  // NOLINT
+  SYSTEM_ERROR2_CONSTEXPR20 virtual int _do_message(_vtable_message_args &args) const noexcept override  // NOLINT
   {
     assert(args.code.domain() == *this);                               // NOLINT
     const auto &c = static_cast<const http_status_code &>(args.code);  // NOLINT

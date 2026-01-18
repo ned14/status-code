@@ -123,11 +123,11 @@ public:
     }
 
   public:
-    explicit string_ref(const _base::string_ref &o)
+    SYSTEM_ERROR2_CONSTEXPR20 explicit string_ref(const _base::string_ref &o)
         : _base::string_ref(o)
     {
     }
-    explicit string_ref(_base::string_ref &&o)
+    SYSTEM_ERROR2_CONSTEXPR20 explicit string_ref(_base::string_ref &&o)
         : _base::string_ref(std::move(o))
     {
     }
@@ -165,19 +165,21 @@ public:
     args.ret = string_ref("Code_category_impl");
     return 0;
   }
-  virtual void _do_payload_info(_vtable_payload_info_args &args) const noexcept override final
+  SYSTEM_ERROR2_CONSTEXPR20 virtual void _do_payload_info(_vtable_payload_info_args &args) const noexcept override final
   {
     args.ret = {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
                 (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) :
                                                                         alignof(status_code_domain *)};
   }
-  virtual bool _do_failure(const system_error2::status_code<void> &code) const noexcept override final  // NOLINT
+  SYSTEM_ERROR2_CONSTEXPR20 virtual bool
+  _do_failure(const system_error2::status_code<void> &code) const noexcept override final  // NOLINT
   {
     assert(code.domain() == *this);
     return (static_cast<size_t>(static_cast<const StatusCode &>(code).value()) & 1) != 0;  // NOLINT
   }
-  virtual bool _do_equivalent(const system_error2::status_code<void> &code1,
-                              const system_error2::status_code<void> &code2) const noexcept override final  // NOLINT
+  SYSTEM_ERROR2_CONSTEXPR20 virtual bool
+  _do_equivalent(const system_error2::status_code<void> &code1,
+                 const system_error2::status_code<void> &code2) const noexcept override final  // NOLINT
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const StatusCode &>(code1);  // NOLINT
@@ -210,7 +212,7 @@ public:
     }
     return false;
   }
-  virtual void _do_generic_code(_vtable_generic_code_args &args) const noexcept override final
+  SYSTEM_ERROR2_CONSTEXPR20 virtual void _do_generic_code(_vtable_generic_code_args &args) const noexcept override final
   {
     assert(args.code.domain() == *this);
     const auto &c1 = static_cast<const StatusCode &>(args.code);  // NOLINT
@@ -229,7 +231,7 @@ public:
     }
     args.ret = {};
   }
-  virtual int _do_message(_vtable_message_args &args) const noexcept override final
+  SYSTEM_ERROR2_CONSTEXPR20 virtual int _do_message(_vtable_message_args &args) const noexcept override final
   {
     assert(args.code.domain() == *this);
     const auto &c1 = static_cast<const StatusCode &>(args.code);  // NOLINT

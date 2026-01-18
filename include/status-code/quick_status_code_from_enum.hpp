@@ -110,12 +110,12 @@ protected:
     return nullptr;
   }
 
-  virtual int _do_name(_vtable_name_args &args) const noexcept override
+  SYSTEM_ERROR2_CONSTEXPR20 virtual int _do_name(_vtable_name_args &args) const noexcept override
   {
     args.ret = string_ref(_src::domain_name);
     return 0;
   }
-  virtual void _do_payload_info(_vtable_payload_info_args &args) const noexcept override
+  SYSTEM_ERROR2_CONSTEXPR20 virtual void _do_payload_info(_vtable_payload_info_args &args) const noexcept override
   {
     args.ret = {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
                 (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) :

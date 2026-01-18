@@ -150,26 +150,27 @@ public:
   static inline constexpr const _com_code_domain &get();
 
 protected:
-  virtual int _do_name(_vtable_name_args &args) const noexcept override
+  SYSTEM_ERROR2_CONSTEXPR20 virtual int _do_name(_vtable_name_args &args) const noexcept override
   {
     args.ret = string_ref("COM domain");
     return 0;
   }  // NOLINT
-  virtual void _do_payload_info(_vtable_payload_info_args &args) const noexcept override
+  SYSTEM_ERROR2_CONSTEXPR20 virtual void _do_payload_info(_vtable_payload_info_args &args) const noexcept override
   {
     args.ret = {sizeof(value_type), sizeof(status_code_domain *) + sizeof(value_type),
                 (alignof(value_type) > alignof(status_code_domain *)) ? alignof(value_type) :
                                                                         alignof(status_code_domain *)};
   }
-  virtual bool _do_failure(const status_code<void> &code) const noexcept override  // NOLINT
+  SYSTEM_ERROR2_CONSTEXPR20 virtual bool _do_failure(const status_code<void> &code) const noexcept override  // NOLINT
   {
     assert(code.domain() == *this);
     return static_cast<const com_code &>(code).value() < 0;  // NOLINT
   }
   /*! Note semantic equivalence testing is only implemented for `FACILITY_WIN32` and `FACILITY_NT_BIT`.
    */
-  virtual bool _do_equivalent(const status_code<void> &code1,
-                              const status_code<void> &code2) const noexcept override  // NOLINT
+  SYSTEM_ERROR2_CONSTEXPR20 virtual bool
+  _do_equivalent(const status_code<void> &code1,
+                 const status_code<void> &code2) const noexcept override  // NOLINT
   {
     assert(code1.domain() == *this);
     const auto &c1 = static_cast<const com_code &>(code1);  // NOLINT
@@ -218,7 +219,7 @@ protected:
     }
     return false;
   }
-  virtual void _do_generic_code(_vtable_generic_code_args &args) const noexcept override
+  SYSTEM_ERROR2_CONSTEXPR20 virtual void _do_generic_code(_vtable_generic_code_args &args) const noexcept override
   {
     assert(args.code.domain() == *this);
     const auto &c1 = static_cast<const com_code &>(args.code);  // NOLINT
@@ -239,7 +240,7 @@ protected:
     }
     args.ret = generic_code(errc::unknown);
   }
-  virtual int _do_message(_vtable_message_args &args) const noexcept override
+  SYSTEM_ERROR2_CONSTEXPR20 virtual int _do_message(_vtable_message_args &args) const noexcept override
   {
     assert(args.code.domain() == *this);
     const auto &c = static_cast<const com_code &>(args.code);  // NOLINT
