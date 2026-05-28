@@ -254,7 +254,7 @@ namespace detail
   }
 #endif
 
-#if(__cplusplus >= 202002L || _MSVC_LANG >= 202002L) && __cpp_lib_remove_cvref >= 201711L
+#if (__cplusplus >= 202002L || _MSVC_LANG >= 202002L) && __cpp_lib_remove_cvref >= 201711L
 
   template <class T> using remove_cvref = std::remove_cvref<T>;
 
@@ -470,7 +470,14 @@ SYSTEM_ERROR2_NAMESPACE_END
 #define SYSTEM_ERROR2_FATAL(msg) abort()
 #else
 #include <cstdlib>  // for abort
+#ifndef SYSTEM_ERROR2_AVOID_STDIO_INCLUDE
 #ifdef __APPLE__
+#define SYSTEM_ERROR2_AVOID_STDIO_INCLUDE 0
+#else
+#define SYSTEM_ERROR2_AVOID_STDIO_INCLUDE 1
+#endif
+#endif
+#if !SYSTEM_ERROR2_AVOID_STDIO_INCLUDE
 #include <unistd.h>  // for write
 #endif
 
@@ -479,17 +486,19 @@ namespace detail
 {
   namespace avoid_stdio_include
   {
+#if SYSTEM_ERROR2_AVOID_STDIO_INCLUDE
 #if !defined(__APPLE__) && !defined(_MSC_VER)
     extern "C" ptrdiff_t write(int, const void *, size_t);
 #elif defined(_MSC_VER)
     extern ptrdiff_t write(int, const void *, size_t);
-#if(defined(__x86_64__) || defined(_M_X64)) || (defined(__aarch64__) || defined(_M_ARM64)) ||                          \
+#if (defined(__x86_64__) || defined(_M_X64)) || (defined(__aarch64__) || defined(_M_ARM64)) ||                         \
 (defined(__arm__) || defined(_M_ARM))
 #pragma comment(linker, "/alternatename:?write@avoid_stdio_include@detail@system_error2@@YA_JHPEBX_K@Z=write")
 #elif defined(__x86__) || defined(_M_IX86) || defined(__i386__)
 #pragma comment(linker, "/alternatename:?write@avoid_stdio_include@detail@system_error2@@YAHHPBXI@Z=_write")
 #else
 #error Unknown architecture
+#endif
 #endif
 #endif
   }  // namespace avoid_stdio_include
