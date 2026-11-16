@@ -170,6 +170,44 @@ static inline DWORD win32_error_from_nt_status(NTSTATUS ntstatus)
   return GetLastError();
 }
 
+// Windows' own Win32 to errno mapping is lossy: it maps none of the pipe teardown codes, so a
+// win32_code or nt_code holding ERROR_BROKEN_PIPE never compared equal to errc::broken_pipe even
+// though the domains compare semantically. State the obvious mappings explicitly.
+// clang-format off
+static constexpr std::pair<int, int> posixoverrides[] = {
+  { 0x6d, EPIPE },     // ERROR_BROKEN_PIPE: the other end of the pipe has gone
+  { 0xe8, EPIPE },     // ERROR_NO_DATA: the pipe is being closed
+  { 0xe9, ENOTCONN },  // ERROR_PIPE_NOT_CONNECTED
+};
+// clang-format on
+
+// The errno the standard library reports for a Win32 code, with the overrides above applied.
+static const char *win32code_to_errc(DWORD win32code)
+{
+  for(auto &o : posixoverrides)
+  {
+    if(static_cast<DWORD>(o.first) == win32code)
+    {
+      for(auto &p : posixmap)
+      {
+        if(p.first == o.second)
+          return p.second;
+      }
+    }
+  }
+  std::error_code ec(win32code, std::system_category());
+  std::error_condition ecnd = ec.default_error_condition();
+  if(ecnd.category() == std::generic_category())
+  {
+    for(auto &p : posixmap)
+    {
+      if(p.first == ecnd.value())
+        return p.second;
+    }
+  }
+  return "0";
+}
+
 int main()
 {
   std::ofstream nt_win32("../include/detail/nt_code_to_win32_code.ipp");
@@ -183,17 +221,7 @@ int main()
         win32code = 0;
       if(win32code != 0 && win32code != 0x13d)
       {
-        std::error_code ec(win32code, std::system_category());
-        std::error_condition ecnd = ec.default_error_condition();
-        const char *errc = "0";
-        if(ecnd.category() == std::generic_category())
-        {
-          for(auto &p : posixmap)
-          {
-            if(p.first == ecnd.value())
-              errc = p.second;
-          }
-        }
+        const char *errc = win32code_to_errc(win32code);
         if(win32code < 0xffff)
           nt_win32 << "case 0x" << std::hex << (unsigned) code << ": return 0x" << win32code << ";\n";
         if(errc[0] != '0')
@@ -205,17 +233,7 @@ int main()
   std::ofstream win32_generic("../include/detail/win32_code_to_generic_code.ipp");
   for(DWORD win32code = 0; win32code <= 0xffff; win32code++)
   {
-    std::error_code ec(win32code, std::system_category());
-    std::error_condition ecnd = ec.default_error_condition();
-    const char *errc = "0";
-    if(ecnd.category() == std::generic_category())
-    {
-      for(auto &p : posixmap)
-      {
-        if(p.first == ecnd.value())
-          errc = p.second;
-      }
-    }
+    const char *errc = win32code_to_errc(win32code);
     if(errc[0] != '0')
       win32_generic << "case 0x" << std::hex << win32code << ": return " << errc << ";\n";
     /* Omissions from the C++ 11 STL mapping */
